@@ -40,12 +40,6 @@ class Trainer:
                 output = self.validate_step(model, input)
                 metrics.step(index, output, target)
 
-    def train_end(self, metrics):
-        pass
-
-    def validate_end(self, metrics):
-        pass
-
     def fit(self, train_loader, val_loader, cfg):
         if self.amp_level:
             cfg.model, cfg.optimizer = amp.initialize(
@@ -53,11 +47,8 @@ class Trainer:
             )
 
         for epoch in range(0, self.max_epochs):
-            # lr = self.optimizer.param_groups[0]["lr"]
             self.train(train_loader, cfg.metrics, cfg.model, cfg.optimizer)
-            self.train_end(cfg.metrics)
             self.validate(val_loader, cfg.metrics, cfg.model)
-            self.validate_end(cfg.metrics)
             if cfg.scheduler:
                 cfg.scheduler.step()
             self.epoch += 1

@@ -8,18 +8,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
-from torch.utils.data import DataLoader
 
 import ivory
 import ivory.torch
-from ivory.torch.dataset import Dataset
+from ivory.torch.data import DataFrameLoaders
 from ivory.utils import kfold_split
 
 
-def create_data(num_samples=100):
-    x = 4 * np.random.rand(num_samples, 2) + 1
-    x = x.astype(np.float32)
-    df = DataFrame(x, columns=["x", "y"])
+def create_data(num_samples=10000):
+    xy = 4 * np.random.rand(num_samples, 2) + 1
+    xy = xy.astype(np.float32)
+    df = DataFrame(xy, columns=["x", "y"])
     dx = 0.1 * (np.random.rand(num_samples) - 0.5)
     dy = 0.1 * (np.random.rand(num_samples) - 0.5)
     df["z"] = ((df.x + dx) * (df.y + dy)).astype(np.float32)
@@ -36,20 +35,10 @@ class Transform:
 
 
 @dataclass
-class DataLoaders:
-    data: DataFrame
-    transform: Optional[Callable] = None
-    batch_size: int = 32
-
-    def __getitem__(self, fold: int):
-        input, target = ["x", "y"], ["z"]
-        df = self.data.query("fold != @fold")
-        dataset = Dataset.from_dataframe(df, input, target, self.transform)
-        train_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
-        df = self.data.query("fold == @fold")
-        dataset = Dataset.from_dataframe(df, input, target)
-        val_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
-        return train_loader, val_loader
+class DataLoaders(DataFrameLoaders):
+    def __post_init__(self):
+        self.input = ["x", "y"]
+        self.target = ["z"]
 
 
 class Model(nn.Module):
@@ -73,12 +62,6 @@ class Trainer(ivory.torch.Trainer):
     def validate_step(self, model, input):
         return model(input)
 
-    def train_end(self, metrics):
-        print(metrics.loss)
-
-    def validate_end(self, metrics):
-        print(metrics.loss)
-
 
 class Objective:
     def __init__(self, min_x=-10, max_x=10):
@@ -90,14 +73,6 @@ class Objective:
         return (x - 2) ** 2
 
 
-def func(x, a=0):
-    return a * x
-
-
-def callback(study, trial):
-    print(trial)
-
-
 @hydra.main(config_path="config.yaml")
 def main(config):
     from omegaconf import OmegaConf
@@ -105,35 +80,18 @@ def main(config):
     config = OmegaConf.load("config.yaml")
     cfg = ivory.utils.parse(config)
     print(cfg.trainer)
-    print(cfg.a)
     train_loader, val_loader = cfg.dataloaders[0]
     print(len(cfg.data))
     print(len(train_loader.dataset))
     print(len(val_loader.dataset))
 
-    next(iter(train_loader))
+    cfg.data
 
     cfg.trainer.fit(train_loader, val_loader, cfg)
 
+    cfg.metrics.dataframe(columns=["a"])
 
-    cfg.metrics.dataframe()
-
-
-
-    cfg.metrics.output
-    cfg.metrics.loss
-    cfg.metrics.index
-
-    index, input, target = next(iter(val_loader))
-    output = cfg.model(input).view(-1)
-    cfg.metrics.criterion(output, target)
-    output
-    target
-
-    cfg.data.shape
-
-    len(val_loader.dataset)
-
+    cfg.data.iloc[9]
 
     # study = optuna.create_study()
     # study.optimize(runner.objective, n_trials=3, callbacks=[callback])
