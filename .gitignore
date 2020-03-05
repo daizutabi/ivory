@@ -1,0 +1,17 @@
+*.pyc
+__pycache__/
+build/
+dist/
+*.egg-info/
+.eggs/
+.coverage.*
+.coverage
+htmlcov/
+.ropeproject/
+.pytest_cache/
+.mypy_cache/
+training_checkpoints/
+*.zip
+annotations/
+.pheasant_cache/
+*.pkl
