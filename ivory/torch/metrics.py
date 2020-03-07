@@ -6,8 +6,8 @@ import pandas as pd
 from pandas import DataFrame
 from torch import Tensor
 
-import ivory
-from ivory.callback import Callback
+from ivory.core.callback import Callback
+from ivory.core.instance import get_attr
 from ivory.torch.utils import cpu
 
 
@@ -18,10 +18,11 @@ class Metrics(Callback):
     monitor: str = "val_loss"
     direction: str = "minimize"
     best_epoch: int = -1
+    best_score: float = np.nan
 
     def __post_init__(self):
         if isinstance(self.criterion, str):
-            self.criterion = ivory.utils.get_attr(self.criterion)
+            self.criterion = get_attr(self.criterion)
         self.epoch_record = []
 
     def __str__(self):
@@ -68,12 +69,16 @@ class Metrics(Callback):
         self.score = DataFrame(self.epoch_record)
         self.score.index.name = "epoch"
         scores = self.score[self.monitor].iloc[:-1]
-        if self.direction == "minimize" and record[self.monitor] < scores.min():
+        if (self.direction == "minimize" and record[self.monitor] < scores.min()) or (
+            self.direction == "maximize" and record[self.monitor] > scores.max()
+        ):
+            self.best_score = record[self.monitor]
             self.best_epoch = cfg.trainer.epoch
             self.best_result = self.dataframe()
-        elif self.direction == "maximize" and record[self.monitor] > scores.max():
-            self.best_epoch = cfg.trainer.epoch
-            self.best_result = self.dataframe()
+        self.log(cfg)
+
+    def log(self, cfg):
+        pass
 
     def stack(self):
         index = np.hstack(self.index)

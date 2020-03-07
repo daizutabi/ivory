@@ -1,12 +1,28 @@
+import numpy as np
 import pytest
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim
+from pandas import DataFrame
 
+from ivory.core.config import Config
 from ivory.torch.data import DataFrameLoaders
 from ivory.torch.metrics import Metrics
 from ivory.torch.trainer import Trainer
-from ivory.utils import Config
+from ivory.utils import kfold_split
+
+
+@pytest.fixture(scope="session")
+def data():
+    num_samples = 1000
+    xy = 4 * np.random.rand(num_samples, 2) + 1
+    xy = xy.astype(np.float32)
+    df = DataFrame(xy, columns=["x", "y"])
+    dx = 0.1 * (np.random.rand(num_samples) - 0.5)
+    dy = 0.1 * (np.random.rand(num_samples) - 0.5)
+    df["z"] = ((df.x + dx) * (df.y + dy)).astype(np.float32)
+    df["fold"] = kfold_split(df.index, n_splits=5)
+    return df
 
 
 @pytest.fixture

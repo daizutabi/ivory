@@ -82,16 +82,28 @@ class Objective:
 
 def main():
     config = OmegaConf.load("config.yaml")
+
+    cfg = ivory.core.instance.instantiate(config)
+    cfg.runner.cfg
+
+
     runner = Runner.create(config)
     runner.cfg.model
     runner.run(fold=0)
     print(runner.cfg.metrics.best_result)
     print(runner.cfg.metrics.best_epoch)
 
+
     data = ivory.utils.instantiate(config, 'data')
+
+    cfg1 = ivory.utils.parse(config, {'data': data})
+    cfg2 = ivory.utils.parse(config, {'data': data})
+    cfg1.data is cfg2.data
+
+
     transform = ivory.utils.instantiate(config, 'transform')
 
-    cfg1 = ivory.utils.parse(config, keys=['data', 'transform'])
+    cfg1 = ivory.utils.parse(config, keys=['data'])
 
     cfg2 = ivory.utils.parse(config, default=cfg1)
 
@@ -100,9 +112,11 @@ def main():
 
     data= runner.cfg.data
     id(data)
-    runner2 = Runner.create(config, {"data":data})
-    data2= runner2.cfg.data
-    id(data2)
+    runner2 = Runner.create(config, cfg1)
+    runner3 = Runner.create(config, cfg1)
+
+    runner2.cfg.data is runner3.cfg.data
+    runner2.cfg.transform is runner3.cfg.transform
 
     # study = optuna.create_study()
     # study.optimize(runner.objective, n_trials=3, callbacks=[callback])
