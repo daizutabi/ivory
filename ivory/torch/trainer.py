@@ -2,11 +2,15 @@ from dataclasses import dataclass
 from typing import Optional
 
 import torch
-from apex import amp
 from tqdm import tqdm
 
 from ivory.callback import CallbackCaller
 from ivory.torch.utils import cuda
+
+try:
+    from apex import amp
+except ImportError:
+    pass
 
 
 @dataclass
