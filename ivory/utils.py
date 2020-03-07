@@ -1,36 +1,37 @@
-import functools
-from typing import Any, Dict
+from importlib import import_module
+from typing import Any, Dict, List
 
-import hydra
 import numpy as np
 from sklearn.model_selection import KFold
 
 
-def fold_array(splitter, x, y=None, groups=None):
+def fold_array(splitter, x, y=None, groups=None) -> np.ndarray:
     fold = np.full(x.shape[0], -1, dtype=np.int8)
     for i, (_, test_index) in enumerate(splitter.split(x, y, groups)):
         fold[test_index] = i
     return fold
 
 
-def kfold_split(x, n_splits=5):
+def kfold_split(x, n_splits=5) -> np.ndarray:
     splitter = KFold(n_splits, random_state=0, shuffle=True)
     return fold_array(splitter, x)
 
 
-def _parse_params(config, exclude, objects=None):
+def get_attr(path: str) -> type:
+    module_path, _, name = path.rpartition(".")
+    module = import_module(module_path)
+    return getattr(module, name)
+
+
+def _parse_params(config: Dict[str, Any], objects: Dict[str, Any]) -> Dict[str, Any]:
     params = {}
     for key in config:
-        if key != exclude:
+        if key not in ["class", "def"]:
             value = config[key]
             if isinstance(value, str):
                 if value == "$":
-                    if objects is None:
-                        raise ValueError("objects argument required.")
                     value = objects[key]
                 elif value.startswith("$."):
-                    if objects is None:
-                        raise ValueError("objects argument required.")
                     value = value[2:]
                     if "." in value:
                         key_, _, rest = value.partition(".")
@@ -41,37 +42,54 @@ def _parse_params(config, exclude, objects=None):
     return params
 
 
-def instantiate(config, objects=None):
+def _instantiate(config: Dict[str, Any], objects: Dict[str, Any]) -> Any:
     if "class" in config:
-        cls = hydra.utils.get_class(config["class"])
-        params = _parse_params(config, "class", objects)
-        return cls(**params)
-    elif "call" in config:
-        func = hydra.utils.get_method(config.call)
-        params = _parse_params(config, "call", objects)
-        return func(**params)
-    elif "function" in config:
-        func = hydra.utils.get_method(config.function)
-        params = _parse_params(config, "function", objects)
-        return functools.partial(func, **params)
+        cls = get_attr(config["class"])
+        return cls(**_parse_params(config, objects))
+    elif "def" in config:
+        func = get_attr(config["def"])
+        return func(**_parse_params(config, objects))
     else:
         return config
 
 
 class Config:
-    def __init__(self, config):
-        for key in config:
-            setattr(self, key, config[key])
+    def __init__(self, config: Dict[str, Any]):
+        self._config = config
 
-    def __getitem__(self, key):
-        return getattr(self, key)
+    def __getattr__(self, key: str):
+        return self._config[key]
+
+    def __getitem__(self, key: str):
+        return self._config[key]
+
+    def __contains__(self, key):
+        return key in self._config
 
 
-def parse(config):
+def parse(
+    config: List[Dict[str, Any]], default: Dict[str, Any] = None, keys: List[str] = None
+) -> Config:
     objects: Dict[str, Any] = {}
-    for key in config:
-        if hasattr(config[key], "keys"):
-            objects[key] = instantiate(config[key], objects)
-        else:
-            objects[key] = config[key]
+    for sub in config:
+        for key in sub:
+            if keys and key not in keys:
+                continue
+            if default and key in default:
+                objects[key] = default[key]
+            elif hasattr(sub[key], "keys"):
+                objects[key] = _instantiate(sub[key], objects)
+            else:
+                objects[key] = sub[key]
     return Config(objects)
+
+
+def instantiate(
+    config: List[Dict[str, Any]], name: str, default: Dict[str, Any] = None
+) -> Any:
+    if default is None:
+        default = {}
+    for sub in config:
+        for key in sub:
+            if key == name:
+                return _instantiate(sub[key], default)

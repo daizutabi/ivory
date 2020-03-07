@@ -1,36 +1,33 @@
-data:
-  call: simple.create_data
-
-transform:
-  class: simple.Transform
-  std: 0
-
-dataloaders:
-  call: simple.DataLoaders
-  data: $
-  transform: $
-  batch_size: 8
-
-metrics:
-  class: simple.Metrics
-  criterion: torch.nn.functional.mse_loss
-
-model:
-  class: simple.Model
-  hidden_size: 10
-
-optimizer:
-  class: torch.optim.SGD
-  params: $.model.parameters()
-  lr: 1e-3
-  weight_decay: 1e-5
-
-scheduler:
-  class: torch.optim.lr_scheduler.StepLR
-  optimizer: $
-  step_size: 5
-  gamma: 0.5
-
-trainer:
-  class: simple.Trainer
-  max_epochs: 10
+- data:
+    def: simple.create_data
+    num_samples: 10000
+- transform:
+    class: simple.Transform
+    std: 0
+- dataloaders:
+    def: simple.DataLoaders
+    data: $
+    transform: $
+    batch_size: 8
+- model:
+    class: simple.Model
+    hidden_sizes: [100]
+- optimizer:
+    class: torch.optim.SGD
+    params: $.model.parameters()
+    lr: 1e-3
+    weight_decay: 1e-5
+- scheduler:
+    class: torch.optim.lr_scheduler.StepLR
+    optimizer: $
+    step_size: 5
+    gamma: 0.5
+- metrics:
+    class: simple.Metrics
+    criterion: torch.nn.functional.mse_loss
+- trainer:
+    class: simple.Trainer
+    gpu: false
+    max_epochs: 20
+- runner:
+    class: simple.Runner

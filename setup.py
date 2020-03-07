@@ -70,5 +70,12 @@ setup(
     license="MIT",
     packages=get_packages("ivory"),
     include_package_data=True,
-    install_requires=["hydra-core", "mlflow", "optuna"],
+    install_requires=[
+        "mlflow",
+        "optuna",
+        "scikit-learn",
+        "omegaconf",
+        "numpy",
+        "pandas",
+    ],
 )

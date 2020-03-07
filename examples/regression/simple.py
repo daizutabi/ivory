@@ -1,12 +1,10 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
 
-import hydra
 import numpy as np
-import optuna
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from omegaconf import OmegaConf
 from pandas import DataFrame
 
 import ivory
@@ -15,7 +13,7 @@ from ivory.torch.data import DataFrameLoaders
 from ivory.utils import kfold_split
 
 
-def create_data(num_samples=10000):
+def create_data(num_samples=1000):
     xy = 4 * np.random.rand(num_samples, 2) + 1
     xy = xy.astype(np.float32)
     df = DataFrame(xy, columns=["x", "y"])
@@ -30,11 +28,13 @@ def create_data(num_samples=10000):
 class Transform:
     std: float = 0
 
-    def __call__(self, input):
-        return (input + self.std * np.random.randn(2)).astype(np.float32)
+    def __call__(self, input, target, mode="train"):
+        if mode == "train":
+            input = (input + self.std * np.random.randn(2)).astype(np.float32)
+        return input, target
 
 
-@dataclass
+@dataclass(repr=False)
 class DataLoaders(DataFrameLoaders):
     def __post_init__(self):
         self.input = ["x", "y"]
@@ -42,25 +42,32 @@ class DataLoaders(DataFrameLoaders):
 
 
 class Model(nn.Module):
-    def __init__(self, hidden_size=4):
+    def __init__(self, hidden_sizes):
         super().__init__()
-        self.fc1 = nn.Linear(2, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, 1)
+        hidden_sizes = list(hidden_sizes)
+        layers = []
+        for in_features, out_features in zip([2] + hidden_sizes, hidden_sizes + [1]):
+            layers.append(nn.Linear(in_features, out_features))
+        self.layers = nn.ModuleList(layers)
 
     def forward(self, x):
-        return self.fc2(F.relu(self.fc1(x)))
+        for layer in self.layers[:-1]:
+            x = F.relu(layer(x))
+        return self.layers[-1](x)
 
 
 class Metrics(ivory.torch.Metrics):
-    pass
+    def evaluate(self, loss, output, target):
+        mse = torch.mean((output - target) ** 2).item()
+        return {"loss": loss, "mse": mse}
 
 
 class Trainer(ivory.torch.Trainer):
-    def train_step(self, model, input):
-        return model(input)
+    pass
 
-    def validate_step(self, model, input):
-        return model(input)
+
+class Runner(ivory.torch.Runner):
+    pass
 
 
 class Objective:
@@ -73,25 +80,29 @@ class Objective:
         return (x - 2) ** 2
 
 
-@hydra.main(config_path="config.yaml")
-def main(config):
-    from omegaconf import OmegaConf
-
+def main():
     config = OmegaConf.load("config.yaml")
-    cfg = ivory.utils.parse(config)
-    print(cfg.trainer)
-    train_loader, val_loader = cfg.dataloaders[0]
-    print(len(cfg.data))
-    print(len(train_loader.dataset))
-    print(len(val_loader.dataset))
+    runner = Runner.create(config)
+    runner.cfg.model
+    runner.run(fold=0)
+    print(runner.cfg.metrics.best_result)
+    print(runner.cfg.metrics.best_epoch)
 
-    cfg.data
+    data = ivory.utils.instantiate(config, 'data')
+    transform = ivory.utils.instantiate(config, 'transform')
 
-    cfg.trainer.fit(train_loader, val_loader, cfg)
+    cfg1 = ivory.utils.parse(config, keys=['data', 'transform'])
 
-    cfg.metrics.dataframe(columns=["a"])
+    cfg2 = ivory.utils.parse(config, default=cfg1)
 
-    cfg.data.iloc[9]
+    cfg2.data is cfg1.data
+    cfg2.transform is cfg1.transform
+
+    data= runner.cfg.data
+    id(data)
+    runner2 = Runner.create(config, {"data":data})
+    data2= runner2.cfg.data
+    id(data2)
 
     # study = optuna.create_study()
     # study.optimize(runner.objective, n_trials=3, callbacks=[callback])
