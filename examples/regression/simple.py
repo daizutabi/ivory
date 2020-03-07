@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import yaml
 from omegaconf import OmegaConf
 from pandas import DataFrame
 
@@ -83,9 +84,22 @@ class Objective:
 def main():
     config = OmegaConf.load("config.yaml")
 
+    with open('config.yaml') as file:
+        yml = yaml.safe_load(file)
+        print(yml)
+
+
+    print(yaml.dump(yml, default_flow_style=False, sort_keys=False))
+
+    a = copy.deepcopy(config)
+    a = copy.copy(config)
+
+    a[0].data.num_samples = 10
+    config[0].data
+    {"data.num_samples": 10}
+
     cfg = ivory.core.instance.instantiate(config)
     cfg.runner.cfg
-
 
     runner = Runner.create(config)
     runner.cfg.model
@@ -93,24 +107,22 @@ def main():
     print(runner.cfg.metrics.best_result)
     print(runner.cfg.metrics.best_epoch)
 
+    data = ivory.utils.instantiate(config, "data")
 
-    data = ivory.utils.instantiate(config, 'data')
-
-    cfg1 = ivory.utils.parse(config, {'data': data})
-    cfg2 = ivory.utils.parse(config, {'data': data})
+    cfg1 = ivory.utils.parse(config, {"data": data})
+    cfg2 = ivory.utils.parse(config, {"data": data})
     cfg1.data is cfg2.data
 
+    transform = ivory.utils.instantiate(config, "transform")
 
-    transform = ivory.utils.instantiate(config, 'transform')
-
-    cfg1 = ivory.utils.parse(config, keys=['data'])
+    cfg1 = ivory.utils.parse(config, keys=["data"])
 
     cfg2 = ivory.utils.parse(config, default=cfg1)
 
     cfg2.data is cfg1.data
     cfg2.transform is cfg1.transform
 
-    data= runner.cfg.data
+    data = runner.cfg.data
     id(data)
     runner2 = Runner.create(config, cfg1)
     runner3 = Runner.create(config, cfg1)

@@ -3,7 +3,7 @@ from ivory.core.instance import instantiate
 
 
 def test_runner(config):
-    config.append({'runner': {'class': 'ivory.core.runner.Runner'}})
+    config.update({'runner': {'class': 'ivory.core.runner.Runner'}})
     runner = create_runner(config)
     assert all(runner.data == [1, 2])
 

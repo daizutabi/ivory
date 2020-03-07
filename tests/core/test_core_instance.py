@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from omegaconf import DictConfig, OmegaConf
 
 from ivory.core.instance import instantiate
 
@@ -16,12 +15,12 @@ def test_parse_multi(config):
     assert isinstance(cfg.series, pd.Series)
     assert cfg.series[0] == 1
 
-    config[1].series.data = "$.data"
+    config['series']['data'] = "$.data"
     cfg = instantiate(config)
     assert cfg.series[0] == 1
     assert len(cfg.series) == 2
 
-    config[1].series.data = "$.data.shape"
+    config['series']['data'] = "$.data.shape"
     cfg = instantiate(config)
     assert cfg.series[0] == 2
     assert len(cfg.series) == 1
@@ -42,9 +41,9 @@ def test_parse_keys(config):
     assert "data" in cfg and "series" not in cfg
 
 
-def test_parse_extra():
-    config = OmegaConf.create([{"data": {"a": 1, "b": 2}}, {"x": 100}])
+def test_instantiate_extra():
+    config = {"data": {"a": 1, "b": 2}, "x": 100}
     cfg = instantiate(config)
-    assert isinstance(cfg.data, DictConfig)
-    assert cfg.data["a"] == 1 and cfg.data.b == 2
+    assert isinstance(cfg.data, dict)
+    assert cfg.data["a"] == 1 and cfg.data['b'] == 2
     assert cfg.x == 100

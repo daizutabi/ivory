@@ -42,18 +42,15 @@ def _instantiate(config: Map, objects: Map) -> Any:
         return config
 
 
-def instantiate(
-    config: List[Map], keys: List[str] = None, default: Map = None,
-) -> Config:
+def instantiate(config: Map, keys: List[str] = None, default: Map = None) -> Config:
     objects: Map = {}
-    for sub in config:
-        for key in sub:
-            if keys and key not in keys:
-                continue
-            if default and key in default:
-                objects[key] = default[key]
-            elif hasattr(sub[key], "keys"):
-                objects[key] = _instantiate(sub[key], objects)
-            else:
-                objects[key] = sub[key]
+    for key in config:
+        if keys and key not in keys:
+            continue
+        if default and key in default:
+            objects[key] = default[key]
+        elif isinstance(config[key], dict):
+            objects[key] = _instantiate(config[key], objects)
+        else:
+            objects[key] = config[key]
     return Config(objects)

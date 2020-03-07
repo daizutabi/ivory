@@ -74,7 +74,6 @@ setup(
         "mlflow",
         "optuna",
         "scikit-learn",
-        "omegaconf",
         "numpy",
         "pandas",
     ],
