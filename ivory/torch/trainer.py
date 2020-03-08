@@ -5,7 +5,6 @@ import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm, trange
 
-from ivory.core.callback import CallbackCaller
 from ivory.torch.utils import cuda
 
 try:
@@ -15,7 +14,7 @@ except ImportError:
 
 
 @dataclass
-class Trainer(CallbackCaller):
+class Trainer:
     epoch: int = -1
     global_step: int = -1
     max_epochs: int = 1000
@@ -66,23 +65,23 @@ class Trainer(CallbackCaller):
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
         with trange(self.epoch + 1, self.epoch + self.max_epochs + 1) as t:
-            self.on_fit_start(run)
+            run.on_fit_start()
             for self.epoch in t:
                 t.set_description(f"epoch={self.epoch:03d}")
-                self.on_epoch_start(run)
-                self.on_train_start(run)
+                run.on_epoch_start()
+                run.on_train_start()
                 self.train(train_loader, run.metrics, run.model, run.optimizer)
-                self.on_train_end(run)
-                self.on_val_start(run)
+                run.on_train_end()
+                run.on_val_start()
                 self.val(val_loader, run.metrics, run.model)
-                self.on_val_end(run)
+                run.on_val_end()
                 try:
-                    self.on_epoch_end(run)
+                    run.on_epoch_end()
                 except StopIteration:
                     t.set_description("Stopped")
                     break
                 finally:
-                    lr = run.optimizer.param_groups[0]["lr"]
+                    lr = run.optimizer.param_groups[0]["lr"]  # FIXME: hard code
                     latest = run.metrics.latest
                     tqdm.write(f"epoch={self.epoch:03d} lr={lr:.1e} {latest}")
                 if run.scheduler:
@@ -92,7 +91,7 @@ class Trainer(CallbackCaller):
                         run.scheduler.step()
                 if self.epoch == self.max_epochs - 1:
                     t.set_description("Finished")
-            self.on_fit_end(run)
+            run.on_fit_end()
 
     def state_dict(self):
         return {

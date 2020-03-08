@@ -15,7 +15,7 @@ from ivory.torch.utils import cpu
 class Metrics(Callback):
     criterion: Callable
     monitor: str = "val_loss"
-    direction: str = "minimize"  # minimize or maximize
+    mode: str = "min"  # min or max
     current_score: float = np.nan
     best_epoch: int = -1
     best_score: float = np.nan
@@ -70,21 +70,25 @@ class Metrics(Callback):
         self.epoch_record.append(record)
         self.history = DataFrame(self.epoch_record)
         self.history.index.name = "epoch"
-        if (
-            self.best_score is np.nan
-            or (self.direction == "minimize" and self.current_score < self.best_score)
-            or (self.direction == "maximize" and self.current_score > self.best_score)
-        ):
+        if self.is_best:
             self.best_score = self.current_score
             self.best_epoch = run.trainer.epoch
-            self.best_output = self.output
+            self.best_output = self.current_output
         self.log(run)
 
     def log(self, run):
         pass
 
     @property
-    def output(self):
+    def is_best(self):
+        return (
+            self.best_score is np.nan
+            or (self.mode == "min" and self.current_score < self.best_score)
+            or (self.mode == "max" and self.current_score > self.best_score)
+        )
+
+    @property
+    def current_output(self):
         index, output = np.hstack(self.batch_index), np.vstack(self.batch_output)
         if self.columns is None:
             if output.shape[1] == 1:

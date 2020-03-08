@@ -1,7 +1,3 @@
-from dataclasses import dataclass, field
-from typing import List
-
-
 class Callback:
     def on_fit_start(self, run):
         pass
@@ -28,34 +24,38 @@ class Callback:
         pass
 
 
-@dataclass
 class CallbackCaller:
-    callbacks: List[Callback] = field(default_factory=list, repr=False)
+    def __iter__(self):
+        raise NotImplementedError
 
-    def call(self, name: str, run):
-        for callback in [run.metrics] + self.callbacks + [run]:
-            getattr(callback, name)(run)
+    def __getitem__(self, key):
+        raise NotImplementedError
 
-    def on_fit_start(self, run):
-        self.call("on_fit_start", run)
+    def call(self, func_name: str):
+        for key in self:
+            if isinstance(self[key], Callback):
+                getattr(self[key], func_name)(self)
 
-    def on_epoch_start(self, run):
-        self.call("on_epoch_start", run)
+    def on_fit_start(self):
+        self.call("on_fit_start")
 
-    def on_train_start(self, run):
-        self.call("on_train_start", run)
+    def on_epoch_start(self):
+        self.call("on_epoch_start")
 
-    def on_train_end(self, run):
-        self.call("on_train_end", run)
+    def on_train_start(self):
+        self.call("on_train_start")
 
-    def on_val_start(self, run):
-        self.call("on_val_start", run)
+    def on_train_end(self):
+        self.call("on_train_end")
 
-    def on_val_end(self, run):
-        self.call("on_val_end", run)
+    def on_val_start(self):
+        self.call("on_val_start")
 
-    def on_epoch_end(self, run):
-        self.call("on_epoch_end", run)
+    def on_val_end(self):
+        self.call("on_val_end")
 
-    def on_fit_end(self, run):
-        self.call("on_fit_end", run)
+    def on_epoch_end(self):
+        self.call("on_epoch_end")
+
+    def on_fit_end(self):
+        self.call("on_fit_end")

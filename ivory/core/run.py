@@ -1,9 +1,11 @@
-from ivory.core.callback import Callback
-from ivory.core.instance import Map, instantiate
+from typing import Any, Dict
+
+from ivory.core.callback import CallbackCaller
+from ivory.core.instance import instantiate
 
 
-class Run(Callback):
-    def __init__(self, config: Map, default: Map = None):
+class Run(CallbackCaller):
+    def __init__(self, config: Dict[str, Any], default: Dict[str, Any] = None):
         self.config = config
         objects = instantiate(config, default=default)
         for key in objects:
