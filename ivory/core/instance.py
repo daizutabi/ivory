@@ -1,8 +1,6 @@
 from importlib import import_module
 from typing import Any, Dict, List
 
-from ivory.core.config import Config
-
 Map = Dict[str, Any]
 
 
@@ -15,19 +13,20 @@ def get_attr(path: str) -> type:
 def parse_params(config: Map, objects: Map) -> Map:
     params = {}
     for key in config:
-        if key not in ["class", "def"]:
-            value = config[key]
-            if isinstance(value, str):
-                if value == "$":
-                    value = objects[key]
-                elif value.startswith("$."):
-                    value = value[2:]
-                    if "." in value:
-                        key_, _, rest = value.partition(".")
-                        value = eval(f"objects[key_].{rest}")
-                    else:
-                        value = objects[value]
-            params[key] = value
+        if key in ["class", "def"]:
+            continue
+        value = config[key]
+        if isinstance(value, str):
+            if value == "$":
+                value = objects[key]
+            elif value.startswith("$."):
+                value = value[2:]
+                if "." in value:
+                    key_, _, rest = value.partition(".")
+                    value = eval(f"objects[key_].{rest}")
+                else:
+                    value = objects[value]
+        params[key] = value
     return params
 
 
@@ -42,10 +41,12 @@ def _instantiate(config: Map, objects: Map) -> Any:
         return config
 
 
-def instantiate(config: Map, keys: List[str] = None, default: Map = None) -> Config:
+def instantiate(config: Map, names: List[str] = None, default: Map = None) -> Map:
     objects: Map = {}
+    if names:
+        assert all(name in config for name in names)
     for key in config:
-        if keys and key not in keys:
+        if names and key not in names:
             continue
         if default and key in default:
             objects[key] = default[key]
@@ -53,4 +54,4 @@ def instantiate(config: Map, keys: List[str] = None, default: Map = None) -> Con
             objects[key] = _instantiate(config[key], objects)
         else:
             objects[key] = config[key]
-    return Config(objects)
+    return objects

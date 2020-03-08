@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 
 import numpy as np
+import optuna
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import yaml
-from omegaconf import OmegaConf
 from pandas import DataFrame
 
 import ivory
@@ -71,67 +70,24 @@ class Runner(ivory.torch.Runner):
     pass
 
 
-class Objective:
-    def __init__(self, min_x=-10, max_x=10):
-        self.min_x = min_x
-        self.max_x = max_x
-
+class Objective(ivory.Objective):
     def __call__(self, trial):
-        x = trial.suggest_uniform("x", self.min_x, self.max_x)
-        return (x - 2) ** 2
+        num_layers = trial.suggest_int("num_layers", 1, 3)
+        for i in range(num_layers):
+            trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
+        print("------")
+        print(trial.params)
+        print("------")
+        runner = self.create_runner(trial.params)
+        runner.run(fold=0)
+        return runner.metrics.best_score
 
 
 def main():
-    config = OmegaConf.load("config.yaml")
-
-    with open('config.yaml') as file:
-        yml = yaml.safe_load(file)
-        print(yml)
-
-
-    print(yaml.dump(yml, default_flow_style=False, sort_keys=False))
-
-    a = copy.deepcopy(config)
-    a = copy.copy(config)
-
-    a[0].data.num_samples = 10
-    config[0].data
-    {"data.num_samples": 10}
-
-    cfg = ivory.core.instance.instantiate(config)
-    cfg.runner.cfg
-
-    runner = Runner.create(config)
-    runner.cfg.model
-    runner.run(fold=0)
-    print(runner.cfg.metrics.best_result)
-    print(runner.cfg.metrics.best_epoch)
-
-    data = ivory.utils.instantiate(config, "data")
-
-    cfg1 = ivory.utils.parse(config, {"data": data})
-    cfg2 = ivory.utils.parse(config, {"data": data})
-    cfg1.data is cfg2.data
-
-    transform = ivory.utils.instantiate(config, "transform")
-
-    cfg1 = ivory.utils.parse(config, keys=["data"])
-
-    cfg2 = ivory.utils.parse(config, default=cfg1)
-
-    cfg2.data is cfg1.data
-    cfg2.transform is cfg1.transform
-
-    data = runner.cfg.data
-    id(data)
-    runner2 = Runner.create(config, cfg1)
-    runner3 = Runner.create(config, cfg1)
-
-    runner2.cfg.data is runner3.cfg.data
-    runner2.cfg.transform is runner3.cfg.transform
-
-    # study = optuna.create_study()
-    # study.optimize(runner.objective, n_trials=3, callbacks=[callback])
+    objective = ivory.create_objective("config.yaml")
+    objective.set_default(["data"])
+    study = optuna.create_study()
+    study.optimize(objective, n_trials=3)
 
 
 if __name__ == "__main__":

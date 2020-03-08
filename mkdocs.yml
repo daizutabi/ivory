@@ -1,0 +1,20 @@
+site_name: Ivory
+site_url: https://ivory.daizutabi.net/
+site_description: Lightweight machine learning framework
+site_author: daizutabi
+
+repo_url: https://github.com/daizutabi/ivory/
+edit_uri: ""
+
+theme: ivory
+
+plugins:
+  - search
+  - pheasant:
+      version: ivory
+
+nav:
+  - Home: index.md
+
+markdown_extensions:
+  - admonition

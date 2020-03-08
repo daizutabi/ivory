@@ -5,9 +5,9 @@ import torch.nn.functional as F
 import torch.optim
 from pandas import DataFrame
 
-from ivory.core.config import Config
 from ivory.torch.data import DataFrameLoaders
 from ivory.torch.metrics import Metrics
+from ivory.torch.runner import Runner
 from ivory.torch.trainer import Trainer
 from ivory.utils import kfold_split
 
@@ -72,7 +72,7 @@ def scheduler(optimizer):
 
 @pytest.fixture
 def cfg(dataloaders, metrics, model, optimizer, scheduler, trainer):
-    return Config(
+    return Runner(
         dict(
             dataloaders=dataloaders,
             metrics=metrics,
