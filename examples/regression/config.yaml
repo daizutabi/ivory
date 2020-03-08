@@ -31,4 +31,4 @@ trainer:
   max_epochs: 7
 objective:
   class: simple.Objective
-  runner: simple.Runner
+  run: simple.Run

@@ -1,16 +1,16 @@
-from ivory.core.runner import Runner
+from ivory.core.run import Run
 from ivory.core.instance import instantiate
 
 
-def test_runner(config):
-    runner = Runner(config)
-    assert all(runner.data == [1, 2])
+def test_run(config):
+    run = Run(config)
+    assert all(run.data == [1, 2])
 
     default = instantiate(config, names=['data'])
-    runner1 = Runner(config)
-    runner2 = Runner(config)
-    assert runner1.data is not runner2.data
-    runner1 = Runner(config, default=default)
-    runner2 = Runner(config, default=default)
-    assert runner1.data is runner2.data
-    assert runner1.data is default['data']
+    run1 = Run(config)
+    run2 = Run(config)
+    assert run1.data is not run2.data
+    run1 = Run(config, default=default)
+    run2 = Run(config, default=default)
+    assert run1.data is run2.data
+    assert run1.data is default['data']

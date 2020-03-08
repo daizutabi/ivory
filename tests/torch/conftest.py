@@ -7,7 +7,7 @@ from pandas import DataFrame
 
 from ivory.torch.data import DataFrameLoaders
 from ivory.torch.metrics import Metrics
-from ivory.torch.runner import Runner
+from ivory.torch.run import Run
 from ivory.torch.trainer import Trainer
 from ivory.utils import kfold_split
 
@@ -71,8 +71,8 @@ def scheduler(optimizer):
 
 
 @pytest.fixture
-def obj(dataloaders, metrics, model, optimizer, scheduler, trainer):
-    return Runner(
+def run(dataloaders, metrics, model, optimizer, scheduler, trainer):
+    return Run(
         dict(
             dataloaders=dataloaders,
             metrics=metrics,

@@ -8,13 +8,13 @@ def step(func, index, target, x):
         func(index, x * target, target)
 
 
-def test_metrics(metrics, obj):
+def test_metrics(metrics, run):
     assert metrics.criterion is F.mse_loss
 
-    metrics.on_epoch_start(obj)
-    metrics.on_val_start(obj)
+    metrics.on_epoch_start(run)
+    metrics.on_val_start(run)
 
-    train_loader, val_loader = obj.dataloaders[0]
+    train_loader, val_loader = run.dataloaders[0]
     it = iter(train_loader)
     index, input, target = next(it)
     loss = metrics.train_step(index, 1.02 * target, target)
@@ -25,7 +25,7 @@ def test_metrics(metrics, obj):
     assert len(metrics.train_batch_record) == 4
     assert len(metrics.val_batch_record) == 3
 
-    metrics.on_epoch_end(obj)
+    metrics.on_epoch_end(run)
     score = metrics.score
     assert len(score) == 1
     assert score.columns.tolist() == ["loss", "val_loss"]
@@ -35,10 +35,10 @@ def test_metrics(metrics, obj):
     )
 
     step(metrics.val_step, index, target, 1.05)
-    metrics.on_epoch_end(obj)
+    metrics.on_epoch_end(run)
     step(metrics.val_step, index, target, 1.02)
-    metrics.on_epoch_end(obj)
+    metrics.on_epoch_end(run)
     step(metrics.val_step, index, target, 1.03)
-    metrics.on_epoch_end(obj)
+    metrics.on_epoch_end(run)
     assert len(metrics.score) == 4
     metrics.score.val_loss.argmin() == 2

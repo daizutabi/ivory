@@ -4,7 +4,7 @@ from typing import List
 import yaml
 
 from ivory.core.instance import Map, get_attr, instantiate
-from ivory.core.runner import Runner
+from ivory.core.run import Run
 from ivory.utils import dot_to_list, to_float, update_dict
 
 
@@ -19,7 +19,7 @@ def create_objective(path):
 
 @dataclass
 class Objective:
-    runner: str
+    run: str
     yaml: str = field(default="", repr=False)
     default: Map = field(default_factory=dict, repr=False)
 
@@ -40,9 +40,9 @@ class Objective:
         config = self.config()
         self.default = instantiate(config, names=names)
 
-    def create_runner(self, update: Map = None) -> Runner:
-        """Create a runner for an optinal update config."""
+    def create_run(self, update: Map = None) -> Run:
+        """Create a run for an optinal update config."""
         config = self.config(update)
         config.pop("objective")
-        cls = get_attr(self.runner)
+        cls = get_attr(self.run)
         return cls(config, default=self.default)

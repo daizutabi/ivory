@@ -44,7 +44,6 @@ class DataLoaders(DataFrameLoaders):
 class Model(nn.Module):
     def __init__(self, hidden_sizes):
         super().__init__()
-        hidden_sizes = list(hidden_sizes)
         layers = []
         for in_features, out_features in zip([2] + hidden_sizes, hidden_sizes + [1]):
             layers.append(nn.Linear(in_features, out_features))
@@ -66,7 +65,7 @@ class Trainer(ivory.torch.Trainer):
     pass
 
 
-class Runner(ivory.torch.Runner):
+class Run(ivory.torch.Run):
     pass
 
 
@@ -75,15 +74,18 @@ class Objective(ivory.Objective):
         num_layers = trial.suggest_int("num_layers", 1, 3)
         for i in range(num_layers):
             trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
-        runner = self.create_runner(trial.params)
-        runner.run(fold=0)
-        return runner.metrics.best_score
+        run = self.create_run(trial.params)
+        run.start(fold=0)
+        return run.metrics.best_score
 
 
 def main():
     objective = ivory.create_objective("config.yaml")
-    runner = objective.create_runner()
+    run = objective.create_run()
 
+    from ivory.torch.callback import dump_checkpoint
+
+    dump_checkpoint(run)
 
     objective.set_default(["data"])
     storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
@@ -91,7 +93,7 @@ def main():
     study = optuna.create_study(
         study_name=study_name, storage=storage, load_if_exists=True
     )
-    study.optimize(objective, n_trials=3, n_jobs=-1)
+    study.optimize(objective, n_trials=3, n_jobs=1)
 
     study.best_params
     objective.config(study.best_params)

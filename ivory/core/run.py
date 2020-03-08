@@ -1,7 +1,7 @@
 from ivory.core.instance import Map, instantiate
 
 
-class Runner:
+class Run:
     def __init__(self, config: Map, default: Map = None):
         self.config = config
         objects = instantiate(config, default=default)
