@@ -81,12 +81,7 @@ class Objective(ivory.Objective):
 
 def main():
     objective = ivory.create_objective("config.yaml")
-    run = objective.create_run()
-
-    from ivory.torch.callback import dump_checkpoint
-
-    dump_checkpoint(run)
-
+    # run = objective.create_run()
     objective.set_default(["data"])
     storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
     study_name = "example-study"

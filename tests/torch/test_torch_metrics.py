@@ -26,12 +26,12 @@ def test_metrics(metrics, run):
     assert len(metrics.val_batch_record) == 3
 
     metrics.on_epoch_end(run)
-    score = metrics.score
-    assert len(score) == 1
-    assert score.columns.tolist() == ["loss", "val_loss"]
-    assert np.allclose(score["loss"].iloc[0], torch.mean((0.02 * target) ** 2).item())
+    history = metrics.history
+    assert len(history) == 1
+    assert history.columns.tolist() == ["loss", "val_loss"]
+    assert np.allclose(history["loss"].iloc[0], torch.mean((0.02 * target) ** 2).item())
     assert np.allclose(
-        score["val_loss"].iloc[0], torch.mean((0.04 * target) ** 2).item()
+        history["val_loss"].iloc[0], torch.mean((0.04 * target) ** 2).item()
     )
 
     step(metrics.val_step, index, target, 1.05)
@@ -40,5 +40,5 @@ def test_metrics(metrics, run):
     metrics.on_epoch_end(run)
     step(metrics.val_step, index, target, 1.03)
     metrics.on_epoch_end(run)
-    assert len(metrics.score) == 4
-    metrics.score.val_loss.argmin() == 2
+    assert len(metrics.history) == 4
+    metrics.history.val_loss.argmin() == 2

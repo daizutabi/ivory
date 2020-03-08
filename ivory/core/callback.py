@@ -33,7 +33,7 @@ class CallbackCaller:
     callbacks: List[Callback] = field(default_factory=list, repr=False)
 
     def call(self, name: str, run):
-        for callback in [run.metrics] + self.callbacks:
+        for callback in [run.metrics] + self.callbacks + [run]:
             getattr(callback, name)(run)
 
     def on_fit_start(self, run):

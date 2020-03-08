@@ -8,15 +8,6 @@ from ivory.core.run import Run
 from ivory.utils import dot_to_list, to_float, update_dict
 
 
-def create_objective(path):
-    with open(path) as file:
-        yml = file.read()
-    config = to_float(yaml.safe_load(yml))
-    objective = instantiate(config["objective"])
-    objective.yaml = yml
-    return objective
-
-
 @dataclass
 class Objective:
     run: str
@@ -46,3 +37,23 @@ class Objective:
         config.pop("objective")
         cls = get_attr(self.run)
         return cls(config, default=self.default)
+
+
+def create_objective(yaml_config_file: str) -> Objective:
+    """Create an Objective instance from a yaml config file.
+
+    Parameters
+    ----------
+    yaml_config_file : str
+        Yaml config file path.
+
+    Returns
+    -------
+    Objective instance.
+    """
+    with open(yaml_config_file) as file:
+        yml = file.read()
+    config = to_float(yaml.safe_load(yml))
+    objective = instantiate(config["objective"])
+    objective.yaml = yml
+    return objective
