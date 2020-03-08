@@ -3,28 +3,28 @@ from typing import List
 
 
 class Callback:
-    def on_fit_start(self, cfg):
+    def on_fit_start(self, obj):
         pass
 
-    def on_epoch_start(self, cfg):
+    def on_epoch_start(self, obj):
         pass
 
-    def on_train_start(self, cfg):
+    def on_train_start(self, obj):
         pass
 
-    def on_train_end(self, cfg):
+    def on_train_end(self, obj):
         pass
 
-    def on_val_start(self, cfg):
+    def on_val_start(self, obj):
         pass
 
-    def on_val_end(self, cfg):
+    def on_val_end(self, obj):
         pass
 
-    def on_epoch_end(self, cfg):
+    def on_epoch_end(self, obj):
         pass
 
-    def on_fit_end(self, cfg):
+    def on_fit_end(self, obj):
         pass
 
 
@@ -32,30 +32,30 @@ class Callback:
 class CallbackCaller:
     callbacks: List[Callback] = field(default_factory=list, repr=False)
 
-    def call(self, name: str, cfg):
-        for callback in [cfg.metrics] + self.callbacks:
-            getattr(callback, name)(cfg)
+    def call(self, name: str, obj):
+        for callback in [obj.metrics] + self.callbacks:
+            getattr(callback, name)(obj)
 
-    def on_fit_start(self, cfg):
-        self.call("on_fit_start", cfg)
+    def on_fit_start(self, obj):
+        self.call("on_fit_start", obj)
 
-    def on_epoch_start(self, cfg):
-        self.call("on_epoch_start", cfg)
+    def on_epoch_start(self, obj):
+        self.call("on_epoch_start", obj)
 
-    def on_train_start(self, cfg):
-        self.call("on_train_start", cfg)
+    def on_train_start(self, obj):
+        self.call("on_train_start", obj)
 
-    def on_train_end(self, cfg):
-        self.call("on_train_end", cfg)
+    def on_train_end(self, obj):
+        self.call("on_train_end", obj)
 
-    def on_val_start(self, cfg):
-        self.call("on_val_start", cfg)
+    def on_val_start(self, obj):
+        self.call("on_val_start", obj)
 
-    def on_val_end(self, cfg):
-        self.call("on_val_end", cfg)
+    def on_val_end(self, obj):
+        self.call("on_val_end", obj)
 
-    def on_epoch_end(self, cfg):
-        self.call("on_epoch_end", cfg)
+    def on_epoch_end(self, obj):
+        self.call("on_epoch_end", obj)
 
-    def on_fit_end(self, cfg):
-        self.call("on_fit_end", cfg)
+    def on_fit_end(self, obj):
+        self.call("on_fit_end", obj)

@@ -1,8 +1,8 @@
-def test_trainer(cfg):
-    trainer = cfg.trainer
-    train_loader, val_loader = cfg.dataloaders[0]
-    trainer.fit(train_loader, val_loader, cfg)
+def test_trainer(obj):
+    trainer = obj.trainer
+    train_loader, val_loader = obj.dataloaders[0]
+    trainer.fit(train_loader, val_loader, obj)
     assert trainer.epoch == 4
-    assert cfg.metrics.score.shape == (5, 2)
-    assert cfg.metrics.best_result.shape == (200, 2)
-    assert cfg.metrics.best_epoch > -1
+    assert obj.metrics.score.shape == (5, 2)
+    assert obj.metrics.best_result.shape == (200, 2)
+    assert obj.metrics.best_epoch > -1

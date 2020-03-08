@@ -41,7 +41,10 @@ def _instantiate(config: Map, objects: Map) -> Any:
         return config
 
 
-def instantiate(config: Map, names: List[str] = None, default: Map = None) -> Map:
+def instantiate(config: Map, names: List[str] = None, default: Map = None) -> Any:
+    if "class" in config or "def" in config:
+        return _instantiate(config, default or {})
+
     objects: Map = {}
     if names:
         assert all(name in config for name in names)

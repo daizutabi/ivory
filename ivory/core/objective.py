@@ -12,7 +12,7 @@ def create_objective(path):
     with open(path) as file:
         yml = file.read()
     config = to_float(yaml.safe_load(yml))
-    objective = instantiate(config, names=["objective"])["objective"]
+    objective = instantiate(config["objective"])
     objective.yaml = yml
     return objective
 

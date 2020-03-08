@@ -5,45 +5,49 @@ from ivory.core.instance import instantiate
 
 
 def test_instantiate_single(config_single):
-    cfg = instantiate(config_single)
-    assert isinstance(cfg['data'], np.ndarray)
-    assert cfg['data'][0] == 1
+    obj = instantiate(config_single)
+    assert isinstance(obj["data"], np.ndarray)
+    assert obj["data"][0] == 1
 
 
 def test_parse_multi(config):
-    cfg = instantiate(config)
-    assert isinstance(cfg['series'], pd.Series)
-    assert cfg['series'][0] == 1
+    obj = instantiate(config)
+    assert isinstance(obj["series"], pd.Series)
+    assert obj["series"][0] == 1
 
     config["series"]["data"] = "$.data"
-    cfg = instantiate(config)
-    assert cfg['series'][0] == 1
-    assert len(cfg['series']) == 2
+    obj = instantiate(config)
+    assert obj["series"][0] == 1
+    assert len(obj["series"]) == 2
 
     config["series"]["data"] = "$.data.shape"
-    cfg = instantiate(config)
-    assert cfg['series'][0] == 2
-    assert len(cfg['series']) == 1
+    obj = instantiate(config)
+    assert obj["series"][0] == 2
+    assert len(obj["series"]) == 1
 
 
 def test_parse_default(config):
-    cfg1 = instantiate(config)
-    cfg2 = instantiate(config)
-    assert cfg1['data'] is not cfg2['data'] and cfg1['series'] is not cfg2['series']
-    cfg2 = instantiate(config, default={"data": cfg1['data']})
-    assert cfg1['data'] is cfg2['data'] and cfg1['series'] is not cfg2['series']
-    cfg2 = instantiate(config, default=cfg1)
-    assert cfg1['data'] is cfg2['data'] and cfg1['series'] is cfg2['series']
+    obj1 = instantiate(config)
+    obj2 = instantiate(config)
+    assert obj1["data"] is not obj2["data"] and obj1["series"] is not obj2["series"]
+    obj2 = instantiate(config, default={"data": obj1["data"]})
+    assert obj1["data"] is obj2["data"] and obj1["series"] is not obj2["series"]
+    obj2 = instantiate(config, default=obj1)
+    assert obj1["data"] is obj2["data"] and obj1["series"] is obj2["series"]
 
 
 def test_parse_keys(config):
-    cfg = instantiate(config, names=["data"])
-    assert "data" in cfg and "series" not in cfg
+    obj = instantiate(config, names=["data"])
+    assert "data" in obj and "series" not in obj
 
 
 def test_instantiate_extra():
     config = {"data": {"a": 1, "b": 2}, "x": 100}
-    cfg = instantiate(config)
-    assert isinstance(cfg['data'], dict)
-    assert cfg['data']["a"] == 1 and cfg['data']["b"] == 2
-    assert cfg['x'] == 100
+    obj = instantiate(config)
+    assert isinstance(obj["data"], dict)
+    assert obj["data"]["a"] == 1 and obj["data"]["b"] == 2
+    assert obj["x"] == 100
+
+    config = {"def": "numpy.array", "object": [1, 2]}
+    obj = instantiate(config)
+    assert isinstance(obj, np.ndarray)

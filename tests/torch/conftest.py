@@ -71,7 +71,7 @@ def scheduler(optimizer):
 
 
 @pytest.fixture
-def cfg(dataloaders, metrics, model, optimizer, scheduler, trainer):
+def obj(dataloaders, metrics, model, optimizer, scheduler, trainer):
     return Runner(
         dict(
             dataloaders=dataloaders,

@@ -75,9 +75,6 @@ class Objective(ivory.Objective):
         num_layers = trial.suggest_int("num_layers", 1, 3)
         for i in range(num_layers):
             trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
-        print("------")
-        print(trial.params)
-        print("------")
         runner = self.create_runner(trial.params)
         runner.run(fold=0)
         return runner.metrics.best_score
@@ -85,9 +82,22 @@ class Objective(ivory.Objective):
 
 def main():
     objective = ivory.create_objective("config.yaml")
+    runner = objective.create_runner()
+
+
     objective.set_default(["data"])
-    study = optuna.create_study()
-    study.optimize(objective, n_trials=3)
+    storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
+    study_name = "example-study"
+    study = optuna.create_study(
+        study_name=study_name, storage=storage, load_if_exists=True
+    )
+    study.optimize(objective, n_trials=3, n_jobs=-1)
+
+    study.best_params
+    objective.config(study.best_params)
+
+    # study.trials_dataframe()
+    # optuna.visualization.plot_optimization_history(study)
 
 
 if __name__ == "__main__":

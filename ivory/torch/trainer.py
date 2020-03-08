@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
 from ivory.core.callback import CallbackCaller
@@ -16,6 +17,7 @@ except ImportError:
 @dataclass
 class Trainer(CallbackCaller):
     epoch: int = -1
+    global_step: int = -1
     max_epochs: int = 1000
     gpu: bool = False
     amp_level: Optional[str] = None
@@ -31,6 +33,7 @@ class Trainer(CallbackCaller):
         lr = optimizer.param_groups[0]["lr"]
         it = tqdm(dataloader, desc=f"LR{lr:.1e}", leave=False)
         for index, input, target in it:
+            self.global_step += 1
             if self.gpu:
                 input = cuda(input)
                 target = cuda(target)
@@ -55,35 +58,54 @@ class Trainer(CallbackCaller):
                 output = self.val_step(model, input)
                 metrics.val_step(index, output, target)
 
-    def fit(self, train_loader, val_loader, cfg):
+    def fit(self, train_loader, val_loader, obj):
+        if (
+            isinstance(obj.scheduler, ReduceLROnPlateau)
+            and obj.metrics.direction != "minimize"
+        ):
+            raise ValueError("metrics direction should be 'minimize'")
         if self.gpu:
-            cfg.model.cuda()
+            obj.model.cuda()
             if self.amp_level:
-                cfg.model, cfg.optimizer = amp.initialize(
-                    cfg.model, cfg.optimizer, opt_level=self.amp_level
+                obj.model, obj.optimizer = amp.initialize(
+                    obj.model, obj.optimizer, opt_level=self.amp_level
                 )
 
-        self.on_fit_start(cfg)
         it = range(self.epoch + 1, self.epoch + self.max_epochs + 1)
         with tqdm(it) as t:
+            self.on_fit_start(obj)
             for self.epoch in t:
                 t.set_description(f"epoch={self.epoch:03d}")
-                self.on_epoch_start(cfg)
-                self.on_train_start(cfg)
-                self.train(train_loader, cfg.metrics, cfg.model, cfg.optimizer)
-                self.on_train_end(cfg)
-                self.on_val_start(cfg)
-                self.val(val_loader, cfg.metrics, cfg.model)
-                self.on_val_end(cfg)
-                if cfg.scheduler:
-                    cfg.scheduler.step()
+                self.on_epoch_start(obj)
+                self.on_train_start(obj)
+                self.train(train_loader, obj.metrics, obj.model, obj.optimizer)
+                self.on_train_end(obj)
+                self.on_val_start(obj)
+                self.val(val_loader, obj.metrics, obj.model)
+                self.on_val_end(obj)
                 try:
-                    self.on_epoch_end(cfg)
+                    self.on_epoch_end(obj)
                 except StopIteration:
                     t.set_description("Stopped")
                     break
                 finally:
-                    tqdm.write(f"epoch={self.epoch:03d} {cfg.metrics}")
+                    lr = obj.optimizer.param_groups[0]["lr"]
+                    tqdm.write(f"epoch={self.epoch:03d} lr={lr:.1e} {obj.metrics}")
+                if obj.scheduler:
+                    if isinstance(obj.scheduler, ReduceLROnPlateau):
+                        obj.scheduler.step(obj.metrics.current_score)
+                    else:
+                        obj.scheduler.step()
                 if self.epoch == self.max_epochs - 1:
                     t.set_description("Finished")
-            self.on_fit_end(cfg)
+            self.on_fit_end(obj)
+
+    def state_dict(self):
+        return {
+            "epoch": self.epoch,
+            "global_step": self.global_step,
+        }
+
+    def load_state_dict(self, state_dict):
+        self.epoch = state_dict["epoch"]
+        self.global_step = state_dict["global_step"]
