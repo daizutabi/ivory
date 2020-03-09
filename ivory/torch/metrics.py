@@ -2,11 +2,11 @@ from typing import Any, Dict, Tuple
 
 from torch import Tensor
 
-import ivory.core.metrics
+import ivory.callbacks
 from ivory.torch.utils import cpu
 
 
-class Metrics(ivory.core.metrics.Metrics):
+class Metrics(ivory.callbacks.Metrics):
     def evaluate(self, loss, output, target) -> Dict[str, float]:
         return {"loss": loss.item()}
 

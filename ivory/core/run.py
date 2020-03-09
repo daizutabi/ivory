@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from ivory.core.callbacks import CallbackCaller
+from ivory.callbacks import CallbackCaller
 from ivory.core.instance import instantiate
 
 
@@ -26,5 +26,8 @@ class Run(CallbackCaller):
     def start(self, fold: int = 0):
         raise NotImplementedError
 
-    def dump(self):
+    def save(self, path):
+        raise NotImplementedError
+
+    def load(self, path):
         raise NotImplementedError

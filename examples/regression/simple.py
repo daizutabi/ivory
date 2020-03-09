@@ -76,7 +76,7 @@ class Objective(ivory.Objective):
         for i in range(num_layers):
             trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
         run = self.create_run(trial.params)
-        run.start(fold=0)
+        run.start()
         return run.metrics.best_score
 
 

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 
-from ivory.core.callbacks import Callback
+from ivory.callbacks import Callback
 from ivory.core.instance import get_attr
 
 
@@ -71,7 +71,7 @@ class Metrics(Callback):
             self.history = self.history.append(self.current_record)
         if self.is_best:
             self.best_score = self.current_score
-            self.best_epoch = run.trainer.epoch
+            self.best_epoch = self.current_epoch
             self.best_output = self.current_output
         self.log(run)
 

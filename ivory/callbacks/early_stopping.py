@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 
-from ivory.core.callbacks import Callback
+from ivory.callbacks import Callback
 
 
 @dataclass

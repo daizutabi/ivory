@@ -15,6 +15,7 @@ except ImportError:
 
 @dataclass
 class Trainer:
+    fold: int = 0
     epoch: int = -1
     global_step: int = -1
     max_epochs: int = 1000
@@ -57,7 +58,8 @@ class Trainer:
                 output = self.val_step(model, input)
                 metrics.val_step(index, output, target)
 
-    def fit(self, train_loader, val_loader, run):
+    def fit(self, run):
+        train_loader, val_loader = run.dataloaders[self.fold]
         if self.gpu:
             run.model.cuda()
             if self.amp_level:
@@ -95,10 +97,12 @@ class Trainer:
 
     def state_dict(self):
         return {
+            "fold": self.fold,
             "epoch": self.epoch,
             "global_step": self.global_step,
         }
 
     def load_state_dict(self, state_dict):
+        self.fold = state_dict["fold"]
         self.epoch = state_dict["epoch"]
         self.global_step = state_dict["global_step"]

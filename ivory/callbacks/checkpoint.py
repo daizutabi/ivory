@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ivory.core.callback import Callback
+from ivory.callbacks import Callback
 
 
 @dataclass

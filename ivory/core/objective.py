@@ -10,7 +10,7 @@ from ivory.utils import dot_to_list, to_float, update_dict
 
 @dataclass
 class Objective:
-    run: str
+    run: str  # class name of Run to be created.
     yaml: str = field(default="", repr=False)
     default: Map = field(default_factory=dict, repr=False)
 
