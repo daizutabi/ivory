@@ -10,12 +10,12 @@ def get_attr(path: str) -> type:
     return getattr(module, name)
 
 
-def parse_params(config: Map, objects: Map) -> Map:
-    params = {}
-    for key in config:
+def parse_params(params: Map, objects: Map) -> Map:
+    parsed = {}
+    for key in params:
         if key in ["class", "def"]:
             continue
-        value = config[key]
+        value = params[key]
         if isinstance(value, str):
             if value == "$":
                 value = objects[key]
@@ -26,35 +26,35 @@ def parse_params(config: Map, objects: Map) -> Map:
                     value = eval(f"objects[key_].{rest}")
                 else:
                     value = objects[value]
-        params[key] = value
-    return params
+        parsed[key] = value
+    return parsed
 
 
-def _instantiate(config: Map, objects: Map) -> Any:
-    if "class" in config:
-        cls = get_attr(config["class"])
-        return cls(**parse_params(config, objects))
-    elif "def" in config:
-        func = get_attr(config["def"])
-        return func(**parse_params(config, objects))
+def _instantiate(params: Map, objects: Map) -> Any:
+    if "class" in params:
+        cls = get_attr(params["class"])
+        return cls(**parse_params(params, objects))
+    elif "def" in params:
+        func = get_attr(params["def"])
+        return func(**parse_params(params, objects))
     else:
-        return config
+        return params
 
 
-def instantiate(config: Map, names: List[str] = None, default: Map = None) -> Any:
-    if "class" in config or "def" in config:
-        return _instantiate(config, default or {})
+def instantiate(params: Map, names: List[str] = None, default: Map = None) -> Any:
+    if "class" in params or "def" in params:
+        return _instantiate(params, default or {})
 
     objects: Map = {}
     if names:
-        assert all(name in config for name in names)
-    for key in config:
+        assert all(name in params for name in names)
+    for key in params:
         if names and key not in names:
             continue
         if default and key in default:
             objects[key] = default[key]
-        elif isinstance(config[key], dict):
-            objects[key] = _instantiate(config[key], objects)
+        elif isinstance(params[key], dict):
+            objects[key] = _instantiate(params[key], objects)
         else:
-            objects[key] = config[key]
+            objects[key] = params[key]
     return objects

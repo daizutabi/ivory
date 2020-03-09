@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict
 
 import numpy as np
@@ -31,6 +32,14 @@ def to_float(x):
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
+    """Update dict using dot-notation.
+
+    Examples:
+        >>> x = {"a": 1, "b": {"x": "abc", "y": 2, "z": [0, 1, 2]}}
+        >>> update_dict(x, {"b": {"z": [0]}, "b.x": "def"})
+        >>> x
+        {'a': 1, 'b': {'x': 'def', 'y': 2, 'z': [0]}}
+    """
     for key, value in update.items():
         x = org
         attrs = key.split(".")
@@ -48,6 +57,13 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
 
 
 def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert suffix integers into list.
+
+    Example:
+        >>> x = {"a.0": 1, "a.1": 3, "b.x.0": 10, "b.x.1": 20}
+        >>> dot_to_list(x)
+        {'a': [1, 3], 'b.x': [10, 20]}
+    """
     update: Dict[str, Any] = {}
     for key, value in x.items():
         head, _, tail = key.rpartition(".")
@@ -64,3 +80,22 @@ def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
         else:
             update[key] = value
     return update
+
+
+def format_name_by_dict(name: str, params: Dict[str, Any]):
+    """Format name with `{xxx.yyy}` by dict.
+
+    Examples:
+       >>> name = r"{model.name}-{data.num_samples}"
+       >>> params = {"model": {"name": "abc"}, "data": {"num_samples": 100}}
+       >>> format_name_by_dict(name, params)
+       'abc-100'
+    """
+
+    def replace(match):
+        x = params
+        for m in match.group(1).split("."):
+            x = x[m]
+        return str(x)
+
+    return re.sub(r"\{(.*?)\}", replace, name)

@@ -70,7 +70,7 @@ class Run(ivory.torch.Run):
     pass
 
 
-class Objective(ivory.Objective):
+class Experiment(ivory.core.Experiment):
     def __call__(self, trial):
         num_layers = trial.suggest_int("num_layers", 1, 3)
         for i in range(num_layers):
@@ -81,18 +81,20 @@ class Objective(ivory.Objective):
 
 
 def main():
-    objective = ivory.create_objective("config.yaml")
+    experiment = ivory.create_experiment("params.yaml")
+    experiment.name
+    experiment.set_default(["data"])
+
     # run = objective.create_run()
-    objective.set_default(["data"])
     storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
     study_name = "example-study"
     study = optuna.create_study(
         study_name=study_name, storage=storage, load_if_exists=True
     )
-    study.optimize(objective, n_trials=3, n_jobs=1)
+    study.optimize(experiment, n_trials=3, n_jobs=1)
 
     study.best_params
-    objective.config(study.best_params)
+    experiment.params(study.best_params)
 
     # study.trials_dataframe()
     # optuna.visualization.plot_optimization_history(study)

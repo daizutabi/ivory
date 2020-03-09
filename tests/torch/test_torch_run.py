@@ -7,4 +7,4 @@ def test_dump(run):
     assert "optimizer" in checkpoint
     assert "scheduler" in checkpoint
     assert "trainer" in checkpoint
-    assert "config" in checkpoint
+    assert "params" in checkpoint

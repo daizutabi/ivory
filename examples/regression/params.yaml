@@ -27,10 +27,14 @@ metrics:
   criterion: torch.nn.functional.mse_loss
 early_stopping:
   class: ivory.callbacks.EarlyStopping
+tracking:
+  class: ivory.callbacks.Tracking
 trainer:
   class: simple.Trainer
   gpu: false
   max_epochs: 7
-objective:
-  class: simple.Objective
-  run: simple.Run
+experiment:
+  class: simple.Experiment
+  name: "N{data.num_samples}"
+  run_class: simple.Run
+  run_name: "{model.hidden_sizes}"

@@ -5,14 +5,14 @@ import ivory.core.run
 
 def dump(run):
     checkpoint = {x: run[x].state_dict() for x in run if hasattr(run[x], "state_dict")}
-    checkpoint["config"] = run.config
+    checkpoint["params"] = run.params
     return checkpoint
 
 
 def store(run, checkpoint):
     for x in checkpoint:
-        if x == "config":
-            run.config = checkpoint["config"]
+        if x == "params":
+            run.params = checkpoint["params"]
         else:
             run[x].load_state_dict(checkpoint[x])
 
