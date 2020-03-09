@@ -25,14 +25,15 @@ scheduler:
 metrics:
   class: simple.Metrics
   criterion: torch.nn.functional.mse_loss
-early_stopping:
-  class: ivory.callbacks.EarlyStopping
 tracking:
   class: ivory.callbacks.Tracking
+early_stopping:
+  class: ivory.callbacks.EarlyStopping
 trainer:
   class: simple.Trainer
   gpu: false
-  max_epochs: 7
+  max_epochs: 20
+  verbose: 0
 experiment:
   class: simple.Experiment
   name: "N{data.num_samples}"

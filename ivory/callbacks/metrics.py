@@ -33,7 +33,7 @@ class Metrics(Callback):
     @property
     def latest(self):
         record = self.history.iloc[-1]
-        s = " ".join([f"{index}={record[index]:.04f}" for index in record.index])
+        s = " ".join([f"{index}={record[index]:.2e}" for index in record.index])
         if self.current_score == self.best_score:
             s += " *"
         return s
@@ -62,6 +62,7 @@ class Metrics(Callback):
         self.current_epoch = run.trainer.epoch
         self.current_record = pd.concat([train_epoch_record, val_epoch_record])
         self.current_record.name = self.current_epoch
+        self.on_current_record(run)
         self.current_score = self.current_record[self.monitor]
         self.current_output = self.output
         if self.history is None:
@@ -75,15 +76,18 @@ class Metrics(Callback):
             self.best_output = self.current_output
         self.log(run)
 
+    def on_current_record(self, run):
+        pass
+
     def log(self, run):
         pass
 
     @property
     def is_best(self):
         if self.mode == "min":
-            return self.current_score < self.best_score
+            return self.current_score <= self.best_score  # = is needed for tracking.
         else:
-            return self.current_score > self.best_score
+            return self.current_score >= self.best_score
 
     @property
     def output(self):
@@ -101,7 +105,6 @@ class Metrics(Callback):
             "best_score": self.best_score,
             "best_epoch": self.best_epoch,
             "best_output": self.best_output,
-            "current_output": self.current_output,
             "history": self.history,
         }
 
@@ -109,5 +112,4 @@ class Metrics(Callback):
         self.best_score = state_dict["best_score"]
         self.best_epoch = state_dict["best_epoch"]
         self.best_output = state_dict["best_output"]
-        self.current_output = state_dict["current_output"]
         self.history = state_dict["history"]

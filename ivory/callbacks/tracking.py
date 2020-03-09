@@ -1,24 +1,56 @@
+import os
+import shutil
+import tempfile
+import time
+
 import mlflow
+import yaml
+from mlflow.entities import Metric, Param
+from mlflow.tracking.context import registry as context_registry
 
 from ivory.callbacks import Callback
 
 
 class Tracking(Callback):
+    @classmethod
+    def on_experiment_start(cls, experiment):
+        cls.client = mlflow.tracking.MlflowClient()
+        exp = cls.client.get_experiment_by_name(experiment.name)
+        if exp is not None:
+            cls.experiment_id = exp.experiment_id
+        else:
+            cls.experiment_id = cls.client.create_experiment(experiment.name)
+
     def on_fit_start(self, run):
-        self.experiment_id = mlflow.get_experiment_by_name(run.experiment.name)
-        if self.experiment_id is None:
-            self.experiment_id = mlflow.create_experiment(run.experiment.name)
-        with mlflow.start_run(experiment_id=self.experiment_id, run_name=run.name) as r:
-            self.run_id = r.info.run_id
-            mlflow.log_params(run.params)
+        self.directory = tempfile.mkdtemp()
+        os.mkdir(os.path.join(self.directory, "current"))
+        tags = context_registry.resolve_tags()
+        self.run_id = self.client.create_run(self.experiment_id, tags=tags).info.run_id
+        self.log_params(run.params)
+        path = os.path.join(self.directory, "params.yaml")
+        with open(path, "w") as file:
+            yaml.dump(run.params, file, sort_keys=False)
 
     def on_epoch_end(self, run):
-        metrics = run.metrics
-        with mlflow.start_run(self.run_id):
-            mlflow.log_metrics(dict(metrics.current_recode), metrics.current_epoch)
+        self.log_metrics(dict(run.metrics.current_record), run.metrics.current_epoch)
+        src = os.path.join(self.directory, "current")
+        run.save(src)
+        if run.metrics.is_best:
+            dst = os.path.join(self.directory, "best")
+            if os.path.exists(dst):
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
 
     def on_fit_end(self, run):
-        pass
-        # metrics = run.metrics
-        # with mlflow.start_run(self.run_id):
-        #     mlflow.log_metrics(dict(metrics.current_recode), metrics.current_epoch)
+        self.client.log_artifacts(self.run_id, self.directory)
+        self.client.set_terminated(self.run_id)
+        shutil.rmtree(self.directory)
+
+    def log_params(self, params):
+        params = [Param(key, str(value)) for key, value in params.items()]
+        self.client.log_batch(self.run_id, metrics=[], params=params, tags=[])
+
+    def log_metrics(self, metrics, step=0):
+        ts = int(time.time() * 1000)  # timestamp in milliseconds.
+        metrics = [Metric(key, value, ts, step) for key, value in metrics.items()]
+        self.client.log_batch(self.run_id, metrics=metrics, params=[], tags=[])

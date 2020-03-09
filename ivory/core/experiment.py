@@ -4,7 +4,8 @@ from typing import Any, Dict, List
 import yaml
 
 import ivory
-from ivory.core.instance import get_attr, instantiate
+from ivory.callbacks.base import Callback
+from ivory.core.instance import get_attr, get_classes, instantiate
 from ivory.core.run import Run
 from ivory.utils import dot_to_list, format_name_by_dict, to_float, update_dict
 
@@ -16,6 +17,11 @@ class Experiment:
     run_name: str
     yaml: str = field(default="", repr=False)
     default: Dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def start(self):
+        for cls in get_classes(self.params()):
+            if issubclass(cls, Callback):
+                cls.on_experiment_start(self)
 
     def params(self, update: Dict[str, Any] = None) -> Dict[str, Any]:
         """Return a newly created params dictionary for each run.

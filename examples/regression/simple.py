@@ -82,16 +82,13 @@ class Experiment(ivory.core.Experiment):
 
 def main():
     experiment = ivory.create_experiment("params.yaml")
-    experiment.name
     experiment.set_default(["data"])
-
-    # run = objective.create_run()
+    experiment.start()
     storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
-    study_name = "example-study"
     study = optuna.create_study(
-        study_name=study_name, storage=storage, load_if_exists=True
+        study_name=experiment.name, storage=storage, load_if_exists=True
     )
-    study.optimize(experiment, n_trials=3, n_jobs=1)
+    study.optimize(experiment, n_trials=20, n_jobs=-1)
 
     study.best_params
     experiment.params(study.best_params)

@@ -59,7 +59,7 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
 def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
     """Convert suffix integers into list.
 
-    Example:
+    Examples:
         >>> x = {"a.0": 1, "a.1": 3, "b.x.0": 10, "b.x.1": 20}
         >>> dot_to_list(x)
         {'a': [1, 3], 'b.x': [10, 20]}
@@ -82,14 +82,32 @@ def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
     return update
 
 
+def dot_flatten(x: Dict[str, Any], flattened=None, prefix="") -> Dict[str, Any]:
+    """Flatten dict in dot-format.
+
+    Examples:
+        >>> params = {"model": {"name": "abc", "x": {"a": 1, "b": 2}}}
+        >>> dot_flatten(params)
+        {'model.name': 'abc', 'model.x.a': 1, 'model.x.b': 2}
+    """
+    if flattened is None:
+        flattened = {}
+    for key, value in x.items():
+        if isinstance(value, dict):
+            dot_flatten(x[key], flattened, prefix + key + ".")
+        else:
+            flattened[prefix + key] = value
+    return flattened
+
+
 def format_name_by_dict(name: str, params: Dict[str, Any]):
     """Format name with `{xxx.yyy}` by dict.
 
     Examples:
-       >>> name = r"{model.name}-{data.num_samples}"
-       >>> params = {"model": {"name": "abc"}, "data": {"num_samples": 100}}
-       >>> format_name_by_dict(name, params)
-       'abc-100'
+        >>> name = r"{model.name}-{data.num_samples}"
+        >>> params = {"model": {"name": "abc"}, "data": {"num_samples": 100}}
+        >>> format_name_by_dict(name, params)
+        'abc-100'
     """
 
     def replace(match):

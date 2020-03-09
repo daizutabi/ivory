@@ -10,6 +10,12 @@ def get_attr(path: str) -> type:
     return getattr(module, name)
 
 
+def get_classes(params: Map):
+    for key in params:
+        if isinstance(params[key], dict) and "class" in params[key]:
+            yield get_attr(params[key]["class"])
+
+
 def parse_params(params: Map, objects: Map) -> Map:
     parsed = {}
     for key in params:

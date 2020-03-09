@@ -22,3 +22,6 @@ class Metrics(ivory.callbacks.Metrics):
         if output.device.type != "cpu":
             output = cpu(output)
         return output, record
+
+    def on_current_record(self, run):
+        self.current_record["lr"] = run.optimizer.param_groups[0]["lr"]

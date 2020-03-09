@@ -28,7 +28,7 @@ def test_metrics(metrics, run):
     metrics.on_epoch_end(run)
     history = metrics.history
     assert len(history) == 1
-    assert history.columns.tolist() == ["loss", "val_loss"]
+    assert history.columns.tolist() == ["loss", "val_loss", "lr"]
     assert np.allclose(history["loss"].iloc[0], torch.mean((0.02 * target) ** 2).item())
     assert np.allclose(
         history["val_loss"].iloc[0], torch.mean((0.04 * target) ** 2).item()

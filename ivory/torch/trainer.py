@@ -3,7 +3,7 @@ from typing import Optional
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 from ivory.torch.utils import cuda
 
@@ -21,6 +21,7 @@ class Trainer:
     max_epochs: int = 1000
     gpu: bool = False
     amp_level: Optional[str] = None
+    verbose: int = 1
 
     def train_step(self, model, input):
         return model(input)
@@ -31,8 +32,9 @@ class Trainer:
     def train(self, dataloader, metrics, model, optimizer):
         model.train()
         lr = optimizer.param_groups[0]["lr"]
-        it = tqdm(dataloader, desc=f"LR{lr:.1e}", leave=False)
-        for index, input, target in it:
+        if self.verbose == 1:
+            dataloader = tqdm(dataloader, desc=f"LR{lr:.1e}", leave=False)
+        for index, input, target in dataloader:
             self.global_step += 1
             if self.gpu:
                 input = cuda(input)
@@ -49,9 +51,10 @@ class Trainer:
 
     def val(self, dataloader, metrics, model):
         model.eval()
+        if self.verbose == 1:
+            dataloader = tqdm(dataloader, desc="-Validate", leave=False)
         with torch.no_grad():
-            it = tqdm(dataloader, desc="-Validate", leave=False)
-            for index, input, target in it:
+            for index, input, target in dataloader:
                 if self.gpu:
                     input = cuda(input)
                     target = cuda(target)
@@ -66,34 +69,28 @@ class Trainer:
                 run.model, run.optimizer = amp.initialize(
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
-        with trange(self.epoch + 1, self.epoch + self.max_epochs + 1) as t:
-            run.on_fit_start()
-            for self.epoch in t:
-                t.set_description(f"epoch={self.epoch:03d}")
-                run.on_epoch_start()
-                run.on_train_start()
-                self.train(train_loader, run.metrics, run.model, run.optimizer)
-                run.on_train_end()
-                run.on_val_start()
-                self.val(val_loader, run.metrics, run.model)
-                run.on_val_end()
-                try:
-                    run.on_epoch_end()
-                except StopIteration:
-                    t.set_description("Stopped ")
-                    break
-                finally:
-                    lr = run.optimizer.param_groups[0]["lr"]  # FIXME: hard code
-                    latest = run.metrics.latest
-                    tqdm.write(f"epoch={self.epoch:03d} lr={lr:.1e} {latest}")
-                if run.scheduler:
-                    if isinstance(run.scheduler, ReduceLROnPlateau):
-                        run.scheduler.step(run.metrics.current_score)
-                    else:
-                        run.scheduler.step()
-                if self.epoch == self.max_epochs - 1:
-                    t.set_description("Finished")
-            run.on_fit_end()
+        it = range(self.epoch + 1, self.epoch + self.max_epochs + 1)
+        for self.epoch in tqdm(it) if self.verbose == 1 else it:
+            run.on_epoch_start()
+            run.on_train_start()
+            self.train(train_loader, run.metrics, run.model, run.optimizer)
+            run.on_train_end()
+            run.on_val_start()
+            self.val(val_loader, run.metrics, run.model)
+            run.on_val_end()
+            try:
+                run.on_epoch_end()
+            except StopIteration:
+                break
+            finally:
+                latest = run.metrics.latest
+                if self.verbose:
+                    tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {latest}")
+            if run.scheduler:
+                if isinstance(run.scheduler, ReduceLROnPlateau):
+                    run.scheduler.step(run.metrics.current_score)
+                else:
+                    run.scheduler.step()
 
     def state_dict(self):
         return {

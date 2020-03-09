@@ -1,4 +1,8 @@
 class Callback:
+    @classmethod
+    def on_experiment_start(cls, experiment):
+        pass
+
     def on_fit_start(self, run):
         pass
 
