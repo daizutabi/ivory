@@ -78,7 +78,7 @@ class Trainer:
                 try:
                     run.on_epoch_end()
                 except StopIteration:
-                    t.set_description("Stopped")
+                    t.set_description("Stopped ")
                     break
                 finally:
                     lr = run.optimizer.param_groups[0]["lr"]  # FIXME: hard code

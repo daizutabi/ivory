@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from ivory.core.callback import CallbackCaller
+from ivory.core.callbacks import CallbackCaller
 from ivory.core.instance import instantiate
 
 

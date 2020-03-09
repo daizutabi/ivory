@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Dict
 
 import numpy as np
 import optuna
@@ -56,9 +57,9 @@ class Model(nn.Module):
 
 
 class Metrics(ivory.torch.Metrics):
-    def evaluate(self, loss, output, target):
+    def evaluate(self, loss, output, target) -> Dict[str, float]:
         mse = torch.mean((output - target) ** 2).item()
-        return {"loss": loss, "mse": mse}
+        return {"loss": loss.item(), "mse": mse}
 
 
 class Trainer(ivory.torch.Trainer):

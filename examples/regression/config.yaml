@@ -25,6 +25,8 @@ scheduler:
 metrics:
   class: simple.Metrics
   criterion: torch.nn.functional.mse_loss
+early_stopping:
+  class: ivory.core.callbacks.EarlyStopping
 trainer:
   class: simple.Trainer
   gpu: false
