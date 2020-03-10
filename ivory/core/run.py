@@ -51,7 +51,5 @@ def create_run(update: Dict[str, Any] = None, experiment=None) -> Run:
     experiment = experiment or ivory.active_experiment
     if experiment is None:
         raise ValueError("active experiment does not exist.")
-
     run = experiment.create_run(update)
-    ivory.active_run = run
     return run

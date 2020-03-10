@@ -4,6 +4,8 @@ import ivory
 
 def test_experiment(path):
     experiment = ivory.create_experiment(path)
+    ivory.active_experiment = None
+    experiment.start()
     assert experiment is ivory.active_experiment
     assert experiment.name == "example"
     assert experiment.run_name == "abc"
@@ -25,7 +27,7 @@ def test_experiment(path):
     assert run.name == "jkl"
 
     run = ivory.create_run()
-    assert run is ivory.active_run
+    assert run.experiment is ivory.active_experiment
 
     ivory.active_experiment = None
     with pytest.raises(ValueError):

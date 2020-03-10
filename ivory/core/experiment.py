@@ -22,6 +22,7 @@ class Experiment:
         for cls in get_classes(self.params()):
             if issubclass(cls, Callback):
                 cls.on_experiment_start(self)
+        ivory.active_experiment = self
 
     def params(self, update: Dict[str, Any] = None) -> Dict[str, Any]:
         """Return a newly created params dictionary for each run.
@@ -73,5 +74,4 @@ def create_experiment(yaml_params_file: str) -> Experiment:
     experiment = instantiate(params["experiment"])
     experiment.name = format_name_by_dict(experiment.name, params)
     experiment.yaml = yml
-    ivory.active_experiment = experiment
     return experiment
