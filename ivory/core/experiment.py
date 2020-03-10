@@ -15,8 +15,15 @@ class Experiment:
     name: str
     run_class: str
     run_name: str
+    shared: List[str] = field(default_factory=list)
     yaml: str = field(default="", repr=False)
     default: Dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def set_yaml(self, yaml):
+        self.yaml = yaml
+        self.name = format_name_by_dict(self.name, self.params())
+        if self.shared:
+            self.set_default(self.shared)
 
     def start(self):
         for cls in get_classes(self.params()):
@@ -41,16 +48,18 @@ class Experiment:
         params = self.params()
         self.default = instantiate(params, names=names)
 
-    def create_run(self, update: Dict[str, Any] = None) -> Run:
+    def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
         """Create a run for an optional update params.
 
-        `update` dict can be used for hyper parameter tuning.
+        Args:
+            update: dict can be used for hyper parameter tuning.
+            callbacks: dynamically created callbacks (for example optuna pruning)
         """
         params = self.params(update)
         cls = get_attr(self.run_class)
         if "experiment" not in self.default:
             self.default.update(experiment=self)
-        run = cls(params, default=self.default)
+        run = cls(params, default=self.default, callbacks=callbacks)
         run_name = params["experiment"]["run_name"]
         run.name = format_name_by_dict(run_name, params)
         return run
@@ -72,6 +81,5 @@ def create_experiment(yaml_params_file: str) -> Experiment:
         yml = file.read()
     params = to_float(yaml.safe_load(yml))
     experiment = instantiate(params["experiment"])
-    experiment.name = format_name_by_dict(experiment.name, params)
-    experiment.yaml = yml
+    experiment.set_yaml(yml)
     return experiment

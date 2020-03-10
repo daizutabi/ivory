@@ -6,7 +6,10 @@ from ivory.core.instance import instantiate
 
 
 class Run(CallbackCaller):
-    def __init__(self, params: Dict[str, Any], default: Dict[str, Any] = None):
+    def __init__(
+        self, params: Dict[str, Any], default: Dict[str, Any] = None, callbacks=None
+    ):
+        super().__init__(callbacks)
         self.name = None
         self.params = params
         objects = instantiate(params, default=default)
@@ -46,10 +49,10 @@ class Run(CallbackCaller):
         raise NotImplementedError
 
 
-def create_run(update: Dict[str, Any] = None, experiment=None) -> Run:
+def create_run(update: Dict[str, Any] = None, experiment=None, callbacks=None) -> Run:
     """Create a run for an optinal update params."""
     experiment = experiment or ivory.active_experiment
     if experiment is None:
         raise ValueError("active experiment does not exist.")
-    run = experiment.create_run(update)
+    run = experiment.create_run(update, callbacks=callbacks)
     return run

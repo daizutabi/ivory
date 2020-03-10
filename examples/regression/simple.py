@@ -9,7 +9,6 @@ import torch.nn.functional as F
 from pandas import DataFrame
 
 import ivory
-import ivory.torch
 from ivory.torch.data import DataFrameLoaders
 from ivory.utils import kfold_split
 
@@ -62,39 +61,39 @@ class Metrics(ivory.torch.Metrics):
         return {"loss": loss.item(), "mse": mse}
 
 
-class Trainer(ivory.torch.Trainer):
-    pass
+def objective(trial):
+    # for i in range(trial.suggest_int("num_layers", 1, 3)):
+    #     trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
+    trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
+    # pruning = ivory.callbacks.Pruning(trial, "val_loss")
+    # run = ivory.create_run(trial.params, callbacks=[pruning])
+    run = ivory.create_run(trial.params)
+    # run.name = f"#{trial.number}"
+    run.start()
+    # trial.set_user_attr("run_id", run.tracking.run_id)
+    return run.metrics.best_score
 
 
-class Run(ivory.torch.Run):
-    pass
+def optimize():
+    experiment = ivory.create_experiment("params.yaml")
+    experiment.start()
 
+    study = optuna.create_study(
+        study_name="8",
+        storage="mysql+mysqldb://daizu:tabi@localhost/optuna",
+        load_if_exists=True,
+        pruner=optuna.pruners.MedianPruner(),
+    )
 
-class Experiment(ivory.core.Experiment):
-    def __call__(self, trial):
-        num_layers = trial.suggest_int("num_layers", 1, 3)
-        for i in range(num_layers):
-            trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
-        run = self.create_run(trial.params)
-        run.start()
-        return run.metrics.best_score
+    # study.set_user_attr("experiment_id", ivory.callbacks.Tracking.experiment_id)
+    study.optimize(objective, n_trials=20, n_jobs=-1)
+
+    # optuna.visualization.plot_slice(study)
+    # study.trials[1].user_attrs
 
 
 def main():
-    experiment = ivory.create_experiment("params.yaml")
-    experiment.set_default(["data"])
-    experiment.start()
-    storage = "mysql+mysqldb://daizu:tabi@localhost/optuna"
-    study = optuna.create_study(
-        study_name=experiment.name, storage=storage, load_if_exists=True
-    )
-    study.optimize(experiment, n_trials=20, n_jobs=-1)
-
-    study.best_params
-    experiment.params(study.best_params)
-
-    # study.trials_dataframe()
-    # optuna.visualization.plot_optimization_history(study)
+    optimize()
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import mlflow
 import yaml
 from mlflow.entities import Metric, Param
 from mlflow.tracking.context import registry as context_registry
+from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 
 from ivory.callbacks import Callback
 
@@ -24,8 +25,9 @@ class Tracking(Callback):
     def on_fit_start(self, run):
         self.directory = tempfile.mkdtemp()
         os.mkdir(os.path.join(self.directory, "current"))
-        tags = context_registry.resolve_tags()
-        self.run_id = self.client.create_run(self.experiment_id, tags=tags).info.run_id
+        tags = context_registry.resolve_tags({MLFLOW_RUN_NAME: run.name})
+        r = self.client.create_run(self.experiment_id, tags=tags)
+        self.run_id = r.info.run_id
         self.log_params(run.params)
         path = os.path.join(self.directory, "params.yaml")
         with open(path, "w") as file:

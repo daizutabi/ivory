@@ -29,6 +29,9 @@ class Callback:
 
 
 class CallbackCaller:
+    def __init__(self, callbacks=None):
+        self.callbacks = callbacks or []
+
     def __iter__(self):
         raise NotImplementedError
 
@@ -39,6 +42,8 @@ class CallbackCaller:
         for key in self:
             if isinstance(self[key], Callback):
                 getattr(self[key], func_name)(self)
+        for callback in self.callbacks:
+            getattr(callback, func_name)(self)
 
     def on_fit_start(self):
         self.call("on_fit_start")

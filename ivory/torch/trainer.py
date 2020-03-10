@@ -31,8 +31,8 @@ class Trainer:
 
     def train(self, dataloader, metrics, model, optimizer):
         model.train()
-        lr = optimizer.param_groups[0]["lr"]
         if self.verbose == 1:
+            lr = optimizer.param_groups[0]["lr"]
             dataloader = tqdm(dataloader, desc=f"LR{lr:.1e}", leave=False)
         for index, input, target in dataloader:
             self.global_step += 1
@@ -83,8 +83,8 @@ class Trainer:
             except StopIteration:
                 break
             finally:
-                latest = run.metrics.latest
                 if self.verbose:
+                    latest = run.metrics.latest
                     tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {latest}")
             if run.scheduler:
                 if isinstance(run.scheduler, ReduceLROnPlateau):
