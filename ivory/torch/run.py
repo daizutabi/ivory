@@ -2,10 +2,10 @@ import os
 
 import torch
 
-import ivory.core.run
+import ivory
 
 
-class Run(ivory.core.run.Run):
+class Run(ivory.core.Run):
     def save(self, directory):
         for key, state_dict in self.state_dict().items():
             path = os.path.join(directory, f"{key}.pt")

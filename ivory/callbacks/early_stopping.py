@@ -26,6 +26,8 @@ class EarlyStopping(Callback):
     mode: str = "min"
     patience: int = 0
     min_delta: float = 0.0
+    best_score: float = np.nan
+    wait: int = -1
 
     @property
     def is_best(self):
@@ -35,8 +37,10 @@ class EarlyStopping(Callback):
             return self.current_score - self.min_delta > self.best_score
 
     def on_fit_start(self, run):
-        self.wait = 0
-        self.best_score = np.inf if self.mode == "min" else -np.inf
+        if self.wait == -1:
+            self.wait = 0
+        if self.best_score is np.nan:
+            self.best_score = np.inf if self.mode == "min" else -np.inf
 
     def on_epoch_end(self, run):
         self.current_score = run.metrics.current_record[self.monitor]
@@ -47,3 +51,10 @@ class EarlyStopping(Callback):
             self.wait += 1
             if self.wait >= self.patience:
                 raise StopIteration
+
+    def state_dict(self):
+        return {"best_score": self.best_score, "wait": self.wait}
+
+    def load_state_dict(self, state_dict):
+        self.best_score = state_dict["best_score"]
+        self.wait = state_dict["wait"]

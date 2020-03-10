@@ -50,7 +50,8 @@ class Experiment:
         if "experiment" not in self.default:
             self.default.update(experiment=self)
         run = cls(params, default=self.default)
-        run.name = format_name_by_dict(self.run_name, params)
+        run_name = params["experiment"]["run_name"]
+        run.name = format_name_by_dict(run_name, params)
         return run
 
 

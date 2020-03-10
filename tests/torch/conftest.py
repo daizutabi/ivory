@@ -1,3 +1,4 @@
+import mlflow
 import numpy as np
 import pytest
 import torch.nn as nn
@@ -5,6 +6,7 @@ import torch.nn.functional as F
 import torch.optim
 from pandas import DataFrame
 
+from ivory.callbacks import EarlyStopping, Tracking
 from ivory.torch.data import DataFrameLoaders
 from ivory.torch.metrics import Metrics
 from ivory.torch.run import Run
@@ -12,7 +14,7 @@ from ivory.torch.trainer import Trainer
 from ivory.utils import kfold_split
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def data():
     num_samples = 1000
     xy = 4 * np.random.rand(num_samples, 2) + 1
@@ -35,9 +37,15 @@ def metrics():
     return Metrics(criterion="torch.nn.functional.mse_loss")
 
 
-@pytest.fixture
-def trainer():
-    return Trainer(max_epochs=5)
+if torch.cuda.is_available():
+    gpu_amp = [(False, None), (True, None)]
+else:
+    gpu_amp = [(False, None)]
+
+
+@pytest.fixture(params=gpu_amp)
+def trainer(request):
+    return Trainer(max_epochs=5, gpu=request.param[0], amp_level=request.param[1])
 
 
 class Model(nn.Module):
@@ -55,23 +63,44 @@ class Model(nn.Module):
         return self.layers[-1](x)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def model():
     return Model(hidden_sizes=[10])
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def optimizer(model):
     return torch.optim.SGD(model.parameters(), lr=1e-3)
 
 
-@pytest.fixture(scope="session")
-def scheduler(optimizer):
-    return torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+@pytest.fixture(params=["step", 'reduce'])
+def scheduler(request, optimizer):
+    if request.param == "step":
+        return torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    else:
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
 
-@pytest.fixture
-def run(dataloaders, metrics, model, optimizer, scheduler, trainer):
+@pytest.fixture()
+def early_stopping():
+    return EarlyStopping(patience=100)
+
+
+@pytest.fixture()
+def tracking(tmpdir):
+    tmpdir = str(tmpdir)
+    if "\\" in tmpdir:
+        tracking_uri = "file:///" + str(tmpdir).replace("\\", "/")
+    else:
+        tracking_uri = "file:" + str(tmpdir)
+    mlflow.set_tracking_uri(tracking_uri)
+    return Tracking()
+
+
+@pytest.fixture()
+def run(
+    dataloaders, metrics, model, optimizer, scheduler, early_stopping, tracking, trainer
+):
     return Run(
         dict(
             dataloaders=dataloaders,
@@ -79,6 +108,8 @@ def run(dataloaders, metrics, model, optimizer, scheduler, trainer):
             model=model,
             optimizer=optimizer,
             scheduler=scheduler,
+            early_stopping=early_stopping,
+            tracking=tracking,
             trainer=trainer,
         )
     )
