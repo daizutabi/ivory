@@ -44,6 +44,10 @@ class Tracking(Callback):
             shutil.copytree(src, dst)
 
     def on_fit_end(self, run):
+        if run.metrics.best_epoch != -1:
+            self.log_metrics(
+                {"best_score": run.metrics.best_score}, run.metrics.best_epoch
+            )
         self.client.log_artifacts(self.run_id, self.directory)
         self.client.set_terminated(self.run_id)
         shutil.rmtree(self.directory)

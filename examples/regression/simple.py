@@ -65,12 +65,11 @@ def objective(trial):
     # for i in range(trial.suggest_int("num_layers", 1, 3)):
     #     trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
     trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
-    # pruning = ivory.callbacks.Pruning(trial, "val_loss")
-    # run = ivory.create_run(trial.params, callbacks=[pruning])
-    run = ivory.create_run(trial.params)
-    # run.name = f"#{trial.number}"
+    pruning = ivory.callbacks.Pruning(trial, "val_loss")
+    run = ivory.create_run(trial.params, callbacks=[pruning])
+    run.name = f"#{trial.number}"
     run.start()
-    # trial.set_user_attr("run_id", run.tracking.run_id)
+    trial.set_user_attr("run_id", run.tracking.run_id)
     return run.metrics.best_score
 
 
@@ -85,8 +84,8 @@ def optimize():
         pruner=optuna.pruners.MedianPruner(),
     )
 
-    # study.set_user_attr("experiment_id", ivory.callbacks.Tracking.experiment_id)
-    study.optimize(objective, n_trials=20, n_jobs=-1)
+    study.set_user_attr("experiment_id", ivory.callbacks.Tracking.experiment_id)
+    study.optimize(objective, n_trials=50, n_jobs=-1)
 
     # optuna.visualization.plot_slice(study)
     # study.trials[1].user_attrs

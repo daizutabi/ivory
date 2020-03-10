@@ -18,28 +18,25 @@ optimizer:
   lr: 1e-3
   weight_decay: 1e-5
 scheduler:
-  class: torch.optim.lr_scheduler.StepLR
-  # class: torch.optim.lr_scheduler.ReduceLROnPlateau
+  class: torch.optim.lr_scheduler.ReduceLROnPlateau
   optimizer: $
-  # factor: 0.5
-  # patience: 5
-  step_size: 5
-  gamma: 0.5
+  factor: 0.5
+  patience: 4
 metrics:
   class: simple.Metrics
   criterion: torch.nn.functional.mse_loss
-# tracking:
-#   class: ivory.callbacks.Tracking
+tracking:
+  class: ivory.callbacks.Tracking
 early_stopping:
   class: ivory.callbacks.EarlyStopping
-  patience: 10
+  patience: 8
 trainer:
   class: ivory.torch.Trainer
-  max_epochs: 20
+  max_epochs: 200
   verbose: 0
 experiment:
   class: ivory.Experiment
   name: "N{data.num_samples}-6"
   run_class: ivory.torch.Run
-  run_name: "{model.hidden_sizes}"
+  run_name: ""
   shared: [data]
