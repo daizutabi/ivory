@@ -1,0 +1,8 @@
+data:
+  def: create_data
+  num_samples: 60
+dataloaders:
+  class: ivory.torch.DataLoaders
+  input: $.data.0
+  input: $.target.0
+  batch_size: 10

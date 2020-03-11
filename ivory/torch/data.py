@@ -82,7 +82,8 @@ class DataLoaders:
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        s = f"{cls_name}(num_folds={len(self)}, input_shape={self.input.shape[1:]}"
+        s = f"{cls_name}(num_folds={len(self)}, num_samples={len(self.input)}"
+        s += f", input_shape={self.input.shape[1:]}"
         if self.target is not None:
             s += f", target_shape={self.target.shape[1:]}"
         return s + ")"

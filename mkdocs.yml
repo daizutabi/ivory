@@ -1,6 +1,6 @@
 site_name: Ivory
 site_url: https://ivory.daizutabi.net/
-site_description: Lightweight machine learning framework
+site_description: A Lightweight machine learning framework
 site_author: daizutabi
 site_dir: ../ivory-site/site
 
@@ -13,9 +13,16 @@ plugins:
   - search
   - pheasant:
       version: ivory
+      jupyter: true
+      header:
+        disabled: true
 
 nav:
   - Home: index.md
+  - Tutorial:
+      Experiment: tutorial/experiment.md
+      Data: tutorial/data.md
+
 
 markdown_extensions:
   - admonition

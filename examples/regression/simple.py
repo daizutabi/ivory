@@ -68,6 +68,7 @@ def objective(trial):
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
     experiment.start()
+    experiment
     run = experiment.create_run()
     next(iter(run.dataloaders[0][0]))
 

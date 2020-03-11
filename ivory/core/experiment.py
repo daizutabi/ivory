@@ -17,10 +17,10 @@ class Experiment:
     run_class: str = "ivory.core.Run"
     shared: List[str] = field(default_factory=list)
     num_runs: int = 0
-    params_path: str = ""
 
     def __post_init__(self):
         self.run_cls = get_attr(self.run_class)
+        self.params_path = None
         self.yaml = None
         self.default = None
         self.shared_keys = None
@@ -81,6 +81,8 @@ class Experiment:
         self.num_runs += 1
         name = self.get_run_name()
         params = self.params(update)
+        if callbacks is None:
+            callbacks = []
         return self.run_cls(
             name=name, params=params, default=self.default, callbacks=callbacks
         )

@@ -6,6 +6,8 @@ Map = Dict[str, Any]
 
 
 def get_attr(path: str) -> type:
+    if "." not in path:
+        path = f"__main__.{path}"
     module_path, _, name = path.rpartition(".")
     module = import_module(module_path)
     return getattr(module, name)
