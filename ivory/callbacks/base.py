@@ -1,3 +1,7 @@
+from dataclasses import dataclass, field
+from typing import List
+
+
 class Callback:
     @classmethod
     def on_experiment_start(cls, experiment):
@@ -28,9 +32,9 @@ class Callback:
         pass
 
 
+@dataclass
 class CallbackCaller:
-    def __init__(self, callbacks=None):
-        self.callbacks = callbacks or []
+    callbacks: List[Callback] = field(default_factory=list)
 
     def __iter__(self):
         raise NotImplementedError

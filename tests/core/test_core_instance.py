@@ -1,7 +1,8 @@
 import numpy as np
+import pytest
 import pandas as pd
 
-from ivory.core.instance import get_classes, instantiate
+from ivory.core.instance import get_classes, instantiate,parse_value
 
 
 def test_get_classes(params):
@@ -41,11 +42,6 @@ def test_instantiate_default(params):
     assert obj1["data"] is obj2["data"] and obj1["series"] is obj2["series"]
 
 
-def test_instantiate_keys(params):
-    obj = instantiate(params, names=["data"])
-    assert "data" in obj and "series" not in obj
-
-
 def test_instantiate_extra():
     params = {"data": {"a": 1, "b": 2}, "x": 100}
     obj = instantiate(params)
@@ -56,3 +52,12 @@ def test_instantiate_extra():
     params = {"def": "numpy.array", "object": [1, 2]}
     obj = instantiate(params)
     assert isinstance(obj, np.ndarray)
+
+    params = {"x": 100, "data": "$.x"}
+    obj = instantiate(params)
+    assert obj['data'] == 100
+
+
+def test_parse_value():
+    with pytest.raises(ValueError):
+        parse_value("$", {})

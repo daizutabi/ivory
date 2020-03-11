@@ -14,6 +14,7 @@ def params():
         "data": {"def": "numpy.array", "object": [1, 2]},
         "series": {"class": "pandas.Series", "data": "$"},
         "metrics": {"class": "ivory.callbacks.Metrics", 'criterion': None},
+        "a, b": {"def": "numpy.array", "object": [3, 4]},
     }
 
 
@@ -21,11 +22,13 @@ yaml = """
 data:
   def: numpy.array
   object: [1, 2]
+data2:
+  def: numpy.array
+  object: [3, 4]
 experiment:
   class: ivory.core.Experiment
-  name: "example"
   run_class: ivory.core.Run
-  run_name: "abc"
+  shared: [data]
 """
 
 

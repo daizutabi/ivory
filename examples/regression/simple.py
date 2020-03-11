@@ -9,7 +9,6 @@ import torch.nn.functional as F
 from pandas import DataFrame
 
 import ivory
-from ivory.torch.data import DataFrameLoaders
 from ivory.utils import kfold_split
 
 
@@ -21,24 +20,17 @@ def create_data(num_samples=1000):
     dy = 0.1 * (np.random.rand(num_samples) - 0.5)
     df["z"] = ((df.x + dx) * (df.y + dy)).astype(np.float32)
     df["fold"] = kfold_split(df.index, n_splits=5)
-    return df
+    return df[["x", "y"]], df[["fold", "z"]]
 
 
 @dataclass
 class Transform:
     std: float = 0
 
-    def __call__(self, input, target, mode="train"):
+    def __call__(self, input, target, mode: str):
         if mode == "train":
             input = (input + self.std * np.random.randn(2)).astype(np.float32)
         return input, target
-
-
-@dataclass(repr=False)
-class DataLoaders(DataFrameLoaders):
-    def __post_init__(self):
-        self.input = ["x", "y"]
-        self.target = ["z"]
 
 
 class Model(nn.Module):
@@ -76,6 +68,8 @@ def objective(trial):
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
     experiment.start()
+    run = experiment.create_run()
+    next(iter(run.dataloaders[0][0]))
 
     study = optuna.create_study(
         study_name="8",

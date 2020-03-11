@@ -6,8 +6,8 @@ import torch.nn.functional as F
 import torch.optim
 from pandas import DataFrame
 
-from ivory.callbacks import EarlyStopping, Tracking
-from ivory.torch.data import DataFrameLoaders
+from ivory.callbacks import EarlyStopping, Pruning, Tracking
+from ivory.torch.data import DataLoaders
 from ivory.torch.metrics import Metrics
 from ivory.torch.run import Run
 from ivory.torch.trainer import Trainer
@@ -29,7 +29,12 @@ def data():
 
 @pytest.fixture
 def dataloaders(data):
-    return DataFrameLoaders(data, input=["x", "y"], target=["z"], batch_size=10)
+    return DataLoaders(
+        data[["x", "y"]],
+        data[["z", "fold"]],
+        batch_size=10,
+        dataset_class="ivory.torch.Dataset",
+    )
 
 
 @pytest.fixture
@@ -73,7 +78,7 @@ def optimizer(model):
     return torch.optim.SGD(model.parameters(), lr=1e-3)
 
 
-@pytest.fixture(params=["step", 'reduce'])
+@pytest.fixture(params=["step", "reduce"])
 def scheduler(request, optimizer):
     if request.param == "step":
         return torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
@@ -97,12 +102,24 @@ def tracking(tmpdir):
     return Tracking()
 
 
+class Trial:
+    def __init__(self):
+        self.step = 0
+
+    def report(self, score, step):
+        self.step = step
+
+    def should_prune(self):
+        return self.step > 10
+
+
 @pytest.fixture()
 def run(
     dataloaders, metrics, model, optimizer, scheduler, early_stopping, tracking, trainer
 ):
+    trial = Trial()
     return Run(
-        dict(
+        params=dict(
             dataloaders=dataloaders,
             metrics=metrics,
             model=model,
@@ -111,5 +128,6 @@ def run(
             early_stopping=early_stopping,
             tracking=tracking,
             trainer=trainer,
-        )
+        ),
+        callbacks=[Pruning(trial, "val_loss")],
     )

@@ -3,17 +3,19 @@ from ivory.core.run import Run
 
 
 def test_run(params):
-    run = Run(params)
-    assert len(run) == 3
+    run = Run(params=params)
+    assert len(run) == 5
     assert all(run.data == [1, 2])
     assert "data" in run
+    assert run.a == 3
+    assert run.b == 4
 
-    default = instantiate(params, names=["data"])
-    run1 = Run(params)
-    run2 = Run(params)
+    default = instantiate({"data": params["data"]})
+    run1 = Run(params=params)
+    run2 = Run(params=params)
     assert run1.data is not run2.data
-    run1 = Run(params, default=default)
-    run2 = Run(params, default=default)
+    run1 = Run(params=params, default=default)
+    run2 = Run(params=params, default=default)
     assert run1.data is run2.data
     assert run1.data is default["data"]
 

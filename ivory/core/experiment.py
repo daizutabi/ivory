@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
@@ -5,36 +6,35 @@ import yaml
 
 import ivory
 from ivory.callbacks.base import Callback
-from ivory.core.instance import get_attr, get_classes, instantiate
+from ivory.core.instance import get_attr, get_classes, instantiate, resolve_params
 from ivory.core.run import Run
-from ivory.utils import dot_to_list, format_name_by_dict, to_float, update_dict
+from ivory.utils import dot_to_list, to_float, update_dict
 
 
 @dataclass
 class Experiment:
-    name: str
-    run_class: str
-    run_name: str
+    name: str = "ready"
+    run_class: str = "ivory.core.Run"
     shared: List[str] = field(default_factory=list)
-    yaml: str = field(default="", repr=False)
-    default: Dict[str, Any] = field(default_factory=dict, repr=False)
+    num_runs: int = 0
+    params_path: str = ""
 
-    def set_yaml(self, yaml):
-        self.yaml = yaml
-        self.name = format_name_by_dict(self.name, self.params())
-        if self.shared:
-            self.set_default(self.shared)
-
-    def start(self):
-        for cls in get_classes(self.params()):
-            if issubclass(cls, Callback):
-                cls.on_experiment_start(self)
-        ivory.active_experiment = self
+    def __post_init__(self):
+        self.run_cls = get_attr(self.run_class)
+        self.yaml = None
+        self.default = None
+        self.shared_keys = None
 
     def params(self, update: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Return a newly created params dictionary for each run.
+        """Returns a newly created params dictionary.
 
-        Config is always created from yaml string when this method is called.
+        Parameters dict is always created from yaml string when this method is called.
+
+        Args:
+            update (dict): Update dictionary to overwrite the default settings.
+
+        Returns:
+            dict: parameter dictionary for a run
         """
         params = to_float(yaml.safe_load(self.yaml))
         if update is None:
@@ -43,43 +43,67 @@ class Experiment:
             update_dict(params, dot_to_list(update))
             return params
 
-    def set_default(self, names: List[str]):
-        """Set default objects which are shared for every run."""
-        params = self.params()
-        self.default = instantiate(params, names=names)
-
-    def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
-        """Create a run for an optional update params.
+    def set_fields(self, params_path, yaml):
+        """Sets the instance fields that were not initialized in `__init__`.
 
         Args:
-            update: dict can be used for hyper parameter tuning.
-            callbacks: dynamically created callbacks (for example optuna pruning)
+            params_path (str): the yaml parameters file path for this `Experiment`
+            yaml (str): the yaml body text for this `Experiment`
         """
+        self.params_path, self.yaml = params_path, yaml
+        self.shared_keys, self.shared = resolve_params(self.params(), self.shared)
+
+    def start(self):
+        """Starts this experiment object.
+
+        This method instantiates default objects that will be shared among runs and
+        invokes `on_experiment_start` class method of registerd `Callback`s
+        """
+        params = self.params()
+        self.default = instantiate({key: params[key] for key in self.shared_keys})
+        self.default.update(experiment=self)
+        self.name = self.get_experiment_name()
+        for cls in get_classes(params):
+            if issubclass(cls, Callback):
+                cls.on_experiment_start(self)
+        ivory.active_experiment = self
+
+    def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
+        """Creates a run with an optional update parameters.
+
+        Args:
+            update (dict): `update` can be used for hyper parameter tuning
+            callbacks (list): dynamically created callbacks (ex. optuna pruning)
+
+        Returns:
+            Run: a run object
+        """
+        self.num_runs += 1
+        name = self.get_run_name()
         params = self.params(update)
-        cls = get_attr(self.run_class)
-        if "experiment" not in self.default:
-            self.default.update(experiment=self)
-        run = cls(params, default=self.default, callbacks=callbacks)
-        run_name = params["experiment"]["run_name"]
-        run.name = format_name_by_dict(run_name, params)
-        return run
+        return self.run_cls(
+            name=name, params=params, default=self.default, callbacks=callbacks
+        )
+
+    def get_experiment_name(self):
+        return datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+
+    def get_run_name(self):
+        return f"#{self.num_runs}"
 
 
-def create_experiment(yaml_params_file: str) -> Experiment:
-    """Create an Objective instance from a yaml params file.
+def create_experiment(params_path: str) -> Experiment:
+    """Creates an `Experiment` instance from a yaml parameters file.
 
-    Parameters
-    ----------
-    yaml_params_file : str
-        Yaml params file path.
+    Args:
+        yaml_params_file (str): yaml parameters file path
 
-    Returns
-    -------
-    Objective instance.
+    Returns:
+        Experiment: an experiment object
     """
-    with open(yaml_params_file) as file:
+    with open(params_path) as file:
         yml = file.read()
     params = to_float(yaml.safe_load(yml))
     experiment = instantiate(params["experiment"])
-    experiment.set_yaml(yml)
+    experiment.set_fields(params_path, yml)
     return experiment

@@ -3,7 +3,7 @@ import numpy as np
 
 def test_trainer(run):
     del run.tracking
-    run.params.pop("tracking")
+    run._objects.pop("tracking")
     run.start()
     assert run.trainer.epoch == 4
     assert run.metrics.history.shape == (5, 3)

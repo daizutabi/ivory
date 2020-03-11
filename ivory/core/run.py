@@ -1,3 +1,4 @@
+from dataclasses import InitVar, dataclass, field
 from typing import Any, Dict
 
 import ivory
@@ -5,25 +6,25 @@ from ivory.callbacks import CallbackCaller
 from ivory.core.instance import instantiate
 
 
+@dataclass
 class Run(CallbackCaller):
-    def __init__(
-        self, params: Dict[str, Any], default: Dict[str, Any] = None, callbacks=None
-    ):
-        super().__init__(callbacks)
-        self.name = None
-        self.params = params
-        objects = instantiate(params, default=default)
-        for key in objects:
-            setattr(self, key, objects[key])
+    name: str = ""
+    params: Dict[str, Any] = field(default_factory=dict, repr=False)
+    default: InitVar[Dict[str, Any]] = None
+
+    def __post_init__(self, default):
+        self._objects = instantiate(self.params, default=default)
+        for key in self._objects:
+            setattr(self, key, self._objects[key])
 
     def __len__(self):
-        return len(self.params)
+        return len(self._objects)
 
     def __contains__(self, key):
-        return key in self.params
+        return key in self._objects
 
     def __iter__(self):
-        return iter(self.params)
+        return iter(self._objects)
 
     def __getitem__(self, key):
         return getattr(self, key)

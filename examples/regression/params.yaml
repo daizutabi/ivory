@@ -5,8 +5,9 @@ transform:
   class: simple.Transform
   std: 0
 dataloaders:
-  class: simple.DataLoaders
-  data: $
+  class: ivory.torch.data.DataLoaders
+  input: $.data.0
+  target: $.data.1
   transform: $
   batch_size: 32
 model:
@@ -36,7 +37,5 @@ trainer:
   verbose: 0
 experiment:
   class: ivory.Experiment
-  name: "N{data.num_samples}-6"
   run_class: ivory.torch.Run
-  run_name: ""
   shared: [data]
