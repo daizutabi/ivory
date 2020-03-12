@@ -78,6 +78,8 @@ class Experiment:
         Returns:
             Run: a run object
         """
+        if self.name == "ready":
+            self.start()
         self.num_runs += 1
         name = self.get_run_name()
         params = self.params(update)

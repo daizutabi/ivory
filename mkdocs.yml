@@ -25,6 +25,7 @@ nav:
       Model: tutorial/model.md
       Metrics: tutorial/metrics.md
       Trainer: tutorial/trainer.md
+      Run: tutorial/run.md
 
 
 markdown_extensions:

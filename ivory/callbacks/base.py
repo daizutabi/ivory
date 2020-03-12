@@ -1,7 +1,8 @@
-from dataclasses import dataclass, field
-from typing import List
+from collections import abc
+from dataclasses import dataclass
 
 
+@dataclass
 class Callback:
     @classmethod
     def on_experiment_start(cls, experiment):
@@ -32,22 +33,20 @@ class Callback:
         pass
 
 
-@dataclass
-class CallbackCaller:
-    callbacks: List[Callback] = field(default_factory=list)
+class CallbackCaller(abc.Mapping):
+    __slots__ = ["callbacks"]
 
-    def __iter__(self):
-        raise NotImplementedError
+    def __init__(self, callbacks=None):
+        if callbacks is None:
+            callbacks = []
+        self.callbacks = callbacks
 
-    def __getitem__(self, key):
-        raise NotImplementedError
-
-    def call(self, func_name: str):
+    def call(self, callback_name: str):
         for key in self:
             if isinstance(self[key], Callback):
-                getattr(self[key], func_name)(self)
+                getattr(self[key], callback_name)(self)
         for callback in self.callbacks:
-            getattr(callback, func_name)(self)
+            getattr(callback, callback_name)(self)
 
     def on_fit_start(self):
         self.call("on_fit_start")

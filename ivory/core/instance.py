@@ -1,15 +1,19 @@
+import importlib
 import re
-from importlib import import_module
 from typing import Any, Dict, List, Tuple
 
 Map = Dict[str, Any]
+
+force_reload = False
 
 
 def get_attr(path: str) -> type:
     if "." not in path:
         path = f"__main__.{path}"
     module_path, _, name = path.rpartition(".")
-    module = import_module(module_path)
+    module = importlib.import_module(module_path)
+    if force_reload and "__main__" not in path:
+        importlib.reload(module)
     return getattr(module, name)
 
 

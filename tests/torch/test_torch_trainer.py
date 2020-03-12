@@ -2,8 +2,7 @@ import numpy as np
 
 
 def test_trainer(run):
-    del run.tracking
-    run._objects.pop("tracking")
+    del run.objects["tracking"]
     run.start()
     assert run.trainer.epoch == 4
     assert run.metrics.history.shape == (5, 3)
@@ -28,8 +27,3 @@ def test_trainer(run):
     run.start()
     # assert run.early_stopping.wait == 1
     # assert run.trainer.epoch == 5
-
-    run.metrics.columns = ["Y"]
-    assert run.metrics.output.columns == ["Y"]
-    assert run.metrics.output.shape == (200, 1)
-    # assert run.metrics.history.shape == (6, 3)

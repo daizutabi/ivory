@@ -27,7 +27,7 @@ data2:
   object: [3, 4]
 experiment:
   class: ivory.core.Experiment
-  run_class: ivory.core.Run
+  run_class: ivory.torch.Run
   shared: [data]
 """
 

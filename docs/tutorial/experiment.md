@@ -35,10 +35,10 @@ run
 
 This `Run` instance was named '#1' because this is the first one for the `Experiment` instance.
 
-Do you want to start this run? Let's try it.
+Do you want to start this run, too? Let's try it.
 
 ```python
 run.start()
 ```
 
-Oops! The `Run` instance has the method indeed, but it says there is no `trainer`. Of course, we need some data, a model, metrics, *etc*. for a particular machine learning problem. Also, we need to decide how to train the model. Following sections will explain this process step by step.
+Oops! The `Run` instance has the `start` method indeed, but it says there is no `trainer`. Of course, we need some data, a model, metrics, *etc*. for a particular machine learning problem. Also, we need to decide how to train the model. Following sections will explain this process step by step.

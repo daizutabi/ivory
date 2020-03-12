@@ -1,15 +1,6 @@
-import numpy as np
 import pytest
 
-from ivory.utils import dot_to_list, kfold_split, to_float, update_dict
-
-
-def test_kfold_split():
-    x = np.arange(100)
-    fold = kfold_split(x, 5)
-    assert fold.min() == 0
-    assert fold.max() == 4
-    assert len(fold[fold == 3]) == 20
+from ivory.utils import dot_to_list, to_float, update_dict
 
 
 def test_to_float():

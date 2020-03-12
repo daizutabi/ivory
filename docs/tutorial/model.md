@@ -25,7 +25,7 @@ Model([3, 4])  # Just example
 
 To train this model, we need an optimizer and an optional schduler. Write them in a YAML file.
 
-#File params_c.yaml {%=params_c.yaml%}
+#File params_2.yaml {%=params_2.yaml%}
 
 An PyTorch optimizer needs model's parameters as the first argument. We can give them by $-notation with attribute accessor (`$.model.parameters()`). The rest part of this YAML file is straight forward. Now, we have other hyper parameters such as `lr` (learning rate), `factor`, or `patience`. All of these hyper parameters are written in one YAML file. This allows us to manage them easily.
 
@@ -36,7 +36,7 @@ Again, let's create instances:
 import yaml
 from ivory.utils import to_float
 
-with open('params_c.yaml') as f:
+with open('params_2.yaml') as f:
   yml = to_float(yaml.safe_load(f))
 params = ivory.instantiate(yml)
 params.keys()

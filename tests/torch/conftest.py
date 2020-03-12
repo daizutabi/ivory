@@ -119,6 +119,7 @@ def run(
 ):
     trial = Trial()
     return Run(
+        name="",
         params=dict(
             dataloaders=dataloaders,
             metrics=metrics,
@@ -129,5 +130,6 @@ def run(
             tracking=tracking,
             trainer=trainer,
         ),
+        default={},
         callbacks=[Pruning(trial, "val_loss")],
     )

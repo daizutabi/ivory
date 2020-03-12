@@ -1,9 +1,9 @@
 from ivory.core.instance import instantiate
-from ivory.core.run import Run
+from ivory.torch.run import Run
 
 
 def test_run(params):
-    run = Run(params=params)
+    run = Run(name='', params=params, callbacks=[], default={})
     assert len(run) == 5
     assert all(run.data == [1, 2])
     assert "data" in run
@@ -11,11 +11,11 @@ def test_run(params):
     assert run.b == 4
 
     default = instantiate({"data": params["data"]})
-    run1 = Run(params=params)
-    run2 = Run(params=params)
+    run1 = Run(name='', params=params, callbacks=[], default={})
+    run2 = Run(name='', params=params, callbacks=[], default={})
     assert run1.data is not run2.data
-    run1 = Run(params=params, default=default)
-    run2 = Run(params=params, default=default)
+    run1 = Run(name='', params=params, callbacks=[], default=default)
+    run2 = Run(name='', params=params, callbacks=[], default=default)
     assert run1.data is run2.data
     assert run1.data is default["data"]
 

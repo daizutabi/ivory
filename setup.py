@@ -74,6 +74,7 @@ setup(
         "mlflow",
         "optuna",
         "scikit-learn",
+        "iterative-stratification",
         "numpy",
         "pandas",
     ],
