@@ -6,18 +6,19 @@ import pandas as pd
 from pandas import DataFrame
 
 from ivory.callbacks import Callback
-from ivory.core.instance import get_attr
+from ivory.core import instance
+from ivory.core.state import State
 
 
 @dataclass
-class Metrics(Callback):
+class Metrics(Callback, State):
     criterion: Callable
     monitor: str = "val_loss"
     mode: str = "min"
 
     def __post_init__(self):
         if isinstance(self.criterion, str):
-            self.criterion = get_attr(self.criterion)
+            self.criterion = instance.get_attr(self.criterion)
         self.best_epoch = -1
         if self.mode == "min":
             self.best_score = np.inf
@@ -100,17 +101,3 @@ class Metrics(Callback):
         if len(columns) == 1:
             columns = ["output"]
         return DataFrame(output, index=index, columns=columns).sort_index()
-
-    def state_dict(self):
-        return {
-            "best_score": self.best_score,
-            "best_epoch": self.best_epoch,
-            "best_output": self.best_output,
-            "history": self.history,
-        }
-
-    def load_state_dict(self, state_dict):
-        self.best_score = state_dict["best_score"]
-        self.best_epoch = state_dict["best_epoch"]
-        self.best_output = state_dict["best_output"]
-        self.history = state_dict["history"]

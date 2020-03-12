@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
-from ivory.torch.utils import cuda
+from ivory.core.state import State
+from ivory.torch import utils
 
 try:
     from apex import amp
@@ -14,14 +14,17 @@ except ImportError:
 
 
 @dataclass
-class Trainer:
+class Trainer(State):
     fold: int = 0
-    epoch: int = -1
-    global_step: int = -1
     max_epochs: int = 1000
     gpu: bool = False
-    amp_level: Optional[str] = None
+    precision: int = 32  # Full precision (32), half precision (16).
+    amp_level: str = "O1"
     verbose: int = 1
+
+    def __post_init__(self):
+        self.epoch = -1
+        self.global_step = -1
 
     def train_step(self, model, input):
         return model(input)
@@ -37,12 +40,12 @@ class Trainer:
         for index, input, target in dataloader:
             self.global_step += 1
             if self.gpu:
-                input = cuda(input)
-                target = cuda(target)
+                input = utils.cuda(input)
+                target = utils.cuda(target)
             output = self.train_step(model, input)
             loss = metrics.train_step(index, output, target)
             optimizer.zero_grad()
-            if self.gpu and self.amp_level:
+            if self.gpu and self.precision == 16:
                 with amp.scale_loss(loss, optimizer) as scaled_loss:
                     scaled_loss.backward()
             else:
@@ -56,8 +59,8 @@ class Trainer:
         with torch.no_grad():
             for index, input, target in dataloader:
                 if self.gpu:
-                    input = cuda(input)
-                    target = cuda(target)
+                    input = utils.cuda(input)
+                    target = utils.cuda(target)
                 output = self.val_step(model, input)
                 metrics.val_step(index, output, target)
 
@@ -65,7 +68,7 @@ class Trainer:
         train_loader, val_loader = run.dataloaders[self.fold]
         if self.gpu:
             run.model.cuda()
-            if self.amp_level:
+            if self.precision == 16:
                 run.model, run.optimizer = amp.initialize(
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
@@ -91,15 +94,3 @@ class Trainer:
                     run.scheduler.step(run.metrics.current_score)
                 else:
                     run.scheduler.step()
-
-    def state_dict(self):
-        return {
-            "fold": self.fold,
-            "epoch": self.epoch,
-            "global_step": self.global_step,
-        }
-
-    def load_state_dict(self, state_dict):
-        self.fold = state_dict["fold"]
-        self.epoch = state_dict["epoch"]
-        self.global_step = state_dict["global_step"]

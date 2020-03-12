@@ -1,8 +1,6 @@
 from collections import abc
-from dataclasses import dataclass
 
 
-@dataclass
 class Callback:
     @classmethod
     def on_experiment_start(cls, experiment):

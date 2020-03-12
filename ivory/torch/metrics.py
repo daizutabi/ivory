@@ -1,5 +1,5 @@
 import ivory.callbacks
-from ivory.torch.utils import cpu
+from ivory.torch import utils
 
 
 class Metrics(ivory.callbacks.Metrics):
@@ -16,7 +16,7 @@ class Metrics(ivory.callbacks.Metrics):
         output = output.detach()
         record = self.evaluate(loss, output, target)
         if output.device.type != "cpu":
-            output = cpu(output)
+            output = utils.cpu(output)
         return index.numpy(), output.numpy(), record
 
     def on_current_record(self, run):

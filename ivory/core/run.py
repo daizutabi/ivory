@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import ivory
@@ -6,7 +5,7 @@ from ivory.callbacks import CallbackCaller
 from ivory.core import instance
 
 
-class Run(CallbackCaller, ABC):
+class Run(CallbackCaller):
     __slots__ = ["name", "params", "objects"]
 
     def __init__(self, name, params, default=None, callbacks=None):
@@ -53,13 +52,11 @@ class Run(CallbackCaller, ABC):
             if x in self:
                 self[x].load_state_dict(state_dict[x])
 
-    @abstractmethod
     def save(self, directory):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def load(self, directory):
-        pass
+        raise NotImplementedError
 
 
 def create_run(update: Dict[str, Any] = None, experiment=None, callbacks=None) -> Run:

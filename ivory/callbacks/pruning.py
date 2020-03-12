@@ -1,11 +1,9 @@
 import optuna
-from dataclasses import dataclass
 
 from ivory.callbacks import Callback
 from optuna.trial import Trial
 
 
-@dataclass
 class Pruning(Callback):
     """Callback to prune unpromising trials.
 
@@ -17,8 +15,9 @@ class Pruning(Callback):
             An evaluation metric for pruning, e.g., `val_loss`
     """
 
-    trial: Trial
-    monitor: str
+    def __init__(self, trial: Trial, monitor: str):
+        self.trial = trial
+        self.monitor = monitor
 
     def on_epoch_end(self, run):
         current_score = run.metrics.current_record[self.monitor]

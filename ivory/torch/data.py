@@ -6,7 +6,7 @@ import torch.utils.data
 from pandas import DataFrame
 from torch.utils.data import DataLoader, random_split
 
-from ivory.core.instance import get_attr
+from ivory.core import instance
 
 
 @dataclass
@@ -78,7 +78,7 @@ class DataLoaders:
         if isinstance(self.target, DataFrame):
             self.target = to_numpy(self.target)
         if isinstance(self.dataset_class, str):
-            self.dataset_class = get_attr(self.dataset_class)
+            self.dataset_class = instance.get_attr(self.dataset_class)
 
     def __repr__(self):
         cls_name = self.__class__.__name__
