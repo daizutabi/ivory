@@ -62,7 +62,7 @@ Ivory provides `ivory.torch.Dataset` for PyTorch.
 ```python
 from ivory.torch import Dataset
 
-dataset = Dataset(data[0], data[1])
+dataset = Dataset(input=data[0], target=data[1])
 dataset
 ```
 
@@ -80,26 +80,26 @@ Check an item.
 dataset[0]
 ```
 
-Indexing returns a tuple. The first is an index, the second is an input, and the last is a target. The target includes fold which is not a real target. But, it's okay because we don't use a `Dataset` directly. We can use more usefull `DataLoaders` provided by Ivory.
+Indexing returns a tuple. The first is an index, the second is an input, and the last is a target. The target includes fold which is not a real target. But, it's okay because we don't use a `Dataset` directly. We can use more useful `DataLoaders` provided by Ivory.
 
 ## DataLoaders
 
-`DataLoaders` provides a data loader for both training and validation. This is the reason why our data include fold information.
+`DataLoaders` provides a data loader for both training and validation. This is the reason why our data include fold.
 
 ```python
 from ivory.torch import DataLoaders
 
-dataloaders = DataLoaders(data[0], data[1], batch_size=3)
+dataloaders = DataLoaders(input=data[0], target=data[1], batch_size=3)
 dataloaders
 ```
 
-`DataLoaders` instance can detect the number of fold and remove the fold information from the target. Normal indexing can be used to get a pair of train data loader and validation data loader.
+`DataLoaders` instance can detect the number of fold and remove the fold information from the target. You can get a pair of train and validation data loaders at once by indexing like a `list`.
 
 ```python
-train_loader, val_loader = dataloaders[0]
+train_loader, val_loader = dataloaders[0]  # for fold-0.
 ```
 
-Here, index means fold number, in this case, ranging from 0 to 4 because the number of K-fold is 5. Check the data loarder.
+Here, the index is corresponding to a fold, in this case, ranging from 0 to 4 because the number of K-fold is 5. Check the data loader.
 
 ```python
 train_loader
@@ -112,7 +112,7 @@ The data loader is a pure PyTorch's `DataLoader`. Let's see the dataset that the
 train_loader.dataset
 ```
 
-This is our Ivory's dataset. The number of samples reduces from 1000 to 800 because we uses 5 folds (80% reduction). Validation dataset shoud have the rest 20% samples.
+This is our Ivory's dataset (`ivory.torch.Dataset`). The number of samples decreases from 1000 to 800 because we use 5-fold splitting (80% reduction). Validation dataset shoud have the rest 20% samples.
 
 ```python
 val_loader.dataset
@@ -121,17 +121,56 @@ val_loader.dataset
 Now check iteration.
 
 ```python
-it = iter(train_loader)
-next(it)
+next(iter(train_loader))
 ```
 
 `next()` returns a list of `torch.Tensor`. The first is an index, the second is an input, and the last is a target. Note that the target doesn't include fold any more. In default setting, train data loader shuffles its data. Validation data loader doesn't:
 
 
 ```python
-it = iter(val_loader)
-next(it)
+next(iter(val_loader))
 ```
 
+## DataLoaders via a YAML file
 
-## DataLoaders
+As well as data, you can create your `DataLoaders` from a YAML file.
+
+#File params_1a.yaml {%=params_1a.yaml%}
+
+To create a `DataLoaders`, you need to give `input` and `target` to the `DataLoaders` initializer. Unlike a simple parameter (`num_samples` or `batch_size` in this case), these can't be written in a YAML file directly. Instead, you can assign them using "**`$`-notation**". In a YAML file, a value that starts with '`$.`' means an instance. In additon, if the value ends with '`.(digit)`', it is an element taken from a sequence by indexing. In the above case, '`$.data.0`' is the first element of a tuple `data` created by the `create_data` function. Forthermote, you can use more direct form: *inline unpacking*.
+
+#File params_1b.yaml {%=params_1b.yaml%}
+
+Now, the output of `create_data` is unpacked to `input` and `target`. In $-notation, '(dot)+(instance name)' can be omitted if the key name is equal to an instance name. Next, instantiate them after loading the YAML file:
+
+```python
+import yaml
+
+with open('params_1b.yaml') as f:
+  yml = yaml.safe_load(f)
+yml
+```
+
+```python
+params = ivory.instantiate(yml)
+params.keys()
+```
+
+```python
+params['input'].shape, params['target'].shape
+```
+
+```python
+params['dataloaders']
+```
+
+Everythings works well!. Notice that the global name space of Python isn't affected by these instantiatitions.
+
+```python
+try:
+  target
+except NameError:
+  print("`target` doesn't exsist.")
+```
+
+In the next section, we will introduce model/optimizer/schduler combination for this dataset.

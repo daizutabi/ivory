@@ -1,0 +1,20 @@
+input, target:
+  def: create_data
+  num_samples: 10000
+dataloaders:
+  class: ivory.torch.DataLoaders
+  input: $
+  target: $
+  batch_size: 32
+model:
+  class: Model
+  hidden_sizes: [10, 10]
+optimizer:
+  class: torch.optim.SGD
+  params: $.model.parameters()
+  lr: 1e-3
+scheduler:
+  class: torch.optim.lr_scheduler.ReduceLROnPlateau
+  optimizer: $
+  factor: 0.1
+  patience: 4

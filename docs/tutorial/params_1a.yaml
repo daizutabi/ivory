@@ -4,5 +4,5 @@ data:
 dataloaders:
   class: ivory.torch.DataLoaders
   input: $.data.0
-  input: $.target.0
+  target: $.data.1
   batch_size: 10

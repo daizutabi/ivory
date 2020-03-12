@@ -22,6 +22,9 @@ nav:
   - Tutorial:
       Experiment: tutorial/experiment.md
       Data: tutorial/data.md
+      Model: tutorial/model.md
+      Metrics: tutorial/metrics.md
+      Trainer: tutorial/trainer.md
 
 
 markdown_extensions:

@@ -1,8 +1,8 @@
 import numpy as np
-import pytest
 import pandas as pd
+import pytest
 
-from ivory.core.instance import get_classes, instantiate,parse_value
+from ivory.core.instance import get_classes, instantiate, parse_value
 
 
 def test_get_classes(params):
@@ -55,7 +55,7 @@ def test_instantiate_extra():
 
     params = {"x": 100, "data": "$.x"}
     obj = instantiate(params)
-    assert obj['data'] == 100
+    assert obj["data"] == 100
 
 
 def test_parse_value():
