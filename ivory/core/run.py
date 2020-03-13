@@ -9,14 +9,16 @@ class Run(CallbackCaller):
     __slots__ = ["name", "params", "objects"]
 
     def __init__(self, name, params, default=None, callbacks=None):
-        super().__init__(callbacks)
         self.name = name
         self.params = params
         self.objects = instance.instantiate(self.params, default=default)
+        super().__init__(callbacks)
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(name='{self.name}', callbacks={self.callbacks})"
+        s = f"{class_name}(name='{self.name}', num_objects={len(self.objects)}, "
+        s += f"num_callbacks={len(self.callbacks)})"
+        return s
 
     def __len__(self):
         return len(self.objects)
@@ -31,7 +33,10 @@ class Run(CallbackCaller):
         return self.objects[key]
 
     def __getattr__(self, key):
-        return self.objects[key]
+        if key in self.objects:
+            return self.objects[key]
+        else:
+            return self.callbacks[key]
 
     def start(self):
         self.on_fit_start()

@@ -2,12 +2,11 @@ import numpy as np
 
 
 def test_trainer(run):
-    del run.objects["tracking"]
     run.start()
     assert run.trainer.epoch == 4
     assert run.metrics.history.shape == (5, 3)
-    assert run.metrics.best_output.shape == (200, 1)
-    assert run.metrics.best_epoch > -1
+    assert run.metrics.data.shape == (200, 2)
+    assert run.monitor.best_epoch > -1
 
     state_dict = run.state_dict()
     assert state_dict["trainer"]["epoch"] == 4
@@ -25,5 +24,5 @@ def test_trainer(run):
     run.early_stopping.best_score = np.inf
     run.early_stopping.patience = -1
     run.start()
-    # assert run.early_stopping.wait == 1
-    # assert run.trainer.epoch == 5
+    assert run.early_stopping.wait == 1
+    assert run.trainer.epoch == 5

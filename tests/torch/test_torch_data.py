@@ -28,7 +28,8 @@ def test_dataset_transform(data):
     assert "transform=" in repr(dataset)
 
 
-def test_dataloaders(dataloaders):
+def test_dataloaders(run):
+    dataloaders = run.dataloaders
     assert len(dataloaders) == 5
     train_loader, val_loader = dataloaders[0]
     assert len(train_loader) == 1000 * 4 // 5 // 10

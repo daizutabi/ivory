@@ -13,7 +13,8 @@ def params():
     return {
         "data": {"def": "numpy.array", "object": [1, 2]},
         "series": {"class": "pandas.Series", "data": "$"},
-        "metrics": {"class": "ivory.callbacks.Metrics", 'criterion': None},
+        "metrics": {"class": "ivory.callbacks.Metrics"},
+        "monitor": {"class": "ivory.callbacks.Monitor"},
         "a, b": {"def": "numpy.array", "object": [3, 4]},
     }
 

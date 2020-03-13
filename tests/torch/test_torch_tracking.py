@@ -15,10 +15,12 @@ def test_tracking(run):
     assert os.path.exists(os.path.join(tracking.directory, "current"))
     os.remove(os.path.join(tracking.directory, "params.yaml"))  # this yaml is invalid.
 
-    run.metrics.current_record = {"x": 1}
-    run.metrics.current_epoch = 1
-    run.metrics.current_score = 1
-    run.metrics.best_score = 1
+    run.metrics.record = {"x": 1}
+    run.metrics.epoch = 1
+    run.monitor.score = 1
+    run.monitor.best_score = 1
+    run.monitor.best_epoch = 1
+    run.monitor.is_best = True
     tracking.on_epoch_end(run)
     assert os.path.exists(os.path.join(tracking.directory, "best"))
     tracking.on_epoch_end(run)

@@ -75,12 +75,8 @@ class Trainer(State):
         it = range(self.epoch + 1, self.epoch + self.max_epochs + 1)
         for self.epoch in tqdm(it) if self.verbose == 1 else it:
             run.on_epoch_start()
-            run.on_train_start()
             self.train(train_loader, run.metrics, run.model, run.optimizer)
-            run.on_train_end()
-            run.on_val_start()
             self.val(val_loader, run.metrics, run.model)
-            run.on_val_end()
             try:
                 run.on_epoch_end()
             except StopIteration:
@@ -89,8 +85,8 @@ class Trainer(State):
                 if self.verbose:
                     latest = run.metrics.latest
                     tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {latest}")
-            if run.scheduler:
+            if 'scheduler' in run:
                 if isinstance(run.scheduler, ReduceLROnPlateau):
-                    run.scheduler.step(run.metrics.current_score)
+                    run.scheduler.step(run.monitor.score)
                 else:
                     run.scheduler.step()

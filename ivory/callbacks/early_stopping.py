@@ -1,12 +1,10 @@
-import numpy as np
 from dataclasses import dataclass
 
-from ivory.callbacks import Callback
-from ivory.core.state import State
+from ivory.callbacks.monitor import Monitor
 
 
 @dataclass
-class EarlyStopping(Callback, State):
+class EarlyStopping(Monitor):
     """Early stop training loop when a metric has stopped imporving.
 
     Args:
@@ -23,29 +21,15 @@ class EarlyStopping(Callback, State):
             improvement. Default: `0`.
     """
 
-    monitor: str = "val_loss"
-    mode: str = "min"
     patience: int = 0
-    min_delta: float = 0.0
 
     def __post_init__(self):
-        if self.mode == "min":
-            self.best_score = np.inf
-        else:
-            self.best_score = -np.inf
+        super().__post_init__()
         self.wait = 0
 
-    @property
-    def is_best(self):
-        if self.mode == "min":
-            return self.current_score + self.min_delta < self.best_score
-        else:
-            return self.current_score - self.min_delta > self.best_score
-
     def on_epoch_end(self, run):
-        self.current_score = run.metrics.current_record[self.monitor]
+        super().on_epoch_end(run)
         if self.is_best:
-            self.best_score = self.current_score
             self.wait = 0
         else:
             self.wait += 1

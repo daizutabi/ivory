@@ -19,12 +19,14 @@ class Pruning(Callback):
         self.trial = trial
         self.monitor = monitor
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return f"{class_name}(trial={self.trial}, monitor={self.monitor})"
+
     def on_epoch_end(self, run):
-        current_score = run.metrics.current_record[self.monitor]
-        if current_score is None:
-            return
-        epoch = run.metrics.current_epoch
-        self.trial.report(current_score, step=epoch)
+        score = run.metrics.record[self.monitor]
+        epoch = run.metrics.epoch
+        self.trial.report(score, step=epoch)
         if self.trial.should_prune():
             message = f"Trial was pruned at epoch {epoch}."
             raise optuna.exceptions.TrialPruned(message)

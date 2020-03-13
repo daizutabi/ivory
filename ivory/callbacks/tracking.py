@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import time
+from dataclasses import dataclass
 
 import mlflow
 import yaml
@@ -12,6 +13,7 @@ from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 from ivory.callbacks import Callback
 
 
+@dataclass
 class Tracking(Callback):
     @classmethod
     def on_experiment_start(cls, experiment):
@@ -34,20 +36,19 @@ class Tracking(Callback):
             yaml.dump(run.params, file, sort_keys=False)
 
     def on_epoch_end(self, run):
-        self.log_metrics(dict(run.metrics.current_record), run.metrics.current_epoch)
+        self.log_metrics(dict(run.metrics.record), run.metrics.epoch)
         src = os.path.join(self.directory, "current")
         run.save(src)
-        if run.metrics.is_best:
+        if run.monitor.is_best:
             dst = os.path.join(self.directory, "best")
             if os.path.exists(dst):
                 shutil.rmtree(dst)
             shutil.copytree(src, dst)
 
     def on_fit_end(self, run):
-        if run.metrics.best_epoch != -1:
-            self.log_metrics(
-                {"best_score": run.metrics.best_score}, run.metrics.best_epoch
-            )
+        monitor = run.monitor
+        if monitor.best_epoch != -1:
+            self.log_metrics({"best_score": monitor.best_score}, monitor.best_epoch)
         self.client.log_artifacts(self.run_id, self.directory)
         self.client.set_terminated(self.run_id)
         shutil.rmtree(self.directory)

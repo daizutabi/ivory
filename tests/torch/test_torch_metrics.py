@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 
 def step(func, index, target, x):
@@ -8,22 +7,19 @@ def step(func, index, target, x):
         func(index, x * target, target)
 
 
-def test_metrics(metrics, run):
-    assert metrics.criterion is F.mse_loss
-
+def test_metrics(run):
+    metrics = run.metrics
     metrics.on_epoch_start(run)
-    metrics.on_val_start(run)
-
     train_loader, val_loader = run.dataloaders[0]
     it = iter(train_loader)
     index, input, target = next(it)
     loss = metrics.train_step(index, 1.02 * target, target)
     assert np.allclose(loss.item(), torch.mean((0.02 * target) ** 2).item())
-    assert metrics.train_batch_record[0] == {"loss": loss.item()}
+    assert metrics.train_batch_loss[0] == loss.item()
     step(metrics.train_step, index, target, 1.02)
     step(metrics.val_step, index, target, 1.04)
-    assert len(metrics.train_batch_record) == 4
-    assert len(metrics.val_batch_record) == 3
+    assert len(metrics.train_batch_loss) == 4
+    assert len(metrics.val_batch_loss) == 3
 
     metrics.on_epoch_end(run)
     history = metrics.history
