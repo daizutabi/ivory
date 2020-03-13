@@ -1,9 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict
-
 import numpy as np
 import optuna
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
@@ -23,16 +19,6 @@ def create_data(num_samples=1000):
     return df[["x", "y"]], df[["fold", "z"]]
 
 
-@dataclass
-class Transform:
-    std: float = 0
-
-    def __call__(self, input, target, mode: str):
-        if mode == "train":
-            input = (input + self.std * np.random.randn(2)).astype(np.float32)
-        return input, target
-
-
 class Model(nn.Module):
     def __init__(self, hidden_sizes):
         super().__init__()
@@ -48,8 +34,6 @@ class Model(nn.Module):
 
 
 def objective(trial):
-    # for i in range(trial.suggest_int("num_layers", 1, 3)):
-    #     trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
     trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
     pruning = ivory.callbacks.Pruning(trial, "val_loss")
     run = ivory.create_run(trial.params, callbacks=[pruning])
@@ -61,23 +45,30 @@ def objective(trial):
 
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
+
+    experiment.study
+
+    import inspect
+    import optuna
+    s = inspect.signature(optuna.create_study)
+    s.parameters
+
+    experiment.study
+
+    
+
+
+    experiment.optimize
     experiment.start()
-    experiment
-    run = experiment.create_run()
-    next(iter(run.dataloaders[0][0]))
+    experiment.experiment_id
 
     study = optuna.create_study(
-        study_name="8",
-        storage="mysql+mysqldb://daizu:tabi@localhost/optuna",
-        load_if_exists=True,
-        pruner=optuna.pruners.MedianPruner(),
+        study_name=experiment.name, **experiment.study, load_if_exists=True
     )
-
-    study.set_user_attr("experiment_id", ivory.callbacks.Tracking.experiment_id)
+    study.set_user_attr("experiment_id", experiment.experiment_id)
     study.optimize(objective, n_trials=50, n_jobs=-1)
 
-    # optuna.visualization.plot_slice(study)
-    # study.trials[1].user_attrs
+    experiment.objective
 
 
 def main():

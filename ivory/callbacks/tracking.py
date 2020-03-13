@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 import time
-from dataclasses import dataclass
 
 import mlflow
 import yaml
@@ -13,7 +12,6 @@ from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 from ivory.callbacks import Callback
 
 
-@dataclass
 class Tracking(Callback):
     @classmethod
     def on_experiment_start(cls, experiment):
@@ -23,6 +21,7 @@ class Tracking(Callback):
             cls.experiment_id = exp.experiment_id
         else:
             cls.experiment_id = cls.client.create_experiment(experiment.name)
+        experiment.experiment_id = cls.experiment_id
 
     def on_fit_start(self, run):
         self.directory = tempfile.mkdtemp()

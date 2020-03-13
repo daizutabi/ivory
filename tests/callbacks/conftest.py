@@ -9,7 +9,7 @@ tracking:
   class: ivory.callbacks.Tracking
 experiment:
   class: ivory.core.Experiment
-  run_class: ivory.core.Run
+  run: ivory.core.Run
 """
 
 

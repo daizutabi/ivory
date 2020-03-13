@@ -1,6 +1,5 @@
 import datetime
-from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import yaml
 
@@ -11,15 +10,20 @@ from ivory.core import instance
 from ivory.core.run import Run
 
 
-@dataclass
 class Experiment:
-    run_class: str = "ivory.core.Run"
-    shared: List[str] = field(default_factory=list)
-
-    def __post_init__(self):
+    def __init__(
+        self, run: str, shared=None, objective=None, study=None, optimize=None
+    ):
+        self.run_class = instance.get_attr(run)
+        if shared is None:
+            shared = []
+        self.shared = shared
         self.name = "ready"
         self.num_runs = 0
-        self.run_cls = instance.get_attr(self.run_class)
+        if objective is not None:
+            objective = instance.get_attr(objective)
+        self.objective = objective
+        self.study = study
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -88,7 +92,7 @@ class Experiment:
         self.num_runs += 1
         name = self.get_run_name()
         params = self.params(update)
-        return self.run_cls(
+        return self.run_class(
             name=name, params=params, default=self.default, callbacks=callbacks
         )
 
@@ -97,6 +101,9 @@ class Experiment:
 
     def get_run_name(self):
         return f"#{self.num_runs}"
+
+    def optimize(self):
+        pass
 
 
 def create_experiment(params_path: str) -> Experiment:

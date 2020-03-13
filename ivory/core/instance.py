@@ -69,10 +69,10 @@ def parse_params(params: Map, objects: Map) -> Map:
             continue
         value = params[key]
         if isinstance(value, dict):
-            parsed[key] = {k: parse_value(value[k], objects, k) for k in value}
+            parsed[key] = instantiate(value, objects)
         elif isinstance(value, list):
             parsed[key] = [parse_value(v, objects) for v in value]  # type:ignore
-        elif "," in key and value == '$':
+        elif "," in key and value == "$":
             for key in [k.strip() for k in key.split(",")]:
                 parsed[key] = parse_value(value, objects, key)
         else:

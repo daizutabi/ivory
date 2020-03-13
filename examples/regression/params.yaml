@@ -1,21 +1,17 @@
 input, target:
   def: simple.create_data
   num_samples: 1000
-transform:
-  class: simple.Transform
-  std: 0
 dataloaders:
   class: ivory.torch.data.DataLoaders
-  input, target, transform: $
+  input, target: $
   batch_size: 32
 model:
   class: simple.Model
-  hidden_sizes: [10]
+  hidden_sizes: [16]
 optimizer:
   class: torch.optim.SGD
   params: $.model.parameters()
   lr: 1e-3
-  weight_decay: 1e-5
 scheduler:
   class: torch.optim.lr_scheduler.ReduceLROnPlateau
   optimizer: $
@@ -35,5 +31,12 @@ trainer:
   verbose: 0
 experiment:
   class: ivory.Experiment
-  run_class: ivory.torch.Run
-  shared: [data]
+  run: ivory.torch.Run
+  shared: [input]
+  objective: simple.objective
+  study:
+    storage: mysql+mysqldb://daizu:tabi@localhost/optuna
+    pruner:
+      class: optuna.pruners.MedianPruner
+    n_trials: 50
+    n_jobs: -1
