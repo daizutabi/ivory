@@ -60,6 +60,8 @@ def parse_params(params: Map, objects: Map) -> Map:
        {'a': 0, 'b': 0, 'c': 2}
        >>> parse_params({"a": ["$.a", "$.b"], "b": {"a": "$"}}, objects)
        {'a': [0, [1, 2, 3]], 'b': {'a': 0}}
+       >>> parse_params({"a, b": "$"}, objects)
+       {'a': 0, 'b': [1, 2, 3]}
     """
     parsed = {}
     for key in params:
@@ -70,6 +72,9 @@ def parse_params(params: Map, objects: Map) -> Map:
             parsed[key] = {k: parse_value(value[k], objects, k) for k in value}
         elif isinstance(value, list):
             parsed[key] = [parse_value(v, objects) for v in value]  # type:ignore
+        elif "," in key and value == '$':
+            for key in [k.strip() for k in key.split(",")]:
+                parsed[key] = parse_value(value, objects, key)
         else:
             parsed[key] = parse_value(value, objects, key)
     return parsed

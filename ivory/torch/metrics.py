@@ -1,8 +1,14 @@
 import ivory.callbacks
+from ivory.core import instance
 from ivory.torch import utils
 
 
 class Metrics(ivory.callbacks.Metrics):
+    def __init__(self, loss=None):
+        super().__init__()
+        if loss is not None:
+            self.criterion = instance.get_attr(loss)
+
     def criterion(self, output, target):
         """Returns loss tensor."""
         raise NotImplementedError

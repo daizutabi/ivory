@@ -47,12 +47,6 @@ class Model(nn.Module):
         return self.layers[-1](x)
 
 
-class Metrics(ivory.torch.Metrics):
-    def evaluate(self, loss, output, target) -> Dict[str, float]:
-        mse = torch.mean((output - target) ** 2).item()
-        return {"loss": loss.item(), "mse": mse}
-
-
 def objective(trial):
     # for i in range(trial.suggest_int("num_layers", 1, 3)):
     #     trial.suggest_int(f"model.hidden_sizes.{i}", 5, 30)
