@@ -1,6 +1,8 @@
 import datetime
+import inspect
 from typing import Any, Dict
 
+import optuna
 import yaml
 
 import ivory
@@ -61,7 +63,7 @@ class Experiment:
         resolved = instance.resolve_params(self.params(), self.shared)
         self.shared_keys, self.shared = resolved
 
-    def start(self):
+    def start(self, name=None):
         """Starts this experiment object.
 
         This method instantiates default objects that will be shared among runs and
@@ -71,11 +73,23 @@ class Experiment:
         default = {key: params[key] for key in self.shared_keys}
         self.default = instance.instantiate(default)
         self.default.update(experiment=self)
-        self.name = self.get_experiment_name()
+        self.name = name or self.get_experiment_name()
         for cls in instance.get_classes(params):
             if issubclass(cls, Callback):
                 cls.on_experiment_start(self)
         ivory.active_experiment = self
+
+    def create_study(self, **kwargs):
+        """Returns a Optuna Study object."""
+        parameters = inspect.signature(optuna.create_study).parameters
+        kwargs = kwargs.copy()
+        for key in self.study:
+            if key in parameters and key not in kwargs:
+                kwargs[key] = self.study[key]
+        study = optuna.create_study(study_name=self.name, **kwargs)
+        if hasattr(self, "experiment_id"):
+            study.set_user_attr("experiment_id", self.experiment_id)
+        return study
 
     def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
         """Creates a run with an optional update parameters.

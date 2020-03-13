@@ -46,30 +46,8 @@ def objective(trial):
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
 
-    experiment.study
-
     import inspect
     import optuna
-    s = inspect.signature(optuna.create_study)
-    s.parameters
-
-    experiment.study
-
-    
-
-
-    experiment.optimize
-    experiment.start()
-    experiment.experiment_id
-
-    study = optuna.create_study(
-        study_name=experiment.name, **experiment.study, load_if_exists=True
-    )
-    study.set_user_attr("experiment_id", experiment.experiment_id)
-    study.optimize(objective, n_trials=50, n_jobs=-1)
-
-    experiment.objective
-
 
 def main():
     optimize()

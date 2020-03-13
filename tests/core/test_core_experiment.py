@@ -1,4 +1,8 @@
+import inspect
+
+import optuna
 import pytest
+
 import ivory
 
 
@@ -7,7 +11,7 @@ def test_experiment(path):
     ivory.active_experiment = None
     experiment.start()
     assert experiment is ivory.active_experiment
-    assert experiment.name.startswith('2')
+    assert experiment.name.startswith("2")
 
     assert all(experiment.default["data"] == [1, 2])
     assert "shared=['data']" in repr(experiment)
@@ -28,3 +32,10 @@ def test_experiment(path):
     ivory.active_experiment = None
     with pytest.raises(ValueError):
         ivory.create_run()
+
+
+def test_study_parameters():
+    create_params = set(inspect.signature(optuna.create_study).parameters)
+    optimize_params = set(inspect.signature(optuna.study.Study.optimize).parameters)
+    assert not create_params.intersection(optimize_params)
+    assert not optimize_params.intersection(create_params)
