@@ -19,5 +19,5 @@ class Metrics(ivory.callbacks.Metrics):
             target = utils.cpu(target)
         return index.numpy(), output.numpy(), target.numpy(), loss.item()
 
-    def on_record(self, run):
-        self.record["lr"] = run.optimizer.param_groups[0]["lr"]
+    def record_dict(self, run):
+        return {"lr": run.optimizer.param_groups[0]["lr"]}

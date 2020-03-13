@@ -10,6 +10,7 @@ def test_experiment(path):
     assert experiment.name.startswith('2')
 
     assert all(experiment.default["data"] == [1, 2])
+    assert "shared=['data']" in repr(experiment)
 
     run = experiment.create_run()
     assert run.name == "#1"

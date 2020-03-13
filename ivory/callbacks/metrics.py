@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from ivory.callbacks import Callback
 from ivory.core.state import State
@@ -8,12 +7,20 @@ from ivory.core.state import State
 class Metrics(Callback, State):
     def __init__(self):
         self.epoch = -1
-        self.record = None
-        self.history = None
+        self.record = {}
+        self.history = {}
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}()"
+        s = f"{class_name}(num_metrics={len(self.record)}, "
+        s += f"num_records={len(self.history)})"
+        return s
+
+    def __str__(self):
+        metrics = []
+        for key in self.record:
+            metrics.append(f"{key}={self.record[key]:.2e}")
+        return " ".join(metrics)
 
     def reset(self):
         self.train_batch_loss = []
@@ -65,37 +72,21 @@ class Metrics(Callback, State):
         raise NotImplementedError
 
     def on_epoch_end(self, run):
+        self.data = self.data_dict()
         train_epoch_loss = np.mean(self.train_batch_loss)
         val_epoch_loss = np.mean(self.val_batch_loss)
-        self.record = pd.Series({"loss": train_epoch_loss, "val_loss": val_epoch_loss})
-        self.record.name = self.epoch
-        self.data = self.to_dataframe()
-        self.on_record(run)
-        if self.history is None:
-            self.history = self.record.to_frame().T
-            self.history.index.name = "epoch"
-        else:
-            self.history = self.history.append(self.record)
+        self.record = {"loss": train_epoch_loss, "val_loss": val_epoch_loss}
+        self.record.update(self.record_dict(run))
+        self.history[self.epoch] = self.record
         self.reset()
 
-    def on_record(self, run):
-        """Adds additonal custom metrics to `self.record`."""
-        pass
-
-    @property
-    def latest(self):
-        records = []
-        for index in self.record.index:
-            records.append(f"{index}={self.record[index]:.2e}")
-        return " ".join(records)
-
-    def to_dataframe(self):
+    def data_dict(self):
+        """Create data from validation data."""
         index = np.hstack(self.val_batch_index)
         output = np.vstack(self.val_batch_output)
         target = np.vstack(self.val_batch_target)
-        data = np.hstack([output, target])
-        columns = [f"output.{i}" for i in range(output.shape[1])]
-        columns += [f"target.{i}" for i in range(target.shape[1])]
-        if len(columns) == 2:
-            columns = ["output", "target"]
-        return pd.DataFrame(data, index=index, columns=columns)
+        return dict(index=index, output=output, target=target)
+
+    def record_dict(self, run):
+        """Returns an extra custom metrics dictionay."""
+        return {}

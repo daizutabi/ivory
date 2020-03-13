@@ -21,7 +21,7 @@ class Pruning(Callback):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(trial={self.trial}, monitor={self.monitor})"
+        return f"{class_name}(trial={self.trial}, monitor='{self.monitor}')"
 
     def on_epoch_end(self, run):
         score = run.metrics.record[self.monitor]

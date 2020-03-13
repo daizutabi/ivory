@@ -83,8 +83,7 @@ class Trainer(State):
                 break
             finally:
                 if self.verbose:
-                    latest = run.metrics.latest
-                    tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {latest}")
+                    tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {run.metrics}")
             if 'scheduler' in run:
                 if isinstance(run.scheduler, ReduceLROnPlateau):
                     run.scheduler.step(run.monitor.score)

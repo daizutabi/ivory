@@ -4,8 +4,9 @@ import numpy as np
 def test_trainer(run):
     run.start()
     assert run.trainer.epoch == 4
-    assert run.metrics.history.shape == (5, 3)
-    assert run.metrics.data.shape == (200, 2)
+    assert len(run.metrics.history) == 5
+    assert run.metrics.data['index'].shape == (200,)
+    assert run.metrics.data['output'].shape == (200, 1)
     assert run.monitor.best_epoch > -1
 
     state_dict = run.state_dict()
