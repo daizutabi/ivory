@@ -55,4 +55,3 @@ def run(tracking_uri):
     run.on_fit_start.objects
 
     run.on_train_start
-    
