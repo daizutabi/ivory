@@ -1,5 +1,4 @@
 import numpy as np
-import optuna
 import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
@@ -45,9 +44,9 @@ def objective(trial):
 
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
+    experiment
 
-    import inspect
-    import optuna
+    experiment.__dict__
 
 def main():
     optimize()

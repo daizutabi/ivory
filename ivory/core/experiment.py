@@ -13,23 +13,20 @@ from ivory.core.run import Run
 
 
 class Experiment:
-    def __init__(
-        self, run: str, shared=None, objective=None, study=None, optimize=None
-    ):
+    def __init__(self, run: str, shared=None, objective=None, study=None):
         self.run_class = instance.get_attr(run)
         if shared is None:
             shared = []
         self.shared = shared
         self.name = "ready"
+        self.experiment_id = ""
         self.num_runs = 0
-        if objective is not None:
-            objective = instance.get_attr(objective)
         self.objective = objective
         self.study = study
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        s = f"{class_name}(name='{self.name}', run_class='{self.run_class}', "
+        s = f"{class_name}(id='{self.experiment_id}', name='{self.name}', "
         s += f"num_runs={self.num_runs}, shared={self.shared})"
         return s
 
@@ -79,18 +76,6 @@ class Experiment:
                 cls.on_experiment_start(self)
         ivory.active_experiment = self
 
-    def create_study(self, **kwargs):
-        """Returns a Optuna Study object."""
-        parameters = inspect.signature(optuna.create_study).parameters
-        kwargs = kwargs.copy()
-        for key in self.study:
-            if key in parameters and key not in kwargs:
-                kwargs[key] = self.study[key]
-        study = optuna.create_study(study_name=self.name, **kwargs)
-        if hasattr(self, "experiment_id"):
-            study.set_user_attr("experiment_id", self.experiment_id)
-        return study
-
     def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
         """Creates a run with an optional update parameters.
 
@@ -110,14 +95,36 @@ class Experiment:
             name=name, params=params, default=self.default, callbacks=callbacks
         )
 
+    def create_study(self, **kwargs):
+        """Returns a Optuna Study object."""
+        parameters = inspect.signature(optuna.create_study).parameters
+        kwargs = kwargs.copy()
+        for key in self.study:
+            if key in parameters and key not in kwargs:
+                kwargs[key] = self.study[key]
+        self.study_object = optuna.create_study(study_name=self.name, **kwargs)
+        self.study_object.set_user_attr("experiment_id", self.experiment_id)
+        return self.study_object
+
+    def optimize(self, study=None, objective=None, **kwargs):
+        """Optimize a study object."""
+        study = study or self.study_object
+        if objective is not None:
+            if self.objective is None:
+                raise ValueError("an objective function not found.")
+            objective = instance.get_attr(self.objective)
+        parameters = inspect.signature(study.optimize).parameters
+        kwargs = kwargs.copy()
+        for key in self.study:
+            if key in parameters and key not in kwargs:
+                kwargs[key] = self.study[key]
+        return objective, kwargs
+
     def get_experiment_name(self):
         return datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     def get_run_name(self):
         return f"#{self.num_runs}"
-
-    def optimize(self):
-        pass
 
 
 def create_experiment(params_path: str) -> Experiment:
