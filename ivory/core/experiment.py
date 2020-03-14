@@ -96,7 +96,7 @@ class Experiment:
         if callbacks is None:
             callbacks = []
         if self.tracking:
-            callbacks += self.tracking.create_callback(self.experiment_id)
+            callbacks += [self.tracking.create_callback(self.experiment_id)]
         return self.run_cls(name, params, self.shared_objects, callbacks)
 
     def optimize(self):
@@ -109,7 +109,7 @@ class Experiment:
         return f"#{self.num_runs}"
 
 
-def create_experiment(params_path: str) -> Experiment:
+def create_experiment(params_path: str, update: Dict[str, Any] = None):
     """Creates an `Experiment` instance from a yaml parameters file.
 
     Args:
@@ -121,6 +121,9 @@ def create_experiment(params_path: str) -> Experiment:
     with open(params_path) as file:
         params_yaml = file.read()
     params = utils.to_float(yaml.safe_load(params_yaml))
+    if update:
+        utils.update_dict(params, utils.dot_to_list(update))
+        params_yaml = yaml.dump(params, sort_keys=False)
     experiment = instance.instantiate(params["experiment"])
     experiment.set_fields(params_path, params_yaml)
     return experiment

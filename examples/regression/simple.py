@@ -38,10 +38,17 @@ def objective(trial):
 
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
+
+
+
     experiment.start()
+
+    experiment.tracking._c._tracking_client.tracking_uri
+
+    experiment.tracking._c.get_experiment(experiment.experiment_id).artifact_location
+
     experiment.optuna.study.user_attrs
 
-    e
 
     experiment
     experiment.tracking

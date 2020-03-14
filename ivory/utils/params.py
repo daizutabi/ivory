@@ -31,7 +31,7 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
         for attr in attrs[:-1]:
             x = x[attr]
         if attrs[-1] not in x:
-            pass
+            x[attrs[-1]] = value
         elif type(x[attrs[-1]]) is not type(value):
             raise ValueError(f"different type: {type(x[attrs[-1]])} != {type(value)}")
         else:

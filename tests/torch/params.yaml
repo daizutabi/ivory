@@ -1,0 +1,36 @@
+dataloaders:
+  call: simple.dataloaders
+model:
+  class: simple.Model
+optimizer:
+  class: torch.optim.Adam
+  params: $.model.parameters()
+scheduler:
+  class: torch.optim.lr_scheduler.StepLR
+  optimizer: $
+  step_size: 4
+metrics:
+  class: ivory.torch.Metrics
+  loss: torch.nn.functional.mse_loss
+monitor:
+  class: ivory.callbacks.Monitor
+trainer:
+  class: ivory.torch.Trainer
+  max_epochs: 8
+early_stopping:
+  class: ivory.callbacks.EarlyStopping
+  patience: 2
+experiment:
+  class: ivory.core.Experiment
+  run_class: ivory.torch.Run
+  shared: [dataloaders]
+  tracking:
+    class: ivory.core.Tracking
+  optuna:
+    class: ivory.core.Optuna
+    objective:
+      def: simple.objective
+    pruner:
+      class: optuna.pruners.MedianPruner
+    optimize_kwargs:
+      n_trials: 10

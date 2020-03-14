@@ -13,8 +13,9 @@ def test_update_dict():
     x = {"a": 1, "b": {"x": "abc", "y": 2}, "c": {"z": [0, 1, 2]}}
     update_dict(x, {"a": 2})
     assert x == {"a": 2, "b": {"x": "abc", "y": 2}, "c": {"z": [0, 1, 2]}}
-    update_dict(x, {"d": 2})  # ignore non-existing key
-    assert x == {"a": 2, "b": {"x": "abc", "y": 2}, "c": {"z": [0, 1, 2]}}
+    update_dict(x, {"d": 2})  # add non-existing key
+    assert x == {"a": 2, "b": {"x": "abc", "y": 2}, "c": {"z": [0, 1, 2]}, "d": 2}
+    x.pop("d")
     update_dict(x, {"b.x": "def"})
     assert x == {"a": 2, "b": {"x": "def", "y": 2}, "c": {"z": [0, 1, 2]}}
     update_dict(x, {"c.z": [3, 4]})

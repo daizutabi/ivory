@@ -30,7 +30,7 @@ trainer:
   max_epochs: 200
   verbose: 0
 experiment:
-  class: ivory.Experiment
+  class: ivory.core.Experiment
   run_class: ivory.torch.Run
   shared: [input]
   tracking:

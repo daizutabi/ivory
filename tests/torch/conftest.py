@@ -68,7 +68,10 @@ def run(tracking_uri, scheduler, trainer):
         "model": {"class": "simple.Model"},
         "optimizer": {"class": "torch.optim.Adam", "params": "$.model.parameters()"},
         "scheduler": scheduler,
-        "metrics": {"class": "simple.Metrics"},
+        "metrics": {
+            "class": "ivory.torch.Metrics",
+            "loss": "torch.nn.functional.mse_loss",
+        },
         "monitor": {"class": "ivory.callbacks.Monitor"},
         "trainer": trainer,
         "early_stopping": {"class": "ivory.callbacks.EarlyStopping", "patience": 100},

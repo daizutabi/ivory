@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
 
-from ivory.torch import metrics
 from ivory.torch.data import DataLoaders
 from ivory.utils import kfold_split
 
@@ -30,11 +29,6 @@ def dataloaders():
     )
 
 
-class Metrics(metrics.Metrics):
-    def criterion(self, output, target):
-        return F.mse_loss(output, target)
-
-
 class Model(nn.Module):
     def __init__(self, hidden_sizes=[10]):
         super().__init__()
@@ -48,3 +42,7 @@ class Model(nn.Module):
         for layer in self.layers[:-1]:
             x = F.relu(layer(x))
         return self.layers[-1](x)
+
+
+def objective(trial):
+    trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)

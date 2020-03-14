@@ -17,3 +17,9 @@ def test_experiment(path):
 
     run = experiment.create_run({"data2.object": [10, 20]})
     assert all(run.data2 == [10, 20])
+
+
+def test_crate_run(path):
+    experiment = ivory.create_experiment(path)
+    experiment.create_run()
+    assert experiment.name.startswith("2")

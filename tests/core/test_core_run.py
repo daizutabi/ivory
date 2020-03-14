@@ -9,6 +9,7 @@ def test_run(params):
     assert "data" in run
     assert run.a == 3
     assert run.b == 4
+    assert 'num_objects=6' in repr(run)
 
     default = instantiate({"data": params["data"]})
     run1 = Run(name='', params=params, callbacks=[], default={})

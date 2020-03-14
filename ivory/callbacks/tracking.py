@@ -32,7 +32,7 @@ class Tracking(Callback):
             yaml.dump(run.params, file, sort_keys=False)
 
     def on_epoch_end(self, run):
-        self.log_metrics(run.run_id, dict(run.metrics.record), run.metrics.epoch)
+        self.log_metrics(run.run_id, run.metrics.record, run.metrics.epoch)
         src = os.path.join(self.tmpdir, "current")
         run.save(src)
         if run.monitor.is_best:
@@ -44,7 +44,9 @@ class Tracking(Callback):
     def on_fit_end(self, run):
         monitor = run.monitor
         if monitor.best_epoch != -1:
-            self.log_metrics({"best_score": monitor.best_score}, monitor.best_epoch)
+            self.log_metrics(
+                run.run_id, {"best_score": monitor.best_score}, monitor.best_epoch
+            )
         self.client.log_artifacts(run.run_id, self.tmpdir)
         self.client.set_terminated(run.run_id)
         shutil.rmtree(self.tmpdir)

@@ -20,9 +20,13 @@ class Tracking:
             self.artifact_location = utils.to_uri(self.artifact_location)
         experiment = client.get_experiment_by_name(name)
         if experiment is not None:
-            return experiment.experiment_id
+            id_ = experiment.experiment_id
         else:
-            return client.create_experiment(name, self.artifact_location)
+            id_ = client.create_experiment(name, self.artifact_location)
+            experiment = client.get_experiment(id_)
+        self.tracking_uri = client._tracking_client.tracking_uri
+        self.artifact_location = experiment.artifact_location
+        return id_
 
     def create_callback(self, experiment_id):
         return callbacks.Tracking(experiment_id, self.tracking_uri)

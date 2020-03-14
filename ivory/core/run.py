@@ -15,7 +15,7 @@ class Run(CallbackCaller):
     def __repr__(self):
         class_name = self.__class__.__name__
         s = f"{class_name}(id='{self.run_id}', name='{self.name}', "
-        s += "num_objects={len(self)})"
+        s += f"num_objects={len(self)})"
         return s
 
     def __len__(self):
