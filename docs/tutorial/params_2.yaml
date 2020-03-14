@@ -1,10 +1,9 @@
-input, target:
-  def: create_data
+input__target:
+  call: create_data
   num_samples: 10000
 dataloaders:
   class: ivory.torch.DataLoaders
-  input: $
-  target: $
+  input__target: $
   batch_size: 32
 model:
   class: Model

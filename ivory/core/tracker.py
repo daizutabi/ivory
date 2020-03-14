@@ -3,11 +3,12 @@ from typing import Optional
 
 import mlflow
 
-from ivory import callbacks, utils
+from ivory import utils
+from ivory.callbacks.tracking import Tracking
 
 
 @dataclass
-class Tracking:
+class Tracker:
     name: str = ""
     tracking_uri: Optional[str] = None
     artifact_location: Optional[str] = None
@@ -29,4 +30,4 @@ class Tracking:
         return id_
 
     def create_callback(self, experiment_id):
-        return callbacks.Tracking(experiment_id, self.tracking_uri)
+        return Tracking(experiment_id, self.tracking_uri)

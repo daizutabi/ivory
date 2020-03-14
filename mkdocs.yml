@@ -20,12 +20,12 @@ plugins:
 nav:
   - Home: index.md
   - Tutorial:
-      Experiment: tutorial/experiment.md
-      Data: tutorial/data.md
-      Model: tutorial/model.md
-      Metrics: tutorial/metrics.md
-      Trainer: tutorial/trainer.md
-      Run: tutorial/run.md
+      Data: tutorial/data.py
+      Model: tutorial/model.py
+      Metrics: tutorial/metrics.py
+      # Trainer: tutorial/trainer.md
+      # Run: tutorial/run.md
+      # Experiment: tutorial/experiment.md
 
 
 markdown_extensions:

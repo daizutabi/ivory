@@ -24,8 +24,8 @@ experiment:
   class: ivory.core.Experiment
   run_class: ivory.torch.Run
   shared: [dataloaders]
-  tracking:
-    class: ivory.core.Tracking
+  tracker:
+    class: ivory.core.Tracker
   optuna:
     class: ivory.core.Optuna
     objective:

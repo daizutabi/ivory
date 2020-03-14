@@ -7,14 +7,14 @@ import yaml
 from ivory import utils
 from ivory.core import instance
 from ivory.core.optuna import Optuna
-from ivory.core.tracking import Tracking
+from ivory.core.tracker import Tracker
 
 
 @dataclass
 class Experiment:
     run_class: str
     shared: List[str] = field(default_factory=list)
-    tracking: Optional[Tracking] = None
+    tracker: Optional[Tracker] = None
     optuna: Optional[Optuna] = None
 
     def __post_init__(self):
@@ -70,8 +70,8 @@ class Experiment:
         self.shared_objects = instance.instantiate(shared_params)
         self.shared_objects.update(experiment=self)
         self.name = self.get_experiment_name()
-        if self.tracking:
-            self.experiment_id = self.tracking.create_experiment(self.name)
+        if self.tracker:
+            self.experiment_id = self.tracker.create_experiment(self.name)
         if self.optuna:
             study = self.optuna.create_study(self.name, params["monitor"])
             if self.experiment_id:
@@ -95,8 +95,8 @@ class Experiment:
         params = self.params(update)
         if callbacks is None:
             callbacks = []
-        if self.tracking:
-            callbacks += [self.tracking.create_callback(self.experiment_id)]
+        if self.tracker:
+            callbacks += [self.tracker.create_callback(self.experiment_id)]
         return self.run_cls(name, params, self.shared_objects, callbacks)
 
     def optimize(self):

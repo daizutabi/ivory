@@ -10,16 +10,16 @@ def test_experiment(tracking_uri):
     assert experiment.run_cls is Run
 
     experiment.start()
-    assert "pytest-" in experiment.tracking.tracking_uri
+    assert "pytest-" in experiment.tracker.tracking_uri
     experiment.optimize()
 
     experiment = ivory.create_experiment(
         "tests/torch/params.yaml",
         {
-            "experiment.tracking.tracking_uri": tracking_uri,
-            "experiment.tracking.artifact_location": "~/.mlruns2",
+            "experiment.tracker.tracking_uri": tracking_uri,
+            "experiment.tracker.artifact_location": "~/.mlruns2",
         },
     )
     experiment.start()
-    assert experiment.tracking.tracking_uri == tracking_uri
-    assert "file" in experiment.tracking.artifact_location
+    assert experiment.tracker.tracking_uri == tracking_uri
+    assert "file" in experiment.tracker.artifact_location
