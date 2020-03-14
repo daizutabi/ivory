@@ -61,7 +61,7 @@ def parse_params(params: Map, objects: Map) -> Map:
        {'a': 0, 'b': 0, 'c': 2}
        >>> parse_params({"a": ["$.a", "$.b"], "b": {"a": "$"}}, objects)
        {'a': [0, [1, 2, 3]], 'b': {'a': 0}}
-       >>> parse_params({"a, b": "$"}, objects)
+       >>> parse_params({"a__b": "$"}, objects)
        {'a': 0, 'b': [1, 2, 3]}
     """
     parsed = {}
@@ -73,8 +73,8 @@ def parse_params(params: Map, objects: Map) -> Map:
             parsed[key] = instantiate(value, objects)
         elif isinstance(value, list):
             parsed[key] = [parse_value(v, objects) for v in value]  # type:ignore
-        elif "," in key and value == "$":
-            for key in [k.strip() for k in key.split(",")]:
+        elif "__" in key and value == "$":
+            for key in key.split("__"):
                 parsed[key] = parse_value(value, objects, key)
         else:
             parsed[key] = parse_value(value, objects, key)
@@ -113,7 +113,7 @@ def instantiate(params: Map, default: Map = None) -> Any:
 
     objects: Map = {}
     for key in params:
-        keys = [k.strip() for k in key.split(",")]
+        keys = key.split("__")
         if default:
             if keys[0] in default:
                 for key in keys:
@@ -139,15 +139,15 @@ def resolve_params(params: Map, names: List[str]) -> Tuple[List[str], List[str]]
             (list of keys for params, resolved parameter names)
 
     Examples:
-        >>> params = {"a, b": 0, "c": 1, "d, e": 2}
+        >>> params = {"a__b": 0, "c": 1, "d__e": 2}
         >>> names = ["a", "d"]
         >>> resolve_params(params, names)
-        (['a, b', 'd, e'], ['a', 'b', 'd', 'e'])
+        (['a__b', 'd__e'], ['a', 'b', 'd', 'e'])
     """
     update: List[str] = []
     params_keys: List[str] = []
     for key in params:
-        key_splitted = [k.strip() for k in key.split(",")]
+        key_splitted = key.split("__")
         for name in names:
             if name in key_splitted:
                 if key not in params_keys:

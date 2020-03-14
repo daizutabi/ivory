@@ -15,7 +15,7 @@ def params():
         "series": {"class": "pandas.Series", "data": "$"},
         "metrics": {"class": "ivory.callbacks.Metrics"},
         "monitor": {"class": "ivory.callbacks.Monitor"},
-        "a, b": {"call": "numpy.array", "object": [3, 4]},
+        "a__b": {"call": "numpy.array", "object": [3, 4]},
     }
 
 

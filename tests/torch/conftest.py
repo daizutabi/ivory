@@ -72,7 +72,6 @@ def run(tracking_uri, scheduler, trainer):
         "monitor": {"class": "ivory.callbacks.Monitor"},
         "trainer": trainer,
         "early_stopping": {"class": "ivory.callbacks.EarlyStopping", "patience": 100},
-        "tracking": {"class": "ivory.callbacks.Tracking"},
     }
     callbacks = [Pruning(Trial(), "val_loss")]
     return Run("abc", params=params, callbacks=callbacks)

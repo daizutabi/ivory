@@ -1,34 +1,32 @@
 import datetime
-import inspect
-from typing import Any, Dict
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-import optuna
 import yaml
 
-import ivory
 from ivory import utils
-from ivory.callbacks.base import Callback
 from ivory.core import instance
-from ivory.core.run import Run
+from ivory.core.optuna import Optuna
+from ivory.core.tracking import Tracking
 
 
+@dataclass
 class Experiment:
-    def __init__(self, run_class: str, shared=None, study=None):
-        self.run_class = run_class
-        self.run_cls = instance.get_attr(run_class)
-        if shared is None:
-            shared = []
-        self.shared = shared
-        self.name = "ready"
+    run_class: str
+    shared: List[str] = field(default_factory=list)
+    tracking: Optional[Tracking] = None
+    optuna: Optional[Optuna] = None
+
+    def __post_init__(self):
+        self.run_cls = instance.get_attr(self.run_class)
         self.experiment_id = ""
+        self.name = "ready"
         self.num_runs = 0
-        self._study = study
-        self.study = None
 
     def __repr__(self):
         class_name = self.__class__.__name__
         s = f"{class_name}(id='{self.experiment_id}', name='{self.name}', "
-        s += f"run_class={self.run_class}, num_runs={self.num_runs}, "
+        s += f"run_class='{self.run_class}', num_runs={self.num_runs}, "
         s += f"shared={self.shared})"
         return s
 
@@ -62,23 +60,24 @@ class Experiment:
         resolved = instance.resolve_params(self.params(), self.shared)
         self.shared_keys, self.shared = resolved
 
-    def start(self, name=None):
-        """Starts this experiment object.
+    def start(self):
+        """Starts the experiment.
 
-        This method instantiates default objects that will be shared among runs and
-        invokes `on_experiment_start` class method of registerd `Callback`s
+        This method instantiates default objects that will be shared among runs.
         """
         params = self.params()
-        default = {key: params[key] for key in self.shared_keys}
-        self.default = instance.instantiate(default)
-        self.default.update(experiment=self)
-        self.name = name or self.get_experiment_name()
-        for cls in instance.get_classes(params):
-            if issubclass(cls, Callback):
-                cls.on_experiment_start(self)
-        ivory.active_experiment = self
+        shared_params = {key: params[key] for key in self.shared_keys}
+        self.shared_objects = instance.instantiate(shared_params)
+        self.shared_objects.update(experiment=self)
+        self.name = self.get_experiment_name()
+        if self.tracking:
+            self.experiment_id = self.tracking.create_experiment(self.name)
+        if self.optuna:
+            study = self.optuna.create_study(self.name, params["monitor"])
+            if self.experiment_id:
+                study.set_user_attr("experiment_id", self.experiment_id)
 
-    def create_run(self, update: Dict[str, Any] = None, callbacks=None) -> Run:
+    def create_run(self, update: Dict[str, Any] = None, callbacks=None, name=None):
         """Creates a run with an optional update parameters.
 
         Args:
@@ -91,38 +90,17 @@ class Experiment:
         if self.name == "ready":
             self.start()
         self.num_runs += 1
-        name = self.get_run_name()
+        if name is None:
+            name = self.get_run_name()
         params = self.params(update)
-        return self.run_cls(
-            name=name, params=params, default=self.default, callbacks=callbacks
-        )
-
-    def create_study(self):
-        """Returns a Optuna Study object."""
-        if self._study is None:
-            raise ValueError("'study' not found in params file.")
-        if self.name == "ready":
-            self.start()
-        parameters = inspect.signature(optuna.create_study).parameters
-        kwargs = {}
-        for key in self._study:
-            if key in parameters:
-                kwargs[key] = self._study[key]
-        self.study = optuna.create_study(study_name=self.name, **kwargs)
-        self.study.set_user_attr("experiment_id", self.experiment_id)
-        return self.study
+        if callbacks is None:
+            callbacks = []
+        if self.tracking:
+            callbacks += self.tracking.create_callback(self.experiment_id)
+        return self.run_cls(name, params, self.shared_objects, callbacks)
 
     def optimize(self):
-        """Optimize a Study object."""
-        if self.study is None:
-            self.create_study()
-        objective = create_objective(self)
-        parameters = inspect.signature(self.study.optimize).parameters
-        kwargs = {}
-        for key in self._study:
-            if key in parameters:
-                kwargs[key] = self._study[key]
-        return objective, kwargs
+        self.optuna.optimize(self.create_run)
 
     def get_experiment_name(self):
         return datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -146,26 +124,3 @@ def create_experiment(params_path: str) -> Experiment:
     experiment = instance.instantiate(params["experiment"])
     experiment.set_fields(params_path, params_yaml)
     return experiment
-
-
-def create_objective(experiment: Experiment):
-    if "objective" not in experiment._study:
-        raise ValueError("'objective' not found in 'study' of params file.")
-    objective = experiment._study["objective"]
-    params = experiment.params()
-    monitor = instance.instantiate(params["monitor"]).monitor
-    has_pruner = "pruner" in experiment._study
-
-    def _objective(trial):
-        objective(trial)
-        callbacks = None
-        if has_pruner:
-            callbacks = [ivory.callbacks.Pruning(trial, monitor)]
-        run = experiment.create_run(trial.params, callbacks=callbacks)
-        run.name = f"#{trial.number}"
-        run.start()
-        if "tracking" in run:
-            trial.set_user_attr("run_id", run.tracking.run_id)
-        return run.monitor.best_score
-
-    return _objective

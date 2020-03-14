@@ -4,10 +4,6 @@ from collections import abc
 class Callback:
     methods = ["on_fit_start", "on_epoch_start", "on_epoch_end", "on_fit_end"]
 
-    @classmethod
-    def on_experiment_start(cls, experiment):
-        pass
-
 
 class CallbackCaller(abc.Mapping):
     __slots__ = ["callbacks"]

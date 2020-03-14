@@ -1,14 +1,12 @@
-from typing import Any, Dict
-
-import ivory
 from ivory.callbacks import CallbackCaller
 from ivory.core import instance
 
 
 class Run(CallbackCaller):
-    __slots__ = ["name", "params", "objects"]
+    __slots__ = ["run_id", "name", "params", "objects"]
 
     def __init__(self, name, params, default=None, callbacks=None):
+        self.run_id = ""
         self.name = name
         self.params = params
         self.objects = instance.instantiate(self.params, default=default)
@@ -16,7 +14,9 @@ class Run(CallbackCaller):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(name='{self.name}', num_objects={len(self)})"
+        s = f"{class_name}(id='{self.run_id}', name='{self.name}', "
+        s += "num_objects={len(self)})"
+        return s
 
     def __len__(self):
         return len(self.objects)
@@ -60,13 +60,3 @@ class Run(CallbackCaller):
 
     def load(self, directory):
         raise NotImplementedError
-
-
-def create_run(update: Dict[str, Any] = None, experiment=None, callbacks=None) -> Run:
-    """Create a run for an optinal update params."""
-    if experiment is None:
-        experiment = ivory.active_experiment
-    if experiment is None:
-        raise ValueError("active experiment does not exist.")
-    run = experiment.create_run(update, callbacks=callbacks)
-    return run
