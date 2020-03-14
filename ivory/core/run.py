@@ -1,15 +1,15 @@
-from ivory.callbacks import CallbackCaller
+from ivory.callbacks.base import CallbackCaller
 from ivory.core import instance
 
 
 class Run(CallbackCaller):
     __slots__ = ["run_id", "name", "params", "objects"]
 
-    def __init__(self, name, params, default=None, callbacks=None):
+    def __init__(self, name, params, default=None, callbacks=None, module=None):
         self.run_id = ""
         self.name = name
         self.params = params
-        self.objects = instance.instantiate(self.params, default=default)
+        self.objects = instance.instantiate(self.params, default, module)
         super().__init__(callbacks)
 
     def __repr__(self):

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional
 
 import numpy as np
-import torch.utils.data
+import torch
 from pandas import DataFrame
 from torch.utils.data import DataLoader, random_split
 

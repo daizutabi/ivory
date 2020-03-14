@@ -1,9 +1,9 @@
-import ivory.callbacks
+import ivory.callbacks.metrics
 from ivory.core import instance
 from ivory.torch import utils
 
 
-class Metrics(ivory.callbacks.Metrics):
+class Metrics(ivory.callbacks.metrics.Metrics):
     def __init__(self, loss=None):
         super().__init__()
         if loss is not None:

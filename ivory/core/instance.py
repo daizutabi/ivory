@@ -6,18 +6,20 @@ from typing import Any, Dict, List, Tuple
 Map = Dict[str, Any]
 
 
-def get_attr(path: str) -> type:
+def get_attr(path: str, module=None) -> type:
     if "." not in path:
+        if module:
+            return getattr(module, path)
         path = f"__main__.{path}"
     module_path, _, name = path.rpartition(".")
     module = importlib.import_module(module_path)
     return getattr(module, name)
 
 
-def get_classes(params: Map):
+def get_classes(params: Map, module=None):
     for key in params:
         if isinstance(params[key], dict) and "class" in params[key]:
-            yield get_attr(params[key]["class"])
+            yield get_attr(params[key]["class"], module)
 
 
 def parse_value(value, objects: Map, key: str = None) -> Any:
@@ -53,7 +55,7 @@ def parse_value(value, objects: Map, key: str = None) -> Any:
     return value
 
 
-def parse_params(params: Map, objects: Map) -> Map:
+def parse_params(params: Map, objects: Map, module=None) -> Map:
     """
     Examples:
        >>> objects = {"a": 0, "b": [1, 2, 3]}
@@ -70,7 +72,7 @@ def parse_params(params: Map, objects: Map) -> Map:
             continue
         value = params[key]
         if isinstance(value, dict):
-            parsed[key] = instantiate(value, objects)
+            parsed[key] = instantiate(value, objects, module)
         elif isinstance(value, list):
             parsed[key] = [parse_value(v, objects) for v in value]  # type:ignore
         elif "__" in key and value == "$":
@@ -81,16 +83,16 @@ def parse_params(params: Map, objects: Map) -> Map:
     return parsed
 
 
-def _instantiate(params: Map, objects: Map) -> Any:
+def _instantiate(params: Map, objects: Map, module=None) -> Any:
     if "class" in params:
-        cls = get_attr(params["class"])
-        return cls(**parse_params(params, objects))
+        cls = get_attr(params["class"], module)
+        return cls(**parse_params(params, objects, module))
     elif "call" in params:
-        func = get_attr(params["call"])
-        return func(**parse_params(params, objects))
+        func = get_attr(params["call"], module)
+        return func(**parse_params(params, objects, module))
     elif "def" in params:
-        func = get_attr(params["def"])
-        params = parse_params(params, objects)
+        func = get_attr(params["def"], module)
+        params = parse_params(params, objects, module)
         if params:
             return partial(func, **params)
         else:
@@ -107,9 +109,11 @@ def _unpack(objects, keys, created):
             objects[key] = obj
 
 
-def instantiate(params: Map, default: Map = None) -> Any:
+def instantiate(params: Map, default: Map = None, module=None) -> Any:
     if "class" in params or "call" in params or "def" in params:
-        return _instantiate(params, default or {})
+        if default is None:
+            default = {}
+        return _instantiate(params, default, module)
 
     objects: Map = {}
     for key in params:
@@ -120,7 +124,7 @@ def instantiate(params: Map, default: Map = None) -> Any:
                     objects[key] = default[key]
                 continue
         if isinstance(params[key], dict):
-            created = _instantiate(params[key], objects)
+            created = _instantiate(params[key], objects, module)
             _unpack(objects, keys, created)
         else:
             objects[key] = parse_value(params[key], objects)

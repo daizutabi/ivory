@@ -70,6 +70,7 @@ setup(
     license="MIT",
     packages=get_packages("ivory"),
     include_package_data=True,
+    entry_points={"console_scripts": ["ivory = ivory.main:main"]},
     install_requires=[
         "mlflow",
         "optuna",

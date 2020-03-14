@@ -84,7 +84,7 @@ class Trainer(State):
             finally:
                 if self.verbose:
                     tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {run.metrics}")
-            if 'scheduler' in run:
+            if "scheduler" in run:
                 if isinstance(run.scheduler, ReduceLROnPlateau):
                     run.scheduler.step(run.monitor.score)
                 else:

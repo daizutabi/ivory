@@ -1,8 +1,8 @@
-import ivory
+from ivory.core.experiment import create_experiment
 
 
 def test_experiment(path):
-    experiment = ivory.create_experiment(path)
+    experiment = create_experiment(path)
     experiment.start()
     assert experiment.name.startswith("2")
 
@@ -20,6 +20,6 @@ def test_experiment(path):
 
 
 def test_crate_run(path):
-    experiment = ivory.create_experiment(path)
+    experiment = create_experiment(path)
     experiment.create_run()
     assert experiment.name.startswith("2")

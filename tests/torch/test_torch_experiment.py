@@ -1,9 +1,9 @@
-import ivory
+from ivory.core.experiment import create_experiment
 from ivory.torch import Run
 
 
 def test_experiment(tracking_uri):
-    experiment = ivory.create_experiment("tests/torch/params.yaml")
+    experiment = create_experiment("tests/torch/params.yaml")
     assert experiment.experiment_id == ""
     assert experiment.name == "ready"
     assert experiment.run_class == "ivory.torch.Run"
@@ -13,7 +13,7 @@ def test_experiment(tracking_uri):
     assert "pytest-" in experiment.tracker.tracking_uri
     experiment.optimize()
 
-    experiment = ivory.create_experiment(
+    experiment = create_experiment(
         "tests/torch/params.yaml",
         {
             "experiment.tracker.tracking_uri": tracking_uri,

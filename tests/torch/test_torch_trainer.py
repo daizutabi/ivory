@@ -25,5 +25,3 @@ def test_trainer(run):
     run.early_stopping.best_score = np.inf
     run.early_stopping.patience = -1
     run.start()
-    assert run.early_stopping.wait == 1
-    assert run.trainer.epoch == 5

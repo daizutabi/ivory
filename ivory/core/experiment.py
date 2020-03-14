@@ -1,4 +1,6 @@
 import datetime
+import importlib
+import sys
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -14,6 +16,7 @@ from ivory.core.tuner import Tuner
 class Experiment:
     run_class: str
     shared: List[str] = field(default_factory=list)
+    module: Any = None
     tracker: Optional[Tracker] = None
     tuner: Optional[Tuner] = None
 
@@ -48,7 +51,7 @@ class Experiment:
             utils.update_dict(params, utils.dot_to_list(update))
             return params
 
-    def set_fields(self, params_path, params_yaml):
+    def set_fields(self, params_path, params_yaml, module):
         """Sets the instance fields that were not initialized in `__init__`.
 
         Args:
@@ -57,6 +60,7 @@ class Experiment:
         """
         self.params_path = params_path
         self.params_yaml = params_yaml
+        self.module = module
         resolved = instance.resolve_params(self.params(), self.shared)
         self.shared_keys, self.shared = resolved
 
@@ -67,7 +71,7 @@ class Experiment:
         """
         params = self.params()
         shared_params = {key: params[key] for key in self.shared_keys}
-        self.shared_objects = instance.instantiate(shared_params)
+        self.shared_objects = instance.instantiate(shared_params, module=self.module)
         self.shared_objects.update(experiment=self)
         self.name = self.get_experiment_name()
         if self.tracker:
@@ -96,8 +100,8 @@ class Experiment:
         if callbacks is None:
             callbacks = []
         if self.tracker:
-            callbacks += [self.tracker.create_callback(self.experiment_id)]
-        return self.run_cls(name, params, self.shared_objects, callbacks)
+            callbacks += [self.tracker.create_tracking(self.experiment_id)]
+        return self.run_cls(name, params, self.shared_objects, callbacks, self.module)
 
     def optimize(self):
         self.tuner.optimize(self.create_run)
@@ -124,6 +128,11 @@ def create_experiment(params_path: str, update: Dict[str, Any] = None):
     if update:
         utils.update_dict(params, utils.dot_to_list(update))
         params_yaml = yaml.dump(params, sort_keys=False)
-    experiment = instance.instantiate(params["experiment"])
-    experiment.set_fields(params_path, params_yaml)
+    if "module" in params["experiment"]:
+        sys.path.insert(0, ".")
+        module = importlib.import_module(params["experiment"]["module"])
+    else:
+        module = None  # type:ignore
+    experiment = instance.instantiate(params["experiment"], module=module)
+    experiment.set_fields(params_path, params_yaml, module)
     return experiment

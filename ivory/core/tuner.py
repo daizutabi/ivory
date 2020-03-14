@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, Optional
 
 import optuna
 
-from ivory.callbacks import Pruning
+from ivory.callbacks.pruning import Pruning
 from ivory.core import instance
 
 
