@@ -26,8 +26,8 @@ experiment:
   shared: [dataloaders]
   tracker:
     class: ivory.core.Tracker
-  optuna:
-    class: ivory.core.Optuna
+  tuner:
+    class: ivory.core.Tuner
     objective:
       def: simple.objective
     pruner:

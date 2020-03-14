@@ -6,8 +6,8 @@ import yaml
 
 from ivory import utils
 from ivory.core import instance
-from ivory.core.optuna import Optuna
 from ivory.core.tracker import Tracker
+from ivory.core.tuner import Tuner
 
 
 @dataclass
@@ -15,7 +15,7 @@ class Experiment:
     run_class: str
     shared: List[str] = field(default_factory=list)
     tracker: Optional[Tracker] = None
-    optuna: Optional[Optuna] = None
+    tuner: Optional[Tuner] = None
 
     def __post_init__(self):
         self.run_cls = instance.get_attr(self.run_class)
@@ -72,8 +72,8 @@ class Experiment:
         self.name = self.get_experiment_name()
         if self.tracker:
             self.experiment_id = self.tracker.create_experiment(self.name)
-        if self.optuna:
-            study = self.optuna.create_study(self.name, params["monitor"])
+        if self.tuner:
+            study = self.tuner.create_study(self.name, params["monitor"])
             if self.experiment_id:
                 study.set_user_attr("experiment_id", self.experiment_id)
 
@@ -100,7 +100,7 @@ class Experiment:
         return self.run_cls(name, params, self.shared_objects, callbacks)
 
     def optimize(self):
-        self.optuna.optimize(self.create_run)
+        self.tuner.optimize(self.create_run)
 
     def get_experiment_name(self):
         return datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")

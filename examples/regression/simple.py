@@ -39,8 +39,6 @@ def objective(trial):
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
 
-
-
     experiment.start()
 
     experiment.tracking._c._tracking_client.tracking_uri
@@ -48,7 +46,6 @@ def optimize():
     experiment.tracking._c.get_experiment(experiment.experiment_id).artifact_location
 
     experiment.optuna.study.user_attrs
-
 
     experiment
     experiment.tracking
@@ -59,6 +56,7 @@ def optimize():
     run1.on_fit_end()
 
     from ivory.callbacks import Tracking
+
     tracking1 = Tracking()
     tracking1.on_fit_start(run1)
     tracking2 = Tracking()
@@ -73,7 +71,7 @@ def optimize():
     client.log_artifacts(r.info.run_id, "C://Users/daizu/desktop/tmp")
     r.info
 
-    client.log_metric(r.info.run_id, 'a', 1.2)
+    client.log_metric(r.info.run_id, "a", 1.2)
 
 
 def main():

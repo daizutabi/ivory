@@ -8,7 +8,7 @@ from ivory.core import instance
 
 
 @dataclass
-class Optuna:
+class Tuner:
     objective: Callable = field(repr=False)
     name: str = field(init=False)
     storage: Optional[str] = None
