@@ -1,5 +1,6 @@
 import importlib
 import re
+from functools import partial
 from typing import Any, Dict, List, Tuple
 
 Map = Dict[str, Any]
@@ -65,7 +66,7 @@ def parse_params(params: Map, objects: Map) -> Map:
     """
     parsed = {}
     for key in params:
-        if key in ["class", "def"]:
+        if key in ["class", "call", "def"]:
             continue
         value = params[key]
         if isinstance(value, dict):
@@ -84,9 +85,16 @@ def _instantiate(params: Map, objects: Map) -> Any:
     if "class" in params:
         cls = get_attr(params["class"])
         return cls(**parse_params(params, objects))
+    elif "call" in params:
+        func = get_attr(params["call"])
+        return func(**parse_params(params, objects))
     elif "def" in params:
         func = get_attr(params["def"])
-        return func(**parse_params(params, objects))
+        params = parse_params(params, objects)
+        if params:
+            return partial(func, **params)
+        else:
+            return func
     else:
         return params
 
@@ -100,7 +108,7 @@ def _unpack(objects, keys, created):
 
 
 def instantiate(params: Map, default: Map = None) -> Any:
-    if "class" in params or "def" in params:
+    if "class" in params or "call" in params or "def" in params:
         return _instantiate(params, default or {})
 
     objects: Map = {}

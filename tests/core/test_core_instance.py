@@ -49,7 +49,7 @@ def test_instantiate_extra():
     assert obj["data"]["a"] == 1 and obj["data"]["b"] == 2
     assert obj["x"] == 100
 
-    params = {"def": "numpy.array", "object": [1, 2]}
+    params = {"call": "numpy.array", "object": [1, 2]}
     obj = instantiate(params)
     assert isinstance(obj, np.ndarray)
 
@@ -61,3 +61,14 @@ def test_instantiate_extra():
 def test_parse_value():
     with pytest.raises(ValueError):
         parse_value("$", {})
+
+
+def test_def():
+    params = {"f": {"def": "numpy.array", "object": [3, 4]}}
+    obj = instantiate(params)
+    assert callable(obj["f"])
+    assert all(obj["f"]() == [3, 4])
+
+    params = {"f": {"def": "numpy.array"}}
+    obj = instantiate(params)
+    assert obj["f"] is np.array

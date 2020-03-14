@@ -5,30 +5,30 @@ import pytest
 
 @pytest.fixture
 def params_single():
-    return {"data": {"def": "numpy.array", "object": [1, 2]}}
+    return {"data": {"call": "numpy.array", "object": [1, 2]}}
 
 
 @pytest.fixture
 def params():
     return {
-        "data": {"def": "numpy.array", "object": [1, 2]},
+        "data": {"call": "numpy.array", "object": [1, 2]},
         "series": {"class": "pandas.Series", "data": "$"},
         "metrics": {"class": "ivory.callbacks.Metrics"},
         "monitor": {"class": "ivory.callbacks.Monitor"},
-        "a, b": {"def": "numpy.array", "object": [3, 4]},
+        "a, b": {"call": "numpy.array", "object": [3, 4]},
     }
 
 
 yaml = """
 data:
-  def: numpy.array
+  call: numpy.array
   object: [1, 2]
 data2:
-  def: numpy.array
+  call: numpy.array
   object: [3, 4]
 experiment:
   class: ivory.core.Experiment
-  run: ivory.torch.Run
+  run_class: ivory.torch.Run
   shared: [data]
 """
 

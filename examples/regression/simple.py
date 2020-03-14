@@ -34,19 +34,15 @@ class Model(nn.Module):
 
 def objective(trial):
     trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
-    pruning = ivory.callbacks.Pruning(trial, "val_loss")
-    run = ivory.create_run(trial.params, callbacks=[pruning])
-    run.name = f"#{trial.number}"
-    run.start()
-    trial.set_user_attr("run_id", run.tracking.run_id)
-    return run.metrics.best_score
 
 
 def optimize():
     experiment = ivory.create_experiment("params.yaml")
-    experiment
+    experiment._study
+    experiment.create_study()
 
-    experiment.__dict__
+    experiment.optimize()
+
 
 def main():
     optimize()

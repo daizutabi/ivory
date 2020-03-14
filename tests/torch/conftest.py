@@ -64,7 +64,7 @@ def pruning():
 @pytest.fixture()
 def run(tracking_uri, scheduler, trainer):
     params = {
-        "dataloaders": {"def": "simple.dataloaders"},
+        "dataloaders": {"call": "simple.dataloaders"},
         "model": {"class": "simple.Model"},
         "optimizer": {"class": "torch.optim.Adam", "params": "$.model.parameters()"},
         "scheduler": scheduler,

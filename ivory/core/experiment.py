@@ -13,21 +13,23 @@ from ivory.core.run import Run
 
 
 class Experiment:
-    def __init__(self, run: str, shared=None, objective=None, study=None):
-        self.run_class = instance.get_attr(run)
+    def __init__(self, run_class: str, shared=None, study=None):
+        self.run_class = run_class
+        self.run_cls = instance.get_attr(run_class)
         if shared is None:
             shared = []
         self.shared = shared
         self.name = "ready"
         self.experiment_id = ""
         self.num_runs = 0
-        self.objective = objective
-        self.study = study
+        self._study = study
+        self.study = None
 
     def __repr__(self):
         class_name = self.__class__.__name__
         s = f"{class_name}(id='{self.experiment_id}', name='{self.name}', "
-        s += f"num_runs={self.num_runs}, shared={self.shared})"
+        s += f"run_class={self.run_class}, num_runs={self.num_runs}, "
+        s += f"shared={self.shared})"
         return s
 
     def params(self, update: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -91,33 +93,35 @@ class Experiment:
         self.num_runs += 1
         name = self.get_run_name()
         params = self.params(update)
-        return self.run_class(
+        return self.run_cls(
             name=name, params=params, default=self.default, callbacks=callbacks
         )
 
-    def create_study(self, **kwargs):
+    def create_study(self):
         """Returns a Optuna Study object."""
+        if self._study is None:
+            raise ValueError("'study' not found in params file.")
+        if self.name == "ready":
+            self.start()
         parameters = inspect.signature(optuna.create_study).parameters
-        kwargs = kwargs.copy()
-        for key in self.study:
-            if key in parameters and key not in kwargs:
-                kwargs[key] = self.study[key]
-        self.study_object = optuna.create_study(study_name=self.name, **kwargs)
-        self.study_object.set_user_attr("experiment_id", self.experiment_id)
-        return self.study_object
+        kwargs = {}
+        for key in self._study:
+            if key in parameters:
+                kwargs[key] = self._study[key]
+        self.study = optuna.create_study(study_name=self.name, **kwargs)
+        self.study.set_user_attr("experiment_id", self.experiment_id)
+        return self.study
 
-    def optimize(self, study=None, objective=None, **kwargs):
-        """Optimize a study object."""
-        study = study or self.study_object
-        if objective is not None:
-            if self.objective is None:
-                raise ValueError("an objective function not found.")
-            objective = instance.get_attr(self.objective)
-        parameters = inspect.signature(study.optimize).parameters
-        kwargs = kwargs.copy()
-        for key in self.study:
-            if key in parameters and key not in kwargs:
-                kwargs[key] = self.study[key]
+    def optimize(self):
+        """Optimize a Study object."""
+        if self.study is None:
+            self.create_study()
+        objective = create_objective(self)
+        parameters = inspect.signature(self.study.optimize).parameters
+        kwargs = {}
+        for key in self._study:
+            if key in parameters:
+                kwargs[key] = self._study[key]
         return objective, kwargs
 
     def get_experiment_name(self):
@@ -142,3 +146,26 @@ def create_experiment(params_path: str) -> Experiment:
     experiment = instance.instantiate(params["experiment"])
     experiment.set_fields(params_path, params_yaml)
     return experiment
+
+
+def create_objective(experiment: Experiment):
+    if "objective" not in experiment._study:
+        raise ValueError("'objective' not found in 'study' of params file.")
+    objective = experiment._study["objective"]
+    params = experiment.params()
+    monitor = instance.instantiate(params["monitor"]).monitor
+    has_pruner = "pruner" in experiment._study
+
+    def _objective(trial):
+        objective(trial)
+        callbacks = None
+        if has_pruner:
+            callbacks = [ivory.callbacks.Pruning(trial, monitor)]
+        run = experiment.create_run(trial.params, callbacks=callbacks)
+        run.name = f"#{trial.number}"
+        run.start()
+        if "tracking" in run:
+            trial.set_user_attr("run_id", run.tracking.run_id)
+        return run.monitor.best_score
+
+    return _objective
