@@ -25,6 +25,7 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
         >>> x
         {'a': 1, 'b': {'x': 'def', 'y': 2, 'z': [0]}}
     """
+    update = dot_to_list(update)  # for optuna
     for key, value in update.items():
         x = org
         attrs = key.split(".")

@@ -1,85 +1,40 @@
+import copy
 import datetime
-import importlib
-import sys
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import yaml
 
 from ivory import utils
 from ivory.core import instance
-from ivory.core.tracker import Tracker
-from ivory.core.tuner import Tuner
+from ivory.core.base import Base
 
 
-@dataclass
-class Experiment:
-    run_class: str
-    shared: List[str] = field(default_factory=list)
-    module: Any = None
-    tracker: Optional[Tracker] = None
-    tuner: Optional[Tuner] = None
+class Experiment(Base):
+    __slots__ = ["num_runs"]
 
-    def __post_init__(self):
-        self.run_cls = instance.get_attr(self.run_class)
-        self.experiment_id = ""
-        self.name = "ready"
+    def __init__(self, params, **objects):
+        super().__init__("ready", params, **objects)
         self.num_runs = 0
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        s = f"{class_name}(id='{self.experiment_id}', name='{self.name}', "
-        s += f"run_class='{self.run_class}', num_runs={self.num_runs}, "
-        s += f"shared={self.shared})"
+        run_class = self.params["run"]["class"]
+        s = f"{class_name}(id='{self.id}', name='{self.name}', "
+        s += f"run_class='{run_class}', num_runs={self.num_runs})"
         return s
-
-    def params(self, update: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Returns a newly created params dictionary.
-
-        Parameters dict is always created from yaml string when this method is called.
-
-        Args:
-            update (dict): Update dictionary to overwrite the default settings.
-
-        Returns:
-            dict: parameter dictionary for a run
-        """
-        params = utils.to_float(yaml.safe_load(self.params_yaml))
-        if update is None:
-            return params
-        else:
-            utils.update_dict(params, utils.dot_to_list(update))
-            return params
-
-    def set_fields(self, params_path, params_yaml, module):
-        """Sets the instance fields that were not initialized in `__init__`.
-
-        Args:
-            params_path (str): the yaml parameters file path for this `Experiment`
-            params_yaml (str): the yaml body text for this `Experiment`
-        """
-        self.params_path = params_path
-        self.params_yaml = params_yaml
-        self.module = module
-        resolved = instance.resolve_params(self.params(), self.shared)
-        self.shared_keys, self.shared = resolved
 
     def start(self):
         """Starts the experiment.
 
-        This method instantiates default objects that will be shared among runs.
+        This method instantiates global objects that will be shared among runs.
         """
-        params = self.params()
-        shared_params = {key: params[key] for key in self.shared_keys}
-        self.shared_objects = instance.instantiate(shared_params, module=self.module)
-        self.shared_objects.update(experiment=self)
         self.name = self.get_experiment_name()
         if self.tracker:
-            self.experiment_id = self.tracker.create_experiment(self.name)
+            self.id = self.tracker.create_experiment(self.name)
         if self.tuner:
-            study = self.tuner.create_study(self.name, params["monitor"])
-            if self.experiment_id:
-                study.set_user_attr("experiment_id", self.experiment_id)
+            study = self.tuner.create_study(self.name, self.params["run"]["monitor"])
+            if self.id:
+                study.set_user_attr("experiment_id", self.id)
 
     def create_run(self, update: Dict[str, Any] = None, callbacks=None, name=None):
         """Creates a run with an optional update parameters.
@@ -96,12 +51,17 @@ class Experiment:
         self.num_runs += 1
         if name is None:
             name = self.get_run_name()
-        params = self.params(update)
+
+        params = copy.deepcopy(self.params)
+        if update:
+            utils.update_dict(params["run"], update)
         if callbacks is None:
-            callbacks = []
+            callbacks = {}
         if self.tracker:
-            callbacks += [self.tracker.create_tracking(self.experiment_id)]
-        return self.run_cls(name, params, self.shared_objects, callbacks, self.module)
+            callbacks["tracking"] = self.tracker.create_tracking(self.id)
+
+        kwargs = dict(name=name, params=params, **callbacks)
+        return instance.instantiate(params["run"], kwargs=kwargs)
 
     def optimize(self):
         self.tuner.optimize(self.create_run)
@@ -113,26 +73,20 @@ class Experiment:
         return f"#{self.num_runs}"
 
 
-def create_experiment(params_path: str, update: Dict[str, Any] = None):
-    """Creates an `Experiment` instance from a yaml parameters file.
+def create_experiment(params, update: Dict[str, Any] = None):
+    """Creates an `Experiment` instance.
 
     Args:
-        yaml_params_file (str): yaml parameters file path
+        update (dict): update params
 
     Returns:
         Experiment: an experiment object
     """
-    with open(params_path) as file:
-        params_yaml = file.read()
-    params = utils.to_float(yaml.safe_load(params_yaml))
+    if isinstance(params, str):
+        path = params
+        with open(path, "r") as file:
+            params_yaml = file.read()
+        params = utils.to_float(yaml.safe_load(params_yaml))
     if update:
-        utils.update_dict(params, utils.dot_to_list(update))
-        params_yaml = yaml.dump(params, sort_keys=False)
-    if "module" in params["experiment"]:
-        sys.path.insert(0, ".")
-        module = importlib.import_module(params["experiment"]["module"])
-    else:
-        module = None  # type:ignore
-    experiment = instance.instantiate(params["experiment"], module=module)
-    experiment.set_fields(params_path, params_yaml, module)
-    return experiment
+        utils.update_dict(params, update)
+    return instance.instantiate(params["experiment"], kwargs={"params": params})

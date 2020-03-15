@@ -1,39 +1,11 @@
-input__target:
-  call: create_data
-  num_samples: 1000
-dataloaders:
-  class: ivory.torch.data.DataLoaders
-  input__target: $
-  batch_size: 32
-model:
-  class: Model
-  hidden_sizes: [16]
-optimizer:
-  class: torch.optim.SGD
-  params: $.model.parameters()
-  lr: 1e-3
-scheduler:
-  class: torch.optim.lr_scheduler.ReduceLROnPlateau
-  optimizer: $
-  factor: 0.5
-  patience: 4
-metrics:
-  class: ivory.torch.Metrics
-  loss: torch.nn.functional.mse_loss
-monitor:
-  class: ivory.callbacks.Monitor
-early_stopping:
-  class: ivory.callbacks.EarlyStopping
-  patience: 8
-trainer:
-  class: ivory.torch.Trainer
-  max_epochs: 200
-  verbose: 0
 experiment:
   class: ivory.core.Experiment
-  run_class: ivory.torch.Run
-  shared: [input]
-  module: simple
+  dataloader:
+    class: ivory.torch.data.DataLoader
+    load:
+      def: simple.create_data
+      num_samples: 1000
+    batch_size: 32
   tracker:
     class: ivory.core.Tracker
     tracking_uri: mysql+mysqldb://daizu:tabi@localhost/mlflow
@@ -41,10 +13,36 @@ experiment:
   tuner:
     class: ivory.core.Tuner
     objective:
-      def: objective
+      def: simple.objective
     storage: mysql+mysqldb://daizu:tabi@localhost/optuna
     pruner:
       class: optuna.pruners.MedianPruner
     optimize_kwargs:
-      n_trials: 50
+      n_trials: 10
       n_jobs: -1
+run:
+  class: ivory.torch.Run
+  model:
+    class: simple.Model
+    hidden_sizes: [16, 100]
+  optimizer:
+    class: torch.optim.SGD
+    params: $.model.parameters()
+    lr: 1e-3
+  scheduler:
+    class: torch.optim.lr_scheduler.ReduceLROnPlateau
+    optimizer: $
+    factor: 0.5
+    patience: 4
+  metrics:
+    class: ivory.torch.Metrics
+    loss: torch.nn.functional.mse_loss
+  monitor:
+    class: ivory.callbacks.Monitor
+  early_stopping:
+    class: ivory.callbacks.EarlyStopping
+    patience: 8
+  trainer:
+    class: ivory.torch.Trainer
+    max_epochs: 20
+    verbose: 2

@@ -1,5 +1,4 @@
 import numpy as np
-from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 from sklearn.model_selection import KFold
 
 
@@ -16,6 +15,8 @@ def kfold_split(x, n_splits=5, random_state=0, shuffle=True):
 
 
 def multilabel_stratified_kfold_split(labels, n_splits, shuffle=True, random_state=0):
+    from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
+
     splitter = MultilabelStratifiedKFold(
         n_splits, shuffle=shuffle, random_state=random_state
     )

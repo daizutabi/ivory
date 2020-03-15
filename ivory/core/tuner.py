@@ -10,7 +10,7 @@ from ivory.core import instance
 @dataclass
 class Tuner:
     objective: Callable = field(repr=False)
-    name: str = field(init=False)
+    name: str = ""
     storage: Optional[str] = None
     sampler: Optional[str] = None
     pruner: Optional[str] = None
@@ -47,15 +47,14 @@ class Tuner:
 
         def _objective(trial):
             objective(trial)
+            callbacks = {}
             if has_pruner:
-                callbacks = [Pruning(trial, monitor)]
-            else:
-                callbacks = None
+                callbacks["pruning"] = Pruning(trial, monitor)
             name = f"trial#{trial.number}"
-            run = create_run(trial.params, callbacks=callbacks, name=name)
+            run = create_run(trial.params, name=name, callbacks=callbacks)
             run.start()
-            if run.run_id:
-                trial.set_user_attr("run_id", run.run_id)
+            if run.id:
+                trial.set_user_attr("run_id", run.id)
             return run.monitor.best_score
 
         return _objective

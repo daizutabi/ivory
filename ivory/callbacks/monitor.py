@@ -2,12 +2,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ivory.callbacks.base import Callback
 from ivory.core.state import State
 
 
 @dataclass
-class Monitor(Callback, State):
+class Monitor(State):
     monitor: str = "val_loss"
     mode: str = "min"
     min_delta: float = 0.0

@@ -1,10 +1,9 @@
 import numpy as np
 
-from ivory.callbacks import Callback
 from ivory.core.state import State
 
 
-class Metrics(Callback, State):
+class Metrics(State):
     def __init__(self):
         self.epoch = -1
         self.record = {}

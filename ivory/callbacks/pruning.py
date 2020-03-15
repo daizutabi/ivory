@@ -1,10 +1,9 @@
 import optuna
 
-from ivory.callbacks import Callback
 from optuna.trial import Trial
 
 
-class Pruning(Callback):
+class Pruning:
     """Callback to prune unpromising trials.
 
     Args:

@@ -2,12 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ivory.core.instance import get_classes, instantiate, parse_value
-
-
-def test_get_classes(params):
-    it = get_classes(params)
-    assert next(it) is pd.Series
+from ivory.core.instance import instantiate, parse_value
 
 
 def test_instantiate_single(params_single):
@@ -32,13 +27,13 @@ def test_instantiate_multi(params):
     assert len(obj["series"]) == 1
 
 
-def test_instantiate_default(params):
+def test_instantiate_globals(params):
     obj1 = instantiate(params)
     obj2 = instantiate(params)
     assert obj1["data"] is not obj2["data"] and obj1["series"] is not obj2["series"]
-    obj2 = instantiate(params, default={"data": obj1["data"]})
+    obj2 = instantiate(params, globals={"data": obj1["data"]})
     assert obj1["data"] is obj2["data"] and obj1["series"] is not obj2["series"]
-    obj2 = instantiate(params, default=obj1)
+    obj2 = instantiate(params, globals=obj1)
     assert obj1["data"] is obj2["data"] and obj1["series"] is obj2["series"]
 
 

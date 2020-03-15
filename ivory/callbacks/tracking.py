@@ -11,11 +11,9 @@ from mlflow.entities import Metric, Param
 from mlflow.tracking.context import registry as context_registry
 from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 
-from ivory.callbacks import Callback
-
 
 @dataclass
-class Tracking(Callback):
+class Tracking:
     experiment_id: str = ""
     tracking_uri: Optional[str] = None
 
@@ -23,8 +21,8 @@ class Tracking(Callback):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
         tags = context_registry.resolve_tags({MLFLOW_RUN_NAME: run.name})
         tracking_run = self.client.create_run(self.experiment_id, tags=tags)
-        run.run_id = tracking_run.info.run_id
-        self.log_params(run.run_id, run.params)
+        run.id = tracking_run.info.run_id
+        self.log_params(run.id, run.params)
         self.tmpdir = tempfile.mkdtemp()
         os.mkdir(os.path.join(self.tmpdir, "current"))
         path = os.path.join(self.tmpdir, "params.yaml")
@@ -32,7 +30,7 @@ class Tracking(Callback):
             yaml.dump(run.params, file, sort_keys=False)
 
     def on_epoch_end(self, run):
-        self.log_metrics(run.run_id, run.metrics.record, run.metrics.epoch)
+        self.log_metrics(run.id, run.metrics.record, run.metrics.epoch)
         src = os.path.join(self.tmpdir, "current")
         run.save(src)
         if run.monitor.is_best:
@@ -44,11 +42,10 @@ class Tracking(Callback):
     def on_fit_end(self, run):
         monitor = run.monitor
         if monitor.best_epoch != -1:
-            self.log_metrics(
-                run.run_id, {"best_score": monitor.best_score}, monitor.best_epoch
-            )
-        self.client.log_artifacts(run.run_id, self.tmpdir)
-        self.client.set_terminated(run.run_id)
+            best_score = {"best_score": monitor.best_score}
+            self.log_metrics(run.id, best_score, monitor.best_epoch)
+        self.client.log_artifacts(run.id, self.tmpdir)
+        self.client.set_terminated(run.id)
         shutil.rmtree(self.tmpdir)
 
     def log_params(self, run_id, params):

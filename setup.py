@@ -75,9 +75,9 @@ setup(
         "mlflow",
         "optuna",
         "scikit-learn",
-        "iterative-stratification",
         "numpy",
         "pandas",
+        "click",
     ],
     classifiers=[
         "Environment :: Console",

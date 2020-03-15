@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
 
-import ivory
+from ivory.torch.data import DataLoader
 from ivory.utils import kfold_split
 
 
@@ -34,55 +34,3 @@ class Model(nn.Module):
 
 def objective(trial):
     trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
-
-
-def optimize():
-    experiment = ivory.create_experiment("params.yaml")
-    experiment.start()
-
-    optuna.delete_study(study_name, storage)
-
-    client = experiment.tracker.get_client()
-
-    es = client.list_experiments()
-    es
-
-    experiment.tracking._c._tracking_client.tracking_uri
-
-    experiment.tracking._c.get_experiment(experiment.experiment_id).artifact_location
-
-    experiment.optuna.study.user_attrs
-
-    experiment
-    experiment.tracking
-
-    run1 = experiment.create_run()
-    run2 = experiment.create_run()
-
-    run1.on_fit_end()
-
-    from ivory.callbacks import Tracking
-
-    tracking1 = Tracking()
-    tracking1.on_fit_start(run1)
-    tracking2 = Tracking()
-    tracking2.on_fit_start(run2)
-
-    run2.run_id
-    tracking2.on_fit_end(run2)
-
-    client = experiment.tracking.client
-    r = client.create_run(experiment.experiment_id)
-
-    client.log_artifacts(r.info.run_id, "C://Users/daizu/desktop/tmp")
-    r.info
-
-    client.log_metric(r.info.run_id, "a", 1.2)
-
-
-def main():
-    optimize()
-
-
-if __name__ == "__main__":
-    main()
