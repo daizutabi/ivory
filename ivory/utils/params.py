@@ -1,6 +1,17 @@
 import re
 from typing import Any, Dict
 
+import yaml
+
+
+def load_params(path: str, update=None):
+    with open(path, "r") as file:
+        params_yaml = file.read()
+    params = to_float(yaml.safe_load(params_yaml))
+    if update:
+        update_dict(params, update)
+    return params
+
 
 def to_float(x):
     if isinstance(x, dict):
@@ -84,6 +95,30 @@ def dot_flatten(x: Dict[str, Any], flattened=None, prefix="") -> Dict[str, Any]:
         else:
             flattened[prefix + key] = value
     return flattened
+
+
+def dot_get(x: Dict[str, Any], key: str):
+    """Dot style dictionay access
+
+    Examples:
+        >>> x = {"a": 1, "b": {"x": "abc", "y": 2, "z": [0, 1, 2]}}
+        >>> dot_get(x, "a")
+        1
+        >>> dot_get(x, "b.x")
+        'abc'
+        >>> dot_get(x, "b.z.1")
+        1
+    """
+    keys = key.split(".")
+    for key in keys[:-1]:
+        if key not in x:
+            return None
+        x = x[key]
+    key = keys[-1]
+    if "0" <= key[0] <= "9":
+        return x[int(key)]  # type:ignore
+    else:
+        return x[key]
 
 
 def format_name_by_dict(name: str, params: Dict[str, Any]):

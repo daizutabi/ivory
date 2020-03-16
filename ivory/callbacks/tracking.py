@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 import mlflow
 import yaml
@@ -11,18 +11,25 @@ from mlflow.entities import Metric, Param
 from mlflow.tracking.context import registry as context_registry
 from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 
+from ivory.utils.params import dot_get
+
 
 @dataclass
 class Tracking:
     experiment_id: str = ""
     tracking_uri: Optional[str] = None
+    param_names: Optional[List[str]] = None
 
     def on_fit_start(self, run):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
         tags = context_registry.resolve_tags({MLFLOW_RUN_NAME: run.name})
-        tracking_run = self.client.create_run(self.experiment_id, tags=tags)
-        run.id = tracking_run.info.run_id
-        self.log_params(run.id, run.params)
+        if not run.id:
+            tracking_run = self.client.create_run(self.experiment_id, tags=tags)
+            run.id = tracking_run.info.run_id
+            run.params["run"]["id"] = run.id
+        if self.param_names:
+            params = get_params(run.params["run"], self.param_names)
+            self.log_params(run.id, params)
         self.tmpdir = tempfile.mkdtemp()
         os.mkdir(os.path.join(self.tmpdir, "current"))
         path = os.path.join(self.tmpdir, "params.yaml")
@@ -61,3 +68,13 @@ class Tracking:
         ts = int(time.time() * 1000)  # timestamp in milliseconds.
         metrics = [Metric(key, value, ts, step) for key, value in metrics.items()]
         self.client.log_batch(run_id, metrics=metrics, params=[], tags=[])
+
+
+def get_params(params, param_names):
+    params_dict = {}
+    for name in param_names:
+        value = dot_get(params, name)
+        if value is not None:
+            name = name.split(".")[-1]
+            params_dict[name] = value
+    return params_dict

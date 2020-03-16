@@ -1,17 +1,14 @@
 class Base:
     __slots__ = ["id", "name", "params", "objects"]
 
-    def __init__(self, name, params, **objects):
-        self.id = ""
-        self.name = name
+    def __init__(self, params, **objects):
+        self.id = self.name = ""
+        if "id" in objects:
+            self.id = objects.pop("id")
+        if "name" in objects:
+            self.name = objects.pop("name")
         self.params = params
         self.objects = objects
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        s = f"{class_name}(id='{self.run_id}', name='{self.name}', "
-        s += f"num_objects={len(self)})"
-        return s
 
     def __len__(self):
         return len(self.objects)
@@ -30,14 +27,22 @@ class Base:
             return self.objects[key]
 
 
-CALLBACK_METHODS = ["on_fit_start", "on_epoch_start", "on_epoch_end", "on_fit_end"]
+CALLBACK_METHODS = [
+    "on_fit_start",
+    "on_epoch_start",
+    "on_train_start",
+    "on_train_end",
+    "on_val_start",
+    "on_val_end",
+    "on_epoch_end",
+    "on_fit_end",
+]
 
 
 class CallbackCaller(Base):
-    __slots__ = ["callbacks"]
+    __slots__ = []  # type:ignore
 
     def create_callbacks(self):
-        self.callbacks = {}
         for method in CALLBACK_METHODS:
             methods = []
             for key in self:
@@ -48,4 +53,4 @@ class CallbackCaller(Base):
                 for method in methods:
                     method(self)
 
-            self.callbacks[method] = callback
+            self.objects[method] = callback

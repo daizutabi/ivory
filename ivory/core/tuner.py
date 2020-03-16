@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional
 
+import numpy as np
 import optuna
 
 from ivory.callbacks.pruning import Pruning
@@ -18,6 +19,9 @@ class Tuner:
     direction: str = field(default="minimize", init=False)
     load_if_exists: bool = False
     optimize_kwargs: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        self.study = None
 
     def create_study(self, name: str, monitor):
         """Creates and returns a Optuna Study object."""
@@ -47,15 +51,21 @@ class Tuner:
 
         def _objective(trial):
             objective(trial)
-            callbacks = {}
+            objects = {}
             if has_pruner:
-                callbacks["pruning"] = Pruning(trial, monitor)
+                objects["pruning"] = Pruning(trial, monitor)
             name = f"trial#{trial.number}"
-            run = create_run(trial.params, name=name, callbacks=callbacks)
+            run = create_run(trial.params, name=name, objects=objects)
+            if "tracking" in run:
+                run.tracking.param_names = list(trial.params.keys())
             run.start()
             if run.id:
                 trial.set_user_attr("run_id", run.id)
-            return run.monitor.best_score
+            score = run.monitor.best_score
+            if np.isnan(score):
+                message = "Best score is nan"
+                raise optuna.exceptions.TrialPruned(message)
+            return score
 
         return _objective
 

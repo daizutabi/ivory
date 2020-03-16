@@ -1,5 +1,5 @@
+import numpy as np
 import optuna
-
 from optuna.trial import Trial
 
 
@@ -24,6 +24,8 @@ class Pruning:
 
     def on_epoch_end(self, run):
         score = run.metrics.record[self.monitor]
+        if np.isnan(score):
+            return
         epoch = run.metrics.epoch
         self.trial.report(score, step=epoch)
         if self.trial.should_prune():

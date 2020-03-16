@@ -1,11 +1,10 @@
 experiment:
   class: ivory.core.Experiment
-  dataloader:
-    class: ivory.torch.data.DataLoader
+  data:
+    class: ivory.core.data.Data
     load:
       def: simple.create_data
-      num_samples: 1000
-    batch_size: 32
+      num_samples: 10000
   tracker:
     class: ivory.core.Tracker
     tracking_uri: mysql+mysqldb://daizu:tabi@localhost/mlflow
@@ -18,13 +17,17 @@ experiment:
     pruner:
       class: optuna.pruners.MedianPruner
     optimize_kwargs:
-      n_trials: 10
-      n_jobs: -1
+      n_trials: 3
 run:
   class: ivory.torch.Run
+  dataloader:
+    class: ivory.torch.data.DataLoader
+    data: $.data
+    fold: 0
+    batch_size: 32
   model:
     class: simple.Model
-    hidden_sizes: [16, 100]
+    hidden_sizes: [100, 100]
   optimizer:
     class: torch.optim.SGD
     params: $.model.parameters()
@@ -36,7 +39,8 @@ run:
     patience: 4
   metrics:
     class: ivory.torch.Metrics
-    loss: torch.nn.functional.mse_loss
+    criterion:
+      def: torch.nn.functional.mse_loss
   monitor:
     class: ivory.callbacks.Monitor
   early_stopping:
@@ -44,5 +48,9 @@ run:
     patience: 8
   trainer:
     class: ivory.torch.Trainer
-    max_epochs: 20
+    max_epochs: 10
     verbose: 2
+  # tracking:
+  #   class: ivory.callbacks.Tracking
+  #   experiment_id: $.experiment.id
+  #   tracking_uri: $.tracker.tracking_uri

@@ -12,6 +12,16 @@ def get_attr(path: str):
 
 
 def instantiate(params, globals=None, kwargs=None):
+    if globals is None:
+        globals = {}
+    else:
+        globals = globals.copy()
+    if kwargs is None:
+        kwargs = {}
+    return _instantiate(params, globals, kwargs)
+
+
+def _instantiate(params, globals, kwargs):
     if "class" in params:
         key = "class"
     elif "call" in params:
@@ -24,8 +34,6 @@ def instantiate(params, globals=None, kwargs=None):
     attr = get_attr(params[key])
     args = {k: v for k, v in params.items() if k != key}
     args = parse_value(args, globals, "")
-    if kwargs is None:
-        kwargs = {}
     if key != "def":
         return attr(**args, **kwargs)
     else:
@@ -50,11 +58,9 @@ def parse_value(value, globals, key: str):
        >>> globals
        {'a': 0, 'b': [1, 2]}
     """
-    if globals is None:
-        globals = {}
     if isinstance(value, dict):
         if "class" in value or "call" in value or "def" in value:
-            obj = globals[key] = instantiate(value, globals)
+            obj = globals[key] = _instantiate(value, globals, {})
             return obj
         else:
             return {key: parse_value(value[key], globals, key) for key in value}

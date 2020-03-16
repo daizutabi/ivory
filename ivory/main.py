@@ -1,8 +1,10 @@
+import sys
+
 import click
 import yaml as yml
 
 from ivory import utils
-from ivory.core.environment import Environment
+from ivory.core.experiment import create_experiment
 
 
 def load_params(params_path):
@@ -23,13 +25,12 @@ click_option_params_path = click.option(
 @click.group(invoke_without_command=True)
 @click_option_params_path
 def cli(params_path):
-    env = Environment(params_path)
-    print(env)
-    experiment = env.create_experiment()
-    experiment.start()
-    print(experiment)
-    run = experiment.create_run()
-    print(run)
+    if "." not in sys.path:
+        sys.path.insert(0, ".")
+    experiment = create_experiment(params_path)
+    # run = experiment.create_run()
+    # run.start()
+    experiment.optimize()
 
 
 @cli.command()

@@ -1,17 +1,13 @@
+from typing import Callable
+
 import ivory.callbacks.metrics
-from ivory.core import instance
 from ivory.torch import utils
 
 
 class Metrics(ivory.callbacks.metrics.Metrics):
-    def __init__(self, loss=None):
+    def __init__(self, criterion: Callable):
         super().__init__()
-        if loss is not None:
-            self.criterion = instance.get_attr(loss)
-
-    def criterion(self, output, target):
-        """Returns loss tensor."""
-        raise NotImplementedError
+        self.criterion = criterion
 
     def train_evaluate(self, index, output, target):
         loss = self.criterion(output, target)

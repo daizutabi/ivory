@@ -2,17 +2,16 @@ from ivory.core.base import CallbackCaller
 
 
 class Run(CallbackCaller):
+    __slots__ = []  # type:ignore
+
     def __repr__(self):
         class_name = self.__class__.__name__
         s = f"{class_name}(id='{self.id}', name='{self.name}', num_objects={len(self)})"
         return s
 
     def start(self):
-        self.on_fit_start()
-        try:
-            self.trainer.fit(self)
-        finally:
-            self.on_fit_end()
+        self.create_callbacks()
+        self.trainer.fit(self)
 
     def state_dict(self):
         state_dict = {}

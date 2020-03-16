@@ -6,6 +6,8 @@ import ivory.core.run
 
 
 class Run(ivory.core.run.Run):
+    __slots__ = []  # type:ignore
+
     def save(self, directory):
         for key, state_dict in self.state_dict().items():
             path = os.path.join(directory, f"{key}.pt")

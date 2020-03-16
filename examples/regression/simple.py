@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pandas import DataFrame
 
-from ivory.torch.data import DataLoader
 from ivory.utils import kfold_split
 
 
@@ -33,4 +32,4 @@ class Model(nn.Module):
 
 
 def objective(trial):
-    trial.suggest_loguniform("optimizer.lr", 1e-5, 1e-1)
+    trial.suggest_loguniform("optimizer.lr", 1e-4, 1e-1)
