@@ -2,6 +2,8 @@ import importlib
 import re
 from functools import partial
 
+from ivory import utils
+
 
 def get_attr(path: str):
     if "." not in path:
@@ -83,3 +85,14 @@ def parse_value(value, globals, key: str):
         if index >= 0:
             value = value[index]
     return value
+
+
+def create_instance_factory(class_name):
+    def create_instance(params):
+        if isinstance(params, str):
+            params = utils.load_params(params)
+        if class_name in params:
+            params = params[class_name]
+        return instantiate(params, kwargs=dict(params=params))
+
+    return create_instance

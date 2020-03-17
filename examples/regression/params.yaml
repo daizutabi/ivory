@@ -1,30 +1,35 @@
-experiment:
-  class: ivory.core.Experiment
-  data:
-    class: ivory.core.data.Data
-    load:
-      def: simple.create_data
-      num_samples: 10000
+environment:
+  class: ivory.core.Environment
   tracker:
     class: ivory.core.Tracker
     tracking_uri: mysql+mysqldb://daizu:tabi@localhost/mlflow
     artifact_location: ~/.mlruns
   tuner:
     class: ivory.core.Tuner
-    objective:
-      def: simple.objective
     storage: mysql+mysqldb://daizu:tabi@localhost/optuna
     pruner:
       class: optuna.pruners.MedianPruner
-    optimize_kwargs:
-      n_trials: 3
+experiment:
+  class: ivory.core.Experiment
+  data:
+    class: ivory.core.Data
+    data:
+      def: simple.create_data
+      num_samples: 10000
+  objective:
+    class: ivory.core.Objective
+    suggest:
+      def: simple.suggest
 run:
   class: ivory.torch.Run
   dataloader:
-    class: ivory.torch.data.DataLoader
-    data: $.data
+    class: ivory.core.DataLoader
+    dataset:
+      def: ivory.torch.Dataset
+    dataloader:
+      def: ivory.torch.dataloader
+      batch_size: 32
     fold: 0
-    batch_size: 32
   model:
     class: simple.Model
     hidden_sizes: [100, 100]
@@ -50,7 +55,3 @@ run:
     class: ivory.torch.Trainer
     max_epochs: 10
     verbose: 2
-  # tracking:
-  #   class: ivory.callbacks.Tracking
-  #   experiment_id: $.experiment.id
-  #   tracking_uri: $.tracker.tracking_uri

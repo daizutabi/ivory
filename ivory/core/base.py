@@ -3,12 +3,22 @@ class Base:
 
     def __init__(self, params, **objects):
         self.id = self.name = ""
+        self.params = params
         if "id" in objects:
             self.id = objects.pop("id")
         if "name" in objects:
             self.name = objects.pop("name")
-        self.params = params
         self.objects = objects
+
+    def __repr__(self):
+        args = []
+        if self.id:
+            args.append(f"id='{self.id}'")
+        if self.name:
+            args.append(f"name='{self.name}'")
+        args.append(f"num_objects={len(self)}")
+        args = ", ".join(args)
+        return f"{self.__class__.__name__}({args})"
 
     def __len__(self):
         return len(self.objects)

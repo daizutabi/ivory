@@ -8,8 +8,6 @@ from typing import List, Optional
 import mlflow
 import yaml
 from mlflow.entities import Metric, Param
-from mlflow.tracking.context import registry as context_registry
-from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
 
 from ivory.utils.params import dot_get
 
@@ -20,15 +18,12 @@ class Tracking:
     tracking_uri: Optional[str] = None
     param_names: Optional[List[str]] = None
 
-    def on_fit_start(self, run):
+    def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
-        tags = context_registry.resolve_tags({MLFLOW_RUN_NAME: run.name})
-        if not run.id:
-            tracking_run = self.client.create_run(self.experiment_id, tags=tags)
-            run.id = tracking_run.info.run_id
-            run.params["run"]["id"] = run.id
+
+    def on_fit_start(self, run):
         if self.param_names:
-            params = get_params(run.params["run"], self.param_names)
+            params = get_params(run.params, self.param_names)
             self.log_params(run.id, params)
         self.tmpdir = tempfile.mkdtemp()
         os.mkdir(os.path.join(self.tmpdir, "current"))

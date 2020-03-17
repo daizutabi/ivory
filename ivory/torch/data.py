@@ -3,8 +3,7 @@ from typing import Any, Callable, Optional, Tuple
 
 import numpy as np
 import torch.utils.data
-
-import ivory.core.data
+from torch.utils.data import DataLoader
 
 
 @dataclass
@@ -36,16 +35,8 @@ class Dataset(torch.utils.data.Dataset):
             return self.index[index], input, target
 
 
-@dataclass
-class DataLoader(ivory.core.data.DataLoader):
-    dataset_class: Any = Dataset
-
-    def create_train_val_dataloader(self):
-        dataset = self.get_train_dataset()
-        self.train_dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size, shuffle=True
-        )
-        dataset = self.get_val_dataset()
-        self.val_dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size, shuffle=False
-        )
+def dataloader(mode: str, dataset, batch_size=32):
+    if mode == "train":
+        return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    else:
+        return DataLoader(dataset, batch_size=batch_size, shuffle=False)

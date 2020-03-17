@@ -1,49 +1,28 @@
-import optuna
-
+from ivory.core.tracker import create_tracker
 from ivory.core.experiment import create_experiment
 
-experiment = create_experiment('params.yaml')
-experiment.start()
-run = experiment.create_run()
-run.start()
-run
-experiment = create_experiment(run.params)
-experiment.start()
-experiment
-run = experiment.create_run()
-run
-
-run.params
-run.params['experiment']['id']
-
-run.params
-experiment.objects
-experiment
-run.objects
-
-from ivory.core.tracker import create_tracker
+import os
+from ivory import utils
+import mlflow
+import tempfile
 
 tracker = create_tracker("params.yaml")
-import os
-
-path = tracker.get_artifact_path('9', 0)
-experiment = create_experiment(a)
-experiment.start()
-run = experiment.create_run()
-run.start()
-import mlflow
-
+run_id = tracker.get_run_id('9', 0)
 client = mlflow.tracking.MlflowClient(tracker.tracking_uri)
-run_infos = client.list_run_infos('9')
-run_info = run_infos[0]
-run_id = run_info.run_id
+with tempfile.TemporaryDirectory() as tmpdir:
+    path = client.download_artifacts(run_id, 'params.yaml', tmpdir)
+    params = utils.load_params(path)
+experiment = create_experiment(params)
+experiment.start()
+experiment
+run = experiment.create_run()
+
+with tempfile.TemporaryDirectory() as tmpdir:
+    path = client.download_artifacts(run_id, 'current', tmpdir)
+    state_dict = run.load(path)
+
+state_dict.keys()
+run.load_state_dict(state_dict)
 
 
-a =client.download_artifacts(run_id, 'params.yaml', 'C:/Users/daizu/Desktop')
-run = client.get_run(run_info.run_id)
-path = run_info.artifact_uri[8:]
-import os
-
-os.listdir(path)
-
-with tracker.download_artifacts(experiment_id, run_index):
+client.get_metric_history(run_id, 'best_score')

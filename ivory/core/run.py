@@ -4,10 +4,11 @@ from ivory.core.base import CallbackCaller
 class Run(CallbackCaller):
     __slots__ = []  # type:ignore
 
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        s = f"{class_name}(id='{self.id}', name='{self.name}', num_objects={len(self)})"
-        return s
+    def set_tracking(self, tracker, experiment_id, param_names=None):
+        if not self.id:
+            self.id = tracker.create_run(self.name, experiment_id)
+            self.params["id"] = self.id
+        self.objects["tracking"] = tracker.create_tracking(experiment_id, param_names)
 
     def start(self):
         self.create_callbacks()

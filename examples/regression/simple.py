@@ -31,5 +31,5 @@ class Model(nn.Module):
         return self.layers[-1](x)
 
 
-def objective(trial):
+def suggest(trial):
     trial.suggest_loguniform("optimizer.lr", 1e-4, 1e-1)
