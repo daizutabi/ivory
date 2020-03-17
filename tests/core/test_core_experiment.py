@@ -1,25 +1,22 @@
-from ivory.core.experiment import create_experiment
+import ivory
 
 
-def test_experiment(path):
-    experiment = create_experiment(path)
-    experiment.start()
-    assert experiment.name.startswith("2")
-
-    assert all(experiment.shared_objects["data"] == [1, 2])
-    assert "shared=['data']" in repr(experiment)
-
-    run = experiment.create_run()
-    assert run.name == "#1"
-
-    run = experiment.create_run()
-    assert run.name == "#2"
-
-    run = experiment.create_run({"data2.object": [10, 20]})
-    assert all(run.data2 == [10, 20])
+def test_create_experiment(params_path):
+    experiment = ivory.create_experiment(params_path)
+    assert experiment.name == ""
 
 
-def test_crate_run(path):
-    experiment = create_experiment(path)
-    experiment.create_run()
-    assert experiment.name.startswith("2")
+def test_create_experiment_from_envrionment(experiment):
+    assert experiment.name == "Default"
+    assert experiment.tuner
+    assert experiment.tracker
+
+
+def test_create_objective(experiment, run):
+    objective = experiment.create_objective(run.params)
+    assert callable(objective)
+
+
+def test_create_study(experiment, run):
+    study = experiment.create_study()
+    assert "experiment_id" in study.user_attrs

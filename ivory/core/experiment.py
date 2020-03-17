@@ -1,11 +1,7 @@
-import copy
-import datetime
-
 import numpy as np
 import optuna
 
 import ivory
-from ivory import utils
 from ivory.callbacks.pruning import Pruning
 from ivory.core.base import Base
 
@@ -13,13 +9,10 @@ from ivory.core.base import Base
 class Experiment(Base):
     __slots__ = []  # type:ignore
 
-    def create_name(self):
-        return datetime.datetime.now().strftime("E%Y%m%d%H%M%S")
-
     def set_tracker(self, tracker):
         self.objects["tracker"] = tracker
         if not self.name:
-            self.name = self.create_name()
+            self.name = "Default"
             self.params["name"] = self.name
         if not self.id:
             self.id = tracker.create_experiment(self.name)
@@ -36,7 +29,8 @@ class Experiment(Base):
             run.set_tracking(self.tracker, self.id)
         return run
 
-    def create_objective(self):
+    def create_objective(self, params):
+        self.objective.set_params(params)
         create_params = self.objective.create_params
         create_run = self.create_run
         has_pruner = self.tuner.pruner is not None

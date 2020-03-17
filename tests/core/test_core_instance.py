@@ -2,68 +2,57 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ivory.core.instance import instantiate, parse_value
+from ivory.core.instance import create_instance, instantiate, parse_value
 
 
 def test_instantiate_single(params_single):
-    obj = instantiate(params_single)
-    assert isinstance(obj["data"], np.ndarray)
-    assert obj["data"][0] == 1
+    obj = instantiate(params_single["data"])
+    assert isinstance(obj, np.ndarray)
+    assert obj[0] == 1
 
 
-def test_instantiate_multi(params):
-    obj = instantiate(params)
-    assert isinstance(obj["series"], pd.Series)
-    assert obj["series"][0] == 1
-
-    params["series"]["data"] = "$.data"
-    obj = instantiate(params)
-    assert obj["series"][0] == 1
-    assert len(obj["series"]) == 2
+def test_parse_value(params):
+    objs = parse_value(params, {}, "")
+    assert isinstance(objs["series"], pd.Series)
+    assert objs["series"][0] == 1
 
     params["series"]["data"] = "$.data.shape"
-    obj = instantiate(params)
+    obj = parse_value(params, {}, "")
     assert obj["series"][0] == 2
     assert len(obj["series"]) == 1
 
 
-def test_instantiate_globals(params):
-    obj1 = instantiate(params)
-    obj2 = instantiate(params)
-    assert obj1["data"] is not obj2["data"] and obj1["series"] is not obj2["series"]
-    obj2 = instantiate(params, globals={"data": obj1["data"]})
-    assert obj1["data"] is obj2["data"] and obj1["series"] is not obj2["series"]
-    obj2 = instantiate(params, globals=obj1)
-    assert obj1["data"] is obj2["data"] and obj1["series"] is obj2["series"]
-
-
 def test_instantiate_extra():
-    params = {"data": {"a": 1, "b": 2}, "x": 100}
-    obj = instantiate(params)
-    assert isinstance(obj["data"], dict)
-    assert obj["data"]["a"] == 1 and obj["data"]["b"] == 2
-    assert obj["x"] == 100
-
     params = {"call": "numpy.array", "object": [1, 2]}
     obj = instantiate(params)
     assert isinstance(obj, np.ndarray)
 
-    params = {"x": 100, "data": "$.x"}
-    obj = instantiate(params)
-    assert obj["data"] == 100
-
-
-def test_parse_value():
     with pytest.raises(ValueError):
-        parse_value("$", {})
+        params = {"x": 100, "data": "$.x"}
+        instantiate(params)
+
+    with pytest.raises(ValueError):
+        params = {"call": "array", "object": [1, 2]}
+        instantiate(params)
 
 
 def test_def():
-    params = {"f": {"def": "numpy.array", "object": [3, 4]}}
+    params = {"def": "numpy.array", "object": [3, 4]}
     obj = instantiate(params)
-    assert callable(obj["f"])
-    assert all(obj["f"]() == [3, 4])
+    assert callable(obj)
+    assert all(obj() == [3, 4])
 
-    params = {"f": {"def": "numpy.array"}}
+    params = {"def": "numpy.array"}
     obj = instantiate(params)
-    assert obj["f"] is np.array
+    assert obj is np.array
+
+
+def test_create_instance(params_path):
+    a = create_instance(params_path, "environment.tracker")
+    assert hasattr(a, "tracking_uri")
+
+
+def test_instantiate_global():
+    a = {"class": "numpy.array", "object": [1, 2, 3]}
+    a = instantiate(a, {"c": 0})
+    assert a[0] == 1

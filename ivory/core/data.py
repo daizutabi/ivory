@@ -54,13 +54,13 @@ class DataLoader:
         return self
 
     def get_train_dataset(self, data: Data):
-        index = data.fold != self.fold
+        index = np.arange(len(data.fold))[data.fold != self.fold]
         if self.train_ratio < 1:
             index = get_subset(index, self.train_ratio)
         return self.get_dataset("train", data, index)
 
     def get_val_dataset(self, data: Data):
-        index = data.fold == self.fold
+        index = np.arange(len(data.fold))[data.fold == self.fold]
         if self.val_ratio < 1:
             index = get_subset(index, self.val_ratio)
         return self.get_dataset("val", data, index)

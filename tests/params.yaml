@@ -2,11 +2,9 @@ environment:
   class: ivory.core.Environment
   tracker:
     class: ivory.core.Tracker
-    tracking_uri: mysql+mysqldb://daizu:tabi@localhost/mlflow
-    artifact_location: ~/.mlruns
   tuner:
     class: ivory.core.Tuner
-    storage: mysql+mysqldb://daizu:tabi@localhost/optuna
+    storage: sqlite://
     pruner:
       class: optuna.pruners.MedianPruner
     load_if_exists: true
@@ -16,7 +14,7 @@ experiment:
     class: ivory.core.Data
     data:
       def: example.create_data
-      num_samples: 10000
+      num_samples: 1000
   objective:
     class: ivory.core.Objective
     suggest:
@@ -29,7 +27,7 @@ run:
       def: ivory.torch.Dataset
     dataloader:
       def: ivory.torch.dataloader
-      batch_size: 32
+      batch_size: 10
     fold: 0
   model:
     class: example.Model

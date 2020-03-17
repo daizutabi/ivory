@@ -1,6 +1,11 @@
-import os
-
 import pytest
+
+import ivory
+
+
+@pytest.fixture
+def params_path():
+    return "tests/params.yaml"
 
 
 @pytest.fixture
@@ -13,29 +18,21 @@ def params():
     return {
         "data": {"call": "numpy.array", "object": [1, 2]},
         "series": {"class": "pandas.Series", "data": "$"},
-        "metrics": {"class": "ivory.callbacks.Metrics"},
-        "monitor": {"class": "ivory.callbacks.Monitor"},
-        "a__b": {"call": "numpy.array", "object": [3, 4]},
+        "data2": {"call": "numpy.array", "object": "$.data"},
+        "data3": {"call": "numpy.array", "object": "$.data.0"},
     }
 
 
-yaml = """
-data:
-  call: numpy.array
-  object: [1, 2]
-data2:
-  call: numpy.array
-  object: [3, 4]
-experiment:
-  class: ivory.core.Experiment
-  run_class: ivory.torch.Run
-  shared: [data]
-"""
+@pytest.fixture
+def environment(params_path):
+    return ivory.create_environment(params_path)
 
 
-@pytest.fixture()
-def path(tmpdir):
-    path = os.path.join(tmpdir, "params.yaml")
-    with open(path, "w") as f:
-        f.write(yaml)
-    return path
+@pytest.fixture
+def experiment(params_path, environment):
+    return environment.create_experiment(params_path)
+
+
+@pytest.fixture
+def run(params_path, experiment):
+    return experiment.create_run(params_path)

@@ -16,12 +16,16 @@ class Tracker:
 
     def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
+        self.tracking_uri = self.client._tracking_client.tracking_uri
 
     def create_experiment(self, name: str):
-        """Creates an tracking experiment and returns its id."""
-        if self.artifact_location:
-            self.artifact_location = utils.to_uri(self.artifact_location)
-        experiment_id = self.client.create_experiment(name, self.artifact_location)
+        experiment = self.client.get_experiment_by_name(name)
+        if experiment:
+            experiment_id = experiment.experiment_id
+        else:
+            if self.artifact_location:
+                self.artifact_location = utils.to_uri(self.artifact_location)
+            experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
     def create_run(self, name: str, experiment_id):

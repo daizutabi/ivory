@@ -1,3 +1,7 @@
+import tempfile
+
+import ivory
+from ivory import utils
 from ivory.core.base import CallbackCaller
 
 
@@ -31,3 +35,19 @@ class Run(CallbackCaller):
 
     def load(self, directory):
         raise NotImplementedError
+
+
+def load_run(run_id, epoch="best", client=None, experiment=None):
+    if client is None and experiment is not None and experiment.tracker:
+        client = experiment.tracker.client
+    with tempfile.TemporaryDirectory() as tmpdir:
+        params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+        epoch_path = client.download_artifacts(run_id, epoch, tmpdir)
+    params = utils.load_params(params_path)
+    if experiment:
+        run = experiment.create_run(params)
+    else:
+        run = ivory.create_run(params)
+    state_dict = run.load(epoch_path)
+    run.load_state_dict(state_dict)
+    return run

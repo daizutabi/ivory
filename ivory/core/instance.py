@@ -96,3 +96,12 @@ def create_instance_factory(class_name):
         return instantiate(params, kwargs=dict(params=params))
 
     return create_instance
+
+
+def create_instance(params, key):
+    if isinstance(params, str):
+        params = utils.load_params(params)
+    keys = key.split(".")
+    for key in keys:
+        params = params[key]
+    return instantiate(params)
