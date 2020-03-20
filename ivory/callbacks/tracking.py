@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import time
 from dataclasses import dataclass
@@ -25,30 +24,30 @@ class Tracking:
         if self.param_names:
             params = get_params(run.params, self.param_names)
             self.log_params(run.id, params)
-        self.tmpdir = tempfile.mkdtemp()
-        os.mkdir(os.path.join(self.tmpdir, "current"))
-        path = os.path.join(self.tmpdir, "params.yaml")
-        with open(path, "w") as file:
-            yaml.dump(run.params, file, sort_keys=False)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "params.yaml")
+            with open(path, "w") as file:
+                yaml.dump(run.params, file, sort_keys=False)
+            self.client.log_artifacts(run.id, tmpdir)
 
     def on_epoch_end(self, run):
-        self.log_metrics(run.id, run.metrics.record, run.metrics.epoch)
-        src = os.path.join(self.tmpdir, "current")
-        run.save(src)
-        if run.monitor.is_best:
-            dst = os.path.join(self.tmpdir, "best")
-            if os.path.exists(dst):
-                shutil.rmtree(dst)
-            shutil.copytree(src, dst)
-
-    def on_fit_end(self, run):
+        metrics = run.metrics.record.copy()
         monitor = run.monitor
         if monitor.best_epoch != -1:
-            best_score = {"best_score": monitor.best_score}
-            self.log_metrics(run.id, best_score, monitor.best_epoch)
-        self.client.log_artifacts(run.id, self.tmpdir)
+            metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
+        self.log_metrics(run.id, metrics, run.metrics.epoch)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            directory = os.path.join(tmpdir, "current")
+            os.mkdir(directory)
+            run.save(directory)
+            self.client.log_artifacts(run.id, tmpdir)
+            if run.monitor.is_best:
+                os.rename(directory, directory.replace("current", "best"))
+                self.client.log_artifacts(run.id, tmpdir)
+
+    def on_fit_end(self, run):
         self.client.set_terminated(run.id)
-        shutil.rmtree(self.tmpdir)
 
     def log_params(self, run_id, params):
         params_list = []

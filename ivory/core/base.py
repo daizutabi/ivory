@@ -1,13 +1,15 @@
 class Base:
-    __slots__ = ["id", "name", "params", "objects"]
+    __slots__ = ["id", "name", "source_name", "params", "objects"]
 
     def __init__(self, params, **objects):
-        self.id = self.name = ""
+        self.id = self.name = self.source_name = ""
         self.params = params
         if "id" in objects:
             self.id = objects.pop("id")
         if "name" in objects:
             self.name = objects.pop("name")
+        if "source_name" in objects:
+            self.source_name = objects.pop("source_name")
         self.objects = objects
 
     def __repr__(self):

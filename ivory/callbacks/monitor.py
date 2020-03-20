@@ -7,7 +7,7 @@ from ivory.core.state import State
 
 @dataclass
 class Monitor(State):
-    monitor: str = "val_loss"
+    metrics: str = "val_loss"
     mode: str = "min"
     min_delta: float = 0.0
 
@@ -22,7 +22,7 @@ class Monitor(State):
             raise ValueError(f"mode must be 'min' or 'max': {self.mode} given.")
 
     def on_epoch_end(self, run):
-        self.score = run.metrics.record[self.monitor]
+        self.score = run.metrics.record[self.metrics]
         if self.mode == "min":
             self.is_best = self.score < self.best_score - self.min_delta
         elif self.mode == "max":

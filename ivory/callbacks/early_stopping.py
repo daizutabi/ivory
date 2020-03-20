@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 
-from ivory.callbacks.monitor import Monitor
-
 
 @dataclass
-class EarlyStopping(Monitor):
+class EarlyStopping:
     """Early stop training loop when a metric has stopped imporving.
 
     Args:
@@ -24,12 +22,10 @@ class EarlyStopping(Monitor):
     patience: int = 0
 
     def __post_init__(self):
-        super().__post_init__()
         self.wait = 0
 
     def on_epoch_end(self, run):
-        super().on_epoch_end(run)
-        if self.is_best:
+        if run.monitor.is_best:
             self.wait = 0
         else:
             self.wait += 1

@@ -1,30 +1,20 @@
-from dataclasses import dataclass
-
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+from pandas import DataFrame
 
-import ivory.core.data
 from ivory.utils import kfold_split
 
 
 def create_data(num_samples=1000):
     xy = 4 * np.random.rand(num_samples, 2) + 1
     xy = xy.astype(np.float32)
+    df = DataFrame(xy, columns=["x", "y"])
     dx = 0.1 * (np.random.rand(num_samples) - 0.5)
     dy = 0.1 * (np.random.rand(num_samples) - 0.5)
-    z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
-    return xy, z
-
-
-@dataclass
-class Data(ivory.core.data.Data):
-    num_samples: int = 1000
-
-    def __call__(self):
-        self.input, self.target = create_data(self.num_samples)
-        self.index = np.arange(len(self.input))
-        self.fold = kfold_split(self.input, n_splits=5)
+    df["z"] = ((df.x + dx) * (df.y + dy)).astype(np.float32)
+    df["fold"] = kfold_split(df.index, n_splits=5)
+    return df[["x", "y"]], df[["fold", "z"]]
 
 
 class Model(nn.Module):

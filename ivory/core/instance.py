@@ -1,4 +1,5 @@
 import importlib
+import os
 import re
 from functools import partial
 
@@ -88,17 +89,21 @@ def parse_value(value, globals, key: str):
 
 
 def create_instance_factory(class_name):
-    def create_instance(params):
+    def create_instance(params="params.yaml"):
         if isinstance(params, str):
+            source_name = os.path.abspath(params)
             params = utils.load_params(params)
+        else:
+            source_name = ""
         if class_name in params:
             params = params[class_name]
-        return instantiate(params, kwargs=dict(params=params))
+        kwargs = dict(params=params, source_name=source_name)
+        return instantiate(params, kwargs=kwargs)
 
     return create_instance
 
 
-def create_instance(params, key):
+def create_instance(key, params="params.yaml"):
     if isinstance(params, str):
         params = utils.load_params(params)
     keys = key.split(".")

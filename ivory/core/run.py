@@ -2,11 +2,18 @@ import tempfile
 
 import ivory
 from ivory import utils
+from ivory.core import instance
 from ivory.core.base import CallbackCaller
 
 
 class Run(CallbackCaller):
-    __slots__ = []  # type:ignore
+    __slots__ = ["library"]  # type:ignore
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.library = ""
+        if "library" in self.objects:
+            self.library = self.objects.pop("library")
 
     def set_tracking(self, tracker, experiment_id, param_names=None):
         if not self.id:
@@ -35,6 +42,31 @@ class Run(CallbackCaller):
 
     def load(self, directory):
         raise NotImplementedError
+
+
+create_run = instance.create_instance_factory("run")
+
+
+def start(params="params.yaml"):
+    if isinstance(params, str):
+        params_ = utils.load_params(params)
+    else:
+        params_ = params
+    if "environment" in params_:
+        environment = ivory.create_environment(params)
+    else:
+        environment = None
+    if "experiment" in params_ and environment:
+        experiment = environment.create_experiment(params)
+    elif "experiment" in params_:
+        experiment = ivory.create_experiment(params)
+    else:
+        experiment = None
+    if experiment:
+        run = experiment.create_run(params)
+    else:
+        run = create_run(params)
+    run.start()
 
 
 def load_run(run_id, epoch="best", client=None, experiment=None):
