@@ -7,13 +7,7 @@ from ivory.core.base import CallbackCaller
 
 
 class Run(CallbackCaller):
-    __slots__ = ["library"]  # type:ignore
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.library = ""
-        if "library" in self.objects:
-            self.library = self.objects.pop("library")
+    __slots__ = []  # type:ignore
 
     def set_tracking(self, tracker, experiment_id, param_names=None):
         if not self.id:

@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-import ivory.callbacks
+import ivory.callbacks.trainer
 from ivory.torch import utils
 
 try:
@@ -13,7 +13,7 @@ except ImportError:
 
 
 @dataclass
-class Trainer(ivory.callbacks.Trainer):
+class Trainer(ivory.callbacks.trainer.Trainer):
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"

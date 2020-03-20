@@ -36,7 +36,11 @@ class Dataset(torch.utils.data.Dataset):
 @dataclass
 class DataLoader(ivory.core.data.DataLoader):
     def get_train_dataloader(self, dataset):
-        return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+        return torch.utils.data.DataLoader(
+            dataset, batch_size=self.batch_size, shuffle=True
+        )
 
     def get_val_dataloader(self, dataset):
-        return DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
+        return torch.utils.data.DataLoader(
+            dataset, batch_size=self.batch_size, shuffle=False
+        )

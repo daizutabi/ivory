@@ -4,6 +4,7 @@ import re
 from functools import partial
 
 from ivory import utils
+from ivory.core.default import update_class
 
 
 def get_attr(path: str):
@@ -95,6 +96,7 @@ def create_instance_factory(class_name):
             params = utils.load_params(params)
         else:
             source_name = ""
+        update_class(params)
         if class_name in params:
             params = params[class_name]
         kwargs = dict(params=params, source_name=source_name)
@@ -106,6 +108,7 @@ def create_instance_factory(class_name):
 def create_instance(key, params="params.yaml"):
     if isinstance(params, str):
         params = utils.load_params(params)
+    update_class(params)
     keys = key.split(".")
     for key in keys:
         params = params[key]
