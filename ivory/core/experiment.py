@@ -1,10 +1,10 @@
 import numpy as np
 import optuna
 
-import ivory
 from ivory.callbacks.pruning import Pruning
 from ivory.core import instance
 from ivory.core.base import Base
+from ivory.core.run import create_run
 
 
 class Experiment(Base):
@@ -23,7 +23,7 @@ class Experiment(Base):
         self.objects["tuner"] = tuner
 
     def create_run(self, params="params.yaml"):
-        run = ivory.create_run(params)
+        run = create_run(params)
         if self.data:
             run.dataloader(self.data)
         if self.tracker:

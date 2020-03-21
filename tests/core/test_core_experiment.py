@@ -1,8 +1,8 @@
-import ivory
+from ivory.core.experiment import create_experiment
 
 
 def test_create_experiment(params_path):
-    experiment = ivory.create_experiment(params_path)
+    experiment = create_experiment(params_path)
     assert experiment.name == ""
 
 

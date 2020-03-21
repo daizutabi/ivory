@@ -1,30 +1,22 @@
 environment:
-  class: ivory.core.Environment
   tracker:
-    class: ivory.core.Tracker
   tuner:
-    class: ivory.core.Tuner
     storage: sqlite://
     pruner:
       class: optuna.pruners.MedianPruner
     load_if_exists: true
 experiment:
-  class: ivory.core.Experiment
   data:
     class: example.Data
     num_samples: 1000
   objective:
-    class: ivory.core.Objective
     suggest:
       def: example.suggest
 run:
-  class: ivory.torch.Run
+  library: torch
   dataloader:
-    class: ivory.core.DataLoader
     dataset:
-      def: ivory.torch.Dataset
-    dataloader:
-      def: ivory.torch.dataloader
+      def: example.Dataset
     batch_size: 10
     fold: 0
   model:
@@ -40,16 +32,12 @@ run:
     factor: 0.5
     patience: 4
   metrics:
-    class: ivory.torch.Metrics
     criterion:
       def: torch.nn.functional.mse_loss
   monitor:
-    class: ivory.callbacks.Monitor
     metrics: val_loss
   early_stopping:
-    class: ivory.callbacks.EarlyStopping
     patience: 8
   trainer:
-    class: ivory.torch.Trainer
     max_epochs: 10
     verbose: 2

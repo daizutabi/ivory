@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import ivory.core.data
+import ivory.torch.data
 from ivory.utils import kfold_split
 
 
@@ -25,6 +26,12 @@ class Data(ivory.core.data.Data):
         self.input, self.target = create_data(self.num_samples)
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=5)
+
+
+@dataclass
+class Dataset(ivory.torch.data.Dataset):
+    def get(self, index):
+        return self.index[index], self.input[index], self.target[index]
 
 
 class Model(nn.Module):

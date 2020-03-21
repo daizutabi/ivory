@@ -48,7 +48,7 @@ def test_def():
 
 
 def test_create_instance(params_path):
-    a = create_instance(params_path, "environment.tracker")
+    a = create_instance("environment.tracker", params_path)
     assert hasattr(a, "tracking_uri")
 
 

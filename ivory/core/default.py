@@ -40,6 +40,9 @@ def update_class(params, library=None):
         update_class(params["run"], library)
     else:
         for key, value in params.items():
+            if value is None:
+                value = {}
+                params[key] = value
             if isinstance(value, dict) and "class" not in value:
                 if library and key in DEFAULT_CLASS[library]:
                     params[key]["class"] = DEFAULT_CLASS[library][key]

@@ -1,6 +1,6 @@
 import pytest
 
-import ivory
+from ivory.core.environment import create_environment
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def params():
 
 @pytest.fixture
 def environment(params_path):
-    return ivory.create_environment(params_path)
+    return create_environment(params_path)
 
 
 @pytest.fixture
