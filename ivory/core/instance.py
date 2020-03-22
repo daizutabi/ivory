@@ -2,8 +2,10 @@ import importlib
 import os
 import re
 from functools import partial
+from typing import List
 
 from ivory import utils
+from ivory.core.base import Base
 from ivory.core.default import update_class
 
 
@@ -89,27 +91,38 @@ def parse_value(value, globals, key: str):
     return value
 
 
-def create_instance_factory(class_name):
-    def create_instance(params="params.yaml"):
-        if isinstance(params, str):
-            source_name = os.path.abspath(params)
-            params = utils.load_params(params)
+def create_base_instance(base_name: str, params, source_name=""):
+    if isinstance(params, str):
+        source_name = os.path.abspath(params)
+        params = utils.load_params(params)
+    update_class(params)
+    if base_name in params:
+        params = params[base_name]
+    kwargs = dict(params=params, source_name=source_name)
+    return instantiate(params, kwargs=kwargs)
+
+
+def create_base_instance_chain(base_names: list, params, source_name=""):
+    if isinstance(params, str):
+        source_name = os.path.abspath(params)
+        params = utils.load_params(params)
+    chain: List[Base] = []
+    for base_name in base_names:
+        if base_name not in params:
+            continue
+        if chain:
+            instance = getattr(chain[-1], f"create_{base_name}")(params, source_name)
         else:
-            source_name = ""
-        update_class(params)
-        if class_name in params:
-            params = params[class_name]
-        kwargs = dict(params=params, source_name=source_name)
-        return instantiate(params, kwargs=kwargs)
-
-    return create_instance
+            instance = create_base_instance(base_name, params, source_name)
+        chain.append(instance)
+    return chain
 
 
-def create_instance(key, params="params.yaml"):
+def create_instance(name: str, params):
     if isinstance(params, str):
         params = utils.load_params(params)
     update_class(params)
-    keys = key.split(".")
-    for key in keys:
-        params = params[key]
+    names = name.split(".")
+    for name in names:
+        params = params[name]
     return instantiate(params)

@@ -1,18 +1,22 @@
+import os
 import re
 from typing import Any, Dict
 
 import yaml
 
 
-def load_params(path: str, update=None):
+def load_params(path: str):
     with open(path, "r") as file:
         params_yaml = file.read()
     params = to_float(yaml.safe_load(params_yaml))
-    if update:
-        update_dict(params, update)
+    if "include" in params:
+        include_path = params.pop("include")
+        directory = os.path.dirname(os.path.abspath(path))
+        include_path = os.path.join(directory, include_path)
+        include = load_params(include_path)
+        include.update(params)
+        params = include
     return params
-
-
 
 
 def to_float(x):
@@ -123,20 +127,46 @@ def dot_get(x: Dict[str, Any], key: str):
         return x[key]
 
 
-def format_name_by_dict(name: str, params: Dict[str, Any]):
-    """Format name with `{xxx.yyy}` by dict.
+def get_params_without_dot(params, param_names):
+    params_dict = {}
+    for name in param_names:
+        value = dot_get(params, name)
+        if value is not None:
+            name = name.split(".")[-1]
+            params_dict[name] = value
+    return params_dict
 
-    Examples:
-        >>> name = r"{model.name}-{data.num_samples}"
-        >>> params = {"model": {"name": "abc"}, "data": {"num_samples": 100}}
-        >>> format_name_by_dict(name, params)
-        'abc-100'
+
+def get_fullname(params, name, prefix="", dict_allowed=False):
     """
-
-    def replace(match):
-        x = params
-        for m in match.group(1).split("."):
-            x = x[m]
-        return str(x)
-
-    return re.sub(r"\{(.*?)\}", replace, name)
+    Examples:
+        >>> params = {'a': 1, 'b': {'c': {'d': 2}}}
+        >>> get_fullname(params, 'a')
+        'a'
+        >>> get_fullname(params, 'c')
+        >>> get_fullname(params, 'd')
+        'b.c.d'
+        >>> get_fullname(params, 'e')
+        >>> get_fullname(params, 'b.c.d')
+        'b.c.d'
+        >>> get_fullname(params, 'c.d')
+        'b.c.d'
+    """
+    if "." in name:
+        name, _, suffix = name.partition('.')
+        fullname = get_fullname(params, name, dict_allowed=True)
+        if fullname:
+            return ".".join([fullname, suffix])
+    elif not isinstance(params, dict):
+        return
+    elif name in params:
+        if dict_allowed or not isinstance(params[name], dict):
+            return prefix + name
+    else:
+        for key in params:
+            prefix_ = prefix + key + "."
+            fullname = get_fullname(params[key], name, prefix_, dict_allowed)
+            if fullname:
+                return fullname
+        else:
+            return

@@ -6,6 +6,7 @@ DEFAULT_CLASS["core"] = {
     "tuner": "ivory.core.tuner.Tuner",
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
+    "run": "ivory.core.run.Run",
     "monitor": "ivory.callbacks.monitor.Monitor",
     "early_stopping": "ivory.callbacks.early_stopping.EarlyStopping",
 }
@@ -36,7 +37,7 @@ def update_class(params, library=None):
             if library:
                 params["run"]["class"] = DEFAULT_CLASS[library]["run"]
             else:
-                raise ValueError("Can't find class for run.")
+                params["run"]["class"] = DEFAULT_CLASS["core"]["run"]
         update_class(params["run"], library)
     else:
         for key, value in params.items():

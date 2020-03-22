@@ -1,9 +1,10 @@
+import os
+import pickle
 import tempfile
 
-import ivory
 from ivory import utils
-from ivory.core import instance
 from ivory.core.base import CallbackCaller
+from ivory.core.instance import create_base_instance
 
 
 class Run(CallbackCaller):
@@ -11,7 +12,7 @@ class Run(CallbackCaller):
 
     def set_tracking(self, tracker, experiment_id, param_names=None):
         if not self.id:
-            self.id = tracker.create_run(self.name, experiment_id)
+            self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             self.params["id"] = self.id
         self.objects["tracking"] = tracker.create_tracking(experiment_id, param_names)
 
@@ -32,34 +33,27 @@ class Run(CallbackCaller):
                 self[x].load_state_dict(state_dict[x])
 
     def save(self, directory):
-        raise NotImplementedError
+        for key, state_dict in self.state_dict().items():
+            path = os.path.join(directory, f"{key}.pickle")
+            with open(path, "wb") as file:
+                pickle.dump(state_dict, file)
 
     def load(self, directory):
-        raise NotImplementedError
+        state_dict = {}
+        for path in os.listdir(directory):
+            if path.endswith(".pickle"):
+                name = path.split(".")[0]
+                with open(path, "rb") as file:
+                    state_dict[name] = pickle.load(file)
+        return state_dict
 
 
-create_run = instance.create_instance_factory("run")
+def create_run(params, source_name=""):
+    return create_base_instance("run", params, source_name)
 
 
 def start(params="params.yaml"):
-    if isinstance(params, str):
-        params_ = utils.load_params(params)
-    else:
-        params_ = params
-    if "environment" in params_:
-        environment = ivory.create_environment(params)
-    else:
-        environment = None
-    if "experiment" in params_ and environment:
-        experiment = environment.create_experiment(params)
-    elif "experiment" in params_:
-        experiment = ivory.create_experiment(params)
-    else:
-        experiment = None
-    if experiment:
-        run = experiment.create_run(params)
-    else:
-        run = create_run(params)
+    run = create_run(params)
     run.start()
 
 
@@ -73,7 +67,7 @@ def load_run(run_id, epoch="best", client=None, experiment=None):
     if experiment:
         run = experiment.create_run(params)
     else:
-        run = ivory.create_run(params)
+        run = create_run(params)
     state_dict = run.load(epoch_path)
     run.load_state_dict(state_dict)
     return run

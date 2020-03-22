@@ -18,18 +18,18 @@ class Tracker:
     def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
         self.tracking_uri = self.client._tracking_client.tracking_uri
+        if self.artifact_location:
+            self.artifact_location = utils.to_uri(self.artifact_location)
 
     def create_experiment(self, name: str):
         experiment = self.client.get_experiment_by_name(name)
         if experiment:
             experiment_id = experiment.experiment_id
         else:
-            if self.artifact_location:
-                self.artifact_location = utils.to_uri(self.artifact_location)
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
-    def create_run(self, name: str, experiment_id: str, source_name=None):
+    def create_run(self, experiment_id: str, name: str, source_name: str = ""):
         tags = {MLFLOW_RUN_NAME: name}
         if source_name:
             tags[MLFLOW_SOURCE_NAME] = source_name
@@ -44,11 +44,9 @@ class Tracker:
         return Tracking(experiment_id, self.tracking_uri, param_names)
 
 
-def create_tracker(params="params.yaml"):
+def create_tracker(params):
     if isinstance(params, str):
         params = utils.load_params(params)
     if "environment" in params:
         params = params["environment"]
-    if "tracker" in params:
-        params = params["tracker"]
-    return instance.instantiate(params)
+    return instance.create_instance("tracker", params)

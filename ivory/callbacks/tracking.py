@@ -8,7 +8,7 @@ import mlflow
 import yaml
 from mlflow.entities import Metric, Param
 
-from ivory.utils.params import dot_get
+from ivory.utils.params import get_params_without_dot
 
 
 @dataclass
@@ -22,7 +22,7 @@ class Tracking:
 
     def on_fit_start(self, run):
         if self.param_names:
-            params = get_params(run.params, self.param_names)
+            params = get_params_without_dot(run.params, self.param_names)
             self.log_params(run.id, params)
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -34,7 +34,7 @@ class Tracking:
     def on_epoch_end(self, run):
         metrics = run.metrics.record.copy()
         monitor = run.monitor
-        if monitor.best_epoch != -1:
+        if monitor and monitor.best_epoch != -1:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
         self.log_metrics(run.id, metrics, run.metrics.epoch)
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -42,7 +42,7 @@ class Tracking:
             os.mkdir(directory)
             run.save(directory)
             self.client.log_artifacts(run.id, tmpdir)
-            if run.monitor.is_best:
+            if monitor and monitor.is_best:
                 os.rename(directory, directory.replace("current", "best"))
                 self.client.log_artifacts(run.id, tmpdir)
 
@@ -62,13 +62,3 @@ class Tracking:
         ts = int(time.time() * 1000)  # timestamp in milliseconds.
         metrics = [Metric(key, value, ts, step) for key, value in metrics.items()]
         self.client.log_batch(run_id, metrics=metrics, params=[], tags=[])
-
-
-def get_params(params, param_names):
-    params_dict = {}
-    for name in param_names:
-        value = dot_get(params, name)
-        if value is not None:
-            name = name.split(".")[-1]
-            params_dict[name] = value
-    return params_dict

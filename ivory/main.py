@@ -1,47 +1,47 @@
-import subprocess
 import sys
 
 import click
 
-import ivory
+from ivory.core import client
 
-click_option_params_path = click.option(
-    "-p",
-    "--params",
-    type=click.Path(exists=True),
-    default="params.yaml",
-    help="Parameter file path.",
-)
+if "." not in sys.path:
+    sys.path.insert(0, ".")
 
 
-@click.group(invoke_without_command=True)
-@click.pass_context
-@click_option_params_path
-def cli(ctx, params):
-    if "." not in sys.path:
-        sys.path.insert(0, ".")
-    if ctx.invoked_subcommand is None:
-        click.echo("I was invoked without subcommand")
-        print(params)
+def normpath(params):
+    if "." not in params:
+        return params + ".yaml"
+    return params
+
+
+@click.group()
+def cli():
+    pass
 
 
 @cli.command(help="Start a single run.")
-@click_option_params_path
+@click.argument("params")
 def run(params):
-    ivory.run(params)
+    client.run(normpath(params))
+
+
+@cli.command(help="Start chain runs.")
+@click.argument("params")
+@click.argument("args", nargs=-1)
+def chain(params, args):
+    client.chain(normpath(params), args)
 
 
 @cli.command()
-@click_option_params_path
+@click.argument("params")
 def ui(params):
-    tracker = ivory.create_tracker(params)
-    tracking_uri = tracker.tracking_uri
-    subprocess.run(["mlflow", "ui", "--backend-store-uri", tracking_uri])
+    client.ui(normpath(params))
 
 
 @cli.command(help="Show the parameter file contents.")
-@click_option_params_path
-def yaml(params):
+@click.argument("params")
+def show(params):
+    params = normpath(params)
     with open(params) as file:
         params_yaml = file.read()
     print(params_yaml)

@@ -51,11 +51,12 @@ class Metrics(State):
         raise NotImplementedError
 
     def val_step(self, index, output, target):
-        index, output, target, batch_loss = self.val_evaluate(index, output, target)
+        index, output, target, *batch_loss = self.val_evaluate(index, output, target)
         self.val_batch_index.append(index)
         self.val_batch_output.append(output)
         self.val_batch_target.append(target)
-        self.val_batch_loss.append(batch_loss)
+        if batch_loss:
+            self.val_batch_loss.append(batch_loss[0])
 
     def val_evaluate(self, index, output, target):
         """Returns a result for a validation step.
@@ -66,12 +67,14 @@ class Metrics(State):
         Returns:
             tuple:
                 (0-2) index, output, target (np.ndarray): numpay batch data.
-                (3) batch_loss (float): a loss value
+                (3, Optional) batch_loss (float): a loss value
         """
-        raise NotImplementedError
+        return index, output, target
+
+    def on_val_end(self, run):
+        self.data = self.data_dict()
 
     def on_epoch_end(self, run):
-        self.data = self.data_dict()
         train_epoch_loss = np.mean(self.train_batch_loss)
         val_epoch_loss = np.mean(self.val_batch_loss)
         self.record = {"loss": train_epoch_loss, "val_loss": val_epoch_loss}
