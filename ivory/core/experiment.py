@@ -23,6 +23,7 @@ class Experiment(Base):
         self.objects["tuner"] = tuner
 
     def create_run(self, params, source_name=""):
+        source_name = source_name or self.source_name
         run = create_run(params, source_name=source_name)
         if self.data:
             run.dataloader(self.data)

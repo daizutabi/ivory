@@ -19,10 +19,14 @@ def cli():
     pass
 
 
-@cli.command(help="Start a single run.")
+@cli.command(help="Start product runs.")
 @click.argument("params")
-def run(params):
-    client.run(normpath(params))
+@click.argument("args", nargs=-1)
+def run(params, args):
+    if args:
+        client.product(normpath(params), args)
+    else:
+        client.run(normpath(params))
 
 
 @cli.command(help="Start chain runs.")

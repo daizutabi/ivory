@@ -7,6 +7,7 @@ class Environment(Base):
     __slots__ = []  # type:ignore
 
     def create_experiment(self, params, source_name=""):
+        source_name = source_name or self.source_name
         experiment = create_experiment(params, source_name=source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)

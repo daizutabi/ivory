@@ -1,4 +1,6 @@
+import ast
 import os
+import re
 from functools import wraps
 from typing import Any, Dict
 
@@ -185,3 +187,21 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
                 return fullname
         else:
             return
+
+
+def parse_args(params, args):
+    parsed = {}
+    for arg in args:
+        name, value = arg.split("=")
+        fullname = get_fullname(params, name)
+        if fullname is None:
+            raise ValueError(f"Unknown params name: {name}")
+        match = re.match(r"(\d+)-(\d+)", value)
+        if match:
+            value = list(range(int(match.group(1)), int(match.group(2)) + 1))
+        elif "," in value:
+            value = [ast.literal_eval(x) for x in value.split(",")]
+        else:
+            value = [ast.literal_eval(value)]
+        parsed[fullname] = value
+    return parsed

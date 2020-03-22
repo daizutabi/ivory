@@ -1,5 +1,5 @@
-import ast
-import re
+import copy
+import itertools
 import subprocess
 
 import ivory.core.tracker
@@ -15,30 +15,42 @@ def run(params):
 
 @utils.autoload
 def chain(params, source_name, args):
-    print(source_name)
-    names, values = parse_args(params, args)
-    print(names)
-    print(values)
+    experiment, params, args = reduce_experiment(params, source_name, args)
+    number = 1
+    for name in args:
+        for value in args[name]:
+            params_chain = copy.deepcopy(params)
+            utils.update_dict(params_chain, {name: value})
+            params_chain["name"] = f"chain#{number}"
+            run = experiment.create_run(params_chain)
+            if run.tracking:
+                run.tracking.param_names = list(args.keys())
+            run.start()
+            number += 1
 
 
-def parse_args(params, args):
-    names = []
-    values = []
-    for arg in args:
-        name, value = arg.split("=")
-        fullname = utils.get_fullname(params, name)
-        if fullname is None:
-            raise ValueError(f"Unknown params name: {name}")
-        names.append(fullname)
-        match = re.match(r"(\d+)-(\d+)", value)
-        if match:
-            value = list(range(int(match.group(1)), int(match.group(2)) + 1))
-        elif "," in value:
-            value = [ast.literal_eval(x) for x in value.split(",")]
-        else:
-            raise ValueError(f"Unknown value pattern: {value}")
-        values.append(value)
-    return names, values
+@utils.autoload
+def product(params, source_name, args):
+    experiment, params, args = reduce_experiment(params, source_name, args)
+    number = 1
+    for value in itertools.product(*args.values()):
+        params_prod = copy.deepcopy(params)
+        update = {key: value for key, value in zip(args.keys(), value)}
+        utils.update_dict(params_prod, update)
+        params_prod["name"] = f"product#{number}"
+        run = experiment.create_run(params_prod)
+        if run.tracking:
+            run.tracking.param_names = list(args.keys())
+        run.start()
+        number += 1
+
+
+def reduce_experiment(params, source_name, args):
+    bases = ["environment", "experiment"]
+    experiment = create_base_instance_chain(params, bases, source_name=source_name)[-1]
+    params = params["run"]
+    args = utils.parse_args(params, args)
+    return experiment, params, args
 
 
 def ui(params):
