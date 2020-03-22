@@ -49,10 +49,10 @@ class Run(CallbackCaller):
 
 
 def create_run(params, source_name=""):
-    return create_base_instance("run", params, source_name)
+    return create_base_instance(params, "run", source_name=source_name)
 
 
-def start(params="params.yaml"):
+def start(params):
     run = create_run(params)
     run.start()
 

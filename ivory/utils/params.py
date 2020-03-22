@@ -1,5 +1,5 @@
 import os
-import re
+from functools import wraps
 from typing import Any, Dict
 
 import yaml
@@ -17,6 +17,21 @@ def load_params(path: str):
         include.update(params)
         params = include
     return params
+
+
+def autoload(func):
+    @wraps(func)
+    def wrapper(params, *args, **kwargs):
+        if isinstance(params, str):
+            source_name = os.path.abspath(params)
+            params = load_params(params)
+        elif "source_name" in kwargs:
+            source_name = kwargs.pop("source_name")
+        else:
+            source_name = ""
+        return func(params, source_name, *args, **kwargs)
+
+    return wrapper
 
 
 def to_float(x):
@@ -153,7 +168,7 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
         'b.c.d'
     """
     if "." in name:
-        name, _, suffix = name.partition('.')
+        name, _, suffix = name.partition(".")
         fullname = get_fullname(params, name, dict_allowed=True)
         if fullname:
             return ".".join([fullname, suffix])

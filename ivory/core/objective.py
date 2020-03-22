@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict
 from optuna.trial import Trial
 
 from ivory import utils
-from ivory.utils import load_params
 
 
 @dataclass
@@ -14,9 +13,8 @@ class Objective:
     mode: str = "min"
     params: Dict[str, Any] = field(default_factory=dict, init=False)
 
-    def set_params(self, params):
-        if isinstance(params, str):
-            params = load_params(params)
+    @utils.autoload
+    def set_params(self, params, source_name):
         if "run" in params:
             params = params["run"]
         self.params = params

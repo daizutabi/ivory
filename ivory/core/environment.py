@@ -7,7 +7,7 @@ class Environment(Base):
     __slots__ = []  # type:ignore
 
     def create_experiment(self, params, source_name=""):
-        experiment = create_experiment(params, source_name)
+        experiment = create_experiment(params, source_name=source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)
         if self.tuner:
@@ -16,4 +16,4 @@ class Environment(Base):
 
 
 def create_environment(params, source_name=""):
-    return create_base_instance("environment", params, source_name)
+    return create_base_instance(params, "environment", source_name=source_name)

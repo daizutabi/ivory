@@ -1,5 +1,4 @@
 import ast
-import os
 import re
 import subprocess
 
@@ -8,16 +7,15 @@ from ivory import utils
 from ivory.core.instance import create_base_instance_chain
 
 
-def run(params, source_name=""):
+def run(params):
     bases = ["environment", "experiment", "run"]
-    run = create_base_instance_chain(bases, params, source_name)[-1]
+    run = create_base_instance_chain(params, bases)[-1]
     run.start()
 
 
-def chain(params, args, source_name=""):
-    if isinstance(params, str):
-        source_name = os.path.abspath(params)
-        params = utils.load_params(params)
+@utils.autoload
+def chain(params, source_name, args):
+    print(source_name)
     names, values = parse_args(params, args)
     print(names)
     print(values)

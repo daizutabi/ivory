@@ -44,9 +44,8 @@ class Tracker:
         return Tracking(experiment_id, self.tracking_uri, param_names)
 
 
-def create_tracker(params):
-    if isinstance(params, str):
-        params = utils.load_params(params)
+@utils.autoload
+def create_tracker(params, source_name):
     if "environment" in params:
         params = params["environment"]
-    return instance.create_instance("tracker", params)
+    return instance.create_instance(params, "tracker")

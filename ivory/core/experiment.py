@@ -23,7 +23,7 @@ class Experiment(Base):
         self.objects["tuner"] = tuner
 
     def create_run(self, params, source_name=""):
-        run = create_run(params, source_name)
+        run = create_run(params, source_name=source_name)
         if self.data:
             run.dataloader(self.data)
         if self.tracker:
@@ -61,4 +61,4 @@ class Experiment(Base):
 
 
 def create_experiment(params, source_name=""):
-    return create_base_instance("experiment", params, source_name)
+    return create_base_instance(params, "experiment", source_name=source_name)

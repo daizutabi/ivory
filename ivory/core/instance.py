@@ -91,10 +91,8 @@ def parse_value(value, globals, key: str):
     return value
 
 
-def create_base_instance(base_name: str, params, source_name=""):
-    if isinstance(params, str):
-        source_name = os.path.abspath(params)
-        params = utils.load_params(params)
+@utils.autoload
+def create_base_instance(params, source_name, base_name: str):
     update_class(params)
     if base_name in params:
         params = params[base_name]
@@ -102,25 +100,23 @@ def create_base_instance(base_name: str, params, source_name=""):
     return instantiate(params, kwargs=kwargs)
 
 
-def create_base_instance_chain(base_names: list, params, source_name=""):
-    if isinstance(params, str):
-        source_name = os.path.abspath(params)
-        params = utils.load_params(params)
+@utils.autoload
+def create_base_instance_chain(params, source_name, base_names: list):
     chain: List[Base] = []
     for base_name in base_names:
         if base_name not in params:
             continue
         if chain:
-            instance = getattr(chain[-1], f"create_{base_name}")(params, source_name)
+            create = getattr(chain[-1], f"create_{base_name}")
+            instance = create(params, source_name=source_name)
         else:
-            instance = create_base_instance(base_name, params, source_name)
+            instance = create_base_instance(params, base_name, source_name=source_name)
         chain.append(instance)
     return chain
 
 
-def create_instance(name: str, params):
-    if isinstance(params, str):
-        params = utils.load_params(params)
+@utils.autoload
+def create_instance(params, source_name, name):
     update_class(params)
     names = name.split(".")
     for name in names:
