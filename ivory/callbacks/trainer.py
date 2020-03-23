@@ -7,12 +7,10 @@ from ivory.core.state import State
 
 @dataclass
 class Trainer(State):
+    epoch: int = -1
     max_epochs: int = 1000
+    global_step: int = -1
     verbose: int = 1
-
-    def __post_init__(self):
-        self.epoch = -1
-        self.global_step = -1
 
     def train_step(self, index, input, target, run):
         pass

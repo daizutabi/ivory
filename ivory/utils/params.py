@@ -21,21 +21,6 @@ def load_params(path: str):
     return params
 
 
-def autoload(func):
-    @wraps(func)
-    def wrapper(params, *args, **kwargs):
-        if isinstance(params, str):
-            source_name = os.path.abspath(params)
-            params = load_params(params)
-        elif "source_name" in kwargs:
-            source_name = kwargs.pop("source_name")
-        else:
-            source_name = ""
-        return func(params, source_name, *args, **kwargs)
-
-    return wrapper
-
-
 def to_float(x):
     if isinstance(x, dict):
         return {key: to_float(value) for key, value in x.items()}
@@ -205,3 +190,15 @@ def parse_args(params, args):
             value = [ast.literal_eval(value)]
         parsed[fullname] = value
     return parsed
+
+
+
+
+def filter_string(params: Dict[str, Any], tags: Dict[str, Any] = None):
+    filters = []
+    for key, value in params.items():
+        filters.append(f"param.{key}='{value}'")
+    if tags:
+        for key, value in params.items():
+            filters.append(f"tag.{key}='{value}'")
+    return " and ".join(filters)

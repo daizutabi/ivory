@@ -62,3 +62,7 @@ class Tracking:
         ts = int(time.time() * 1000)  # timestamp in milliseconds.
         metrics = [Metric(key, value, ts, step) for key, value in metrics.items()]
         self.client.log_batch(run_id, metrics=metrics, params=[], tags=[])
+
+    def set_tags(self, run_id, tags):
+        for key, value in tags.items():
+            self.client.set_tag(run_id, key, value)

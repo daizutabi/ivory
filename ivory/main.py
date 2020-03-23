@@ -2,7 +2,7 @@ import sys
 
 import click
 
-from ivory.core import client
+from ivory.core.client import Client
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -22,24 +22,23 @@ def cli():
 @cli.command(help="Start product runs.")
 @click.argument("params")
 @click.argument("args", nargs=-1)
-def run(params, args):
-    if args:
-        client.product(normpath(params), args)
-    else:
-        client.run(normpath(params))
+@click.option("-m", "--message", default="")
+def run(params, args, message):
+    Client(normpath(params)).product(args, message)
 
 
 @cli.command(help="Start chain runs.")
 @click.argument("params")
 @click.argument("args", nargs=-1)
-def chain(params, args):
-    client.chain(normpath(params), args)
+@click.option("-m", "--message", default="")
+def chain(params, args, message):
+    Client(normpath(params)).chain(args, message)
 
 
 @cli.command()
 @click.argument("params")
 def ui(params):
-    client.ui(normpath(params))
+    Client(normpath(params)).ui()
 
 
 @cli.command(help="Show the parameter file contents.")

@@ -7,7 +7,6 @@ from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME, MLFLOW_SOURCE_NAME
 
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
-from ivory.core import instance
 
 
 @dataclass
@@ -21,11 +20,14 @@ class Tracker:
         if self.artifact_location:
             self.artifact_location = utils.to_uri(self.artifact_location)
 
-    def create_experiment(self, name: str):
+    def get_experiment_id(self, name: str):
         experiment = self.client.get_experiment_by_name(name)
         if experiment:
-            experiment_id = experiment.experiment_id
-        else:
+            return experiment.experiment_id
+
+    def create_experiment(self, name: str):
+        experiment_id = self.get_experiment_id(name)
+        if not experiment_id:
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
@@ -40,12 +42,10 @@ class Tracker:
     def list_run_infos(self, experiment_id):
         return self.client.list_run_infos(experiment_id)
 
+    def search_runs(self, experiment_id, params):
+        filter_string = utils.filter_string(params)
+        runs = self.client.search_runs(experiment_id, filter_string)
+        return [run.info.run_id for run in runs]
+
     def create_tracking(self, experiment_id, param_names=None):
         return Tracking(experiment_id, self.tracking_uri, param_names)
-
-
-@utils.autoload
-def create_tracker(params, source_name):
-    if "environment" in params:
-        params = params["environment"]
-    return instance.create_instance(params, "tracker")

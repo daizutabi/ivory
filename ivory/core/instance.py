@@ -1,11 +1,8 @@
 import importlib
-import os
 import re
 from functools import partial
-from typing import List
+from typing import Any, Dict
 
-from ivory import utils
-from ivory.core.base import Base
 from ivory.core.default import update_class
 
 
@@ -17,7 +14,7 @@ def get_attr(path: str):
     return getattr(module, name)
 
 
-def instantiate(params, globals=None, kwargs=None):
+def instantiate(params: Dict[str, Any], globals=None, kwargs=None):
     if globals is None:
         globals = {}
     else:
@@ -27,7 +24,7 @@ def instantiate(params, globals=None, kwargs=None):
     return _instantiate(params, globals, kwargs)
 
 
-def _instantiate(params, globals, kwargs):
+def _instantiate(params: Dict[str, Any], globals, kwargs):
     if "class" in params:
         key = "class"
     elif "call" in params:
@@ -91,32 +88,15 @@ def parse_value(value, globals, key: str):
     return value
 
 
-@utils.autoload
-def create_base_instance(params, source_name, base_name: str):
+def create_base_instance(params: Dict[str, Any], name: str, source_name=""):
     update_class(params)
-    if base_name in params:
-        params = params[base_name]
+    if name in params:
+        params = params[name]
     kwargs = dict(params=params, source_name=source_name)
     return instantiate(params, kwargs=kwargs)
 
 
-@utils.autoload
-def create_base_instance_chain(params, source_name, base_names: list):
-    chain: List[Base] = []
-    for base_name in base_names:
-        if base_name not in params:
-            continue
-        if chain:
-            create = getattr(chain[-1], f"create_{base_name}")
-            instance = create(params, source_name=source_name)
-        else:
-            instance = create_base_instance(params, base_name, source_name=source_name)
-        chain.append(instance)
-    return chain
-
-
-@utils.autoload
-def create_instance(params, source_name, name):
+def create_instance(params: Dict[str, Any], name: str):
     update_class(params)
     names = name.split(".")
     for name in names:

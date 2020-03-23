@@ -13,8 +13,7 @@ class Objective:
     mode: str = "min"
     params: Dict[str, Any] = field(default_factory=dict, init=False)
 
-    @utils.autoload
-    def set_params(self, params, source_name):
+    def set_params(self, params: Dict[str, Any]):
         if "run" in params:
             params = params["run"]
         self.params = params
