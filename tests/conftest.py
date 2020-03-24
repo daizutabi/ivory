@@ -5,14 +5,14 @@ import sys
 
 import pytest
 
-from ivory.core.client import Client
+from ivory.core.client import create_client
 
 sys.path.insert(0, os.path.abspath("tests"))
 
 
 @pytest.fixture(scope="session")
 def client():
-    yield Client("tests/params.yaml")
+    yield create_client("tests/params.yaml")
     if os.path.exists("mlruns"):
         shutil.rmtree("mlruns")
 

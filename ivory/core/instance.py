@@ -90,10 +90,8 @@ def parse_value(value, globals, key: str):
 
 def create_base_instance(params: Dict[str, Any], name: str, source_name=""):
     update_class(params)
-    if name in params:
-        params = params[name]
     kwargs = dict(params=params, source_name=source_name)
-    return instantiate(params, kwargs=kwargs)
+    return instantiate(params[name], kwargs=kwargs)
 
 
 def create_instance(params: Dict[str, Any], name: str):

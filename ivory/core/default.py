@@ -2,7 +2,6 @@ DEFAULT_CLASS = {}
 
 DEFAULT_CLASS["core"] = {
     "client": "ivory.core.client.Client",
-    "environment": "ivory.core.environment.Environment",
     "tracker": "ivory.core.tracker.Tracker",
     "tuner": "ivory.core.tuner.Tuner",
     "experiment": "ivory.core.experiment.Experiment",
@@ -21,7 +20,7 @@ DEFAULT_CLASS["torch"] = {
 
 
 def update_class(params, library="core"):
-    for name in ["environment", "experiment"]:
+    for name in ["client", "experiment"]:
         if name in params:
             if "class" not in params[name]:
                 params[name]["class"] = DEFAULT_CLASS["core"][name]

@@ -3,7 +3,7 @@ import sys
 
 import click
 
-from ivory.core.client import Client
+from ivory.core.client import create_client
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -28,7 +28,7 @@ def cli():
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def run(params, args, message):
-    client = Client(normpath(params))
+    client = create_client(normpath(params))
     for run in client.product(args, message):
         run.start()
 
@@ -38,7 +38,7 @@ def run(params, args, message):
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def chain(params, args, message):
-    client = Client(normpath(params))
+    client = create_client(normpath(params))
     for run in client.chain(args, message):
         run.start()
 
@@ -48,7 +48,7 @@ def chain(params, args, message):
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def list(params, args, message):
-    client = Client(normpath(params))
+    client = create_client(normpath(params))
     for run in client.list(args, message):
         click.echo(run)
 
@@ -56,7 +56,7 @@ def list(params, args, message):
 @cli.command()
 @click.argument("params")
 def ui(params):
-    Client(normpath(params)).ui()
+    create_client(normpath(params)).ui()
 
 
 @cli.command(help="Show the parameter file contents.")

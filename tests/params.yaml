@@ -1,4 +1,4 @@
-include: env.yaml
+include: client.yaml
 experiment:
   data:
     class: example.Data

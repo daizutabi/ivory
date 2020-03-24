@@ -8,11 +8,11 @@ from ivory.core.base import Base
 class Experiment(Base):
     __slots__ = []  # type:ignore
 
-    def set_environment(self, environment):
-        if environment.tracker:
-            self.set_tracker(environment.tracker)
-        if environment.tuner:
-            self.set_tuner(environment.tuner)
+    def set_client(self, client):
+        if client.tracker:
+            self.set_tracker(client.tracker)
+        if client.tuner:
+            self.set_tuner(client.tuner)
 
     def set_tracker(self, tracker):
         self.objects["tracker"] = tracker

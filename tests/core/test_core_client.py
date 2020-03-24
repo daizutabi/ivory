@@ -1,5 +1,5 @@
 def test_client_repr(client):
-    assert repr(client) == "Client(Experiment(id='0', name='Default', num_objects=4))"
+    assert repr(client) == "Client(num_objects=3)"
 
 
 def test_client_create_run(client, params):

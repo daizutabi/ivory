@@ -30,8 +30,8 @@ def test_def():
 
 
 def test_create_instance(params):
-    a = create_instance(params, "environment.tracker")
-    assert hasattr(a, "tracking_uri")
+    trainer = create_instance(params, "run.trainer")
+    assert trainer.max_epochs == 10
 
 
 def test_instantiate_global():

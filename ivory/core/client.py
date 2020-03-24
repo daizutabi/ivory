@@ -6,32 +6,30 @@ import tempfile
 from typing import List
 
 from ivory import utils
+from ivory.core.base import Base
 from ivory.core.instance import create_base_instance, create_instance
 
 
-class Client:
-    def __init__(self, params, source_name=""):
-        if isinstance(params, str):
-            source_name = os.path.abspath(params)
-            params = utils.load_params(params)
-        self.params = params
-        self.source_name = source_name
-        self.tracker = None
-        self.create_experiment()
+def create_client(params, source_name=""):
+    if isinstance(params, str):
+        source_name = os.path.abspath(params)
+        params = utils.load_params(params)
+    return create_base_instance(params, "client", source_name)
 
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        return f"{class_name}({self.experiment})"
+
+class Client(Base):
+    __slots__ = []  # type:ignore
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.create_experiment()
+        self.params.pop("client")
 
     def create_experiment(self, params=None):
         params = params or self.params
         experiment = create_base_instance(params, "experiment", self.source_name)
-        if "environment" in self.params:
-            env = create_base_instance(params, "environment", self.source_name)
-            experiment.set_environment(env)
-        self.experiment = experiment
-        if experiment.tracker:
-            self.tracker = experiment.tracker
+        experiment.set_client(self)
+        self.objects["experiment"] = experiment
         return experiment
 
     def create_run(self, params=None):
@@ -113,9 +111,9 @@ class Client:
         return run
 
     def _create_updated_run(self, update, mode, number, args, args_dict, message):
-        params = copy.deepcopy(self.params["run"])
-        utils.update_dict(params, update)
-        params["name"] = f"{mode}#{number}"
+        params = copy.deepcopy(self.params)
+        utils.update_dict(params["run"], update)
+        params["run"]["name"] = f"{mode}#{number}"
         run = self.create_run(params)
         if run.tracking:
             run.tracking.param_names = list(args_dict.keys())

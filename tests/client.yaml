@@ -1,4 +1,4 @@
-environment:
+client:
   tracker:
   tuner:
     storage: sqlite://
