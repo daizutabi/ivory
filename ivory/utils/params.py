@@ -192,13 +192,11 @@ def parse_args(params, args):
     return parsed
 
 
-
-
 def filter_string(params: Dict[str, Any], tags: Dict[str, Any] = None):
     filters = []
     for key, value in params.items():
         filters.append(f"param.{key}='{value}'")
     if tags:
-        for key, value in params.items():
+        for key, value in tags.items():
             filters.append(f"tag.{key}='{value}'")
     return " and ".join(filters)

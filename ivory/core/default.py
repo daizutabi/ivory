@@ -1,6 +1,7 @@
 DEFAULT_CLASS = {}
 
 DEFAULT_CLASS["core"] = {
+    "client": "ivory.core.client.Client",
     "environment": "ivory.core.environment.Environment",
     "tracker": "ivory.core.tracker.Tracker",
     "tuner": "ivory.core.tuner.Tuner",
@@ -19,25 +20,17 @@ DEFAULT_CLASS["torch"] = {
 }
 
 
-def update_class(params, library=None):
-    if "environment" in params:
-        if "class" not in params["environment"]:
-            params["environment"]["class"] = DEFAULT_CLASS["core"]["environment"]
-        update_class(params["environment"])
-    if "experiment" in params:
-        if "class" not in params["experiment"]:
-            params["experiment"]["class"] = DEFAULT_CLASS["core"]["experiment"]
-        update_class(params["experiment"])
+def update_class(params, library="core"):
+    for name in ["environment", "experiment"]:
+        if name in params:
+            if "class" not in params[name]:
+                params[name]["class"] = DEFAULT_CLASS["core"][name]
+            update_class(params[name])
     if "run" in params:
         if "library" in params["run"]:
             library = params["run"].pop("library")
-        else:
-            library = None
         if "class" not in params["run"]:
-            if library:
-                params["run"]["class"] = DEFAULT_CLASS[library]["run"]
-            else:
-                params["run"]["class"] = DEFAULT_CLASS["core"]["run"]
+            params["run"]["class"] = DEFAULT_CLASS[library]["run"]
         update_class(params["run"], library)
     else:
         for key, value in params.items():
@@ -45,7 +38,7 @@ def update_class(params, library=None):
                 value = {}
                 params[key] = value
             if isinstance(value, dict) and "class" not in value:
-                if library and key in DEFAULT_CLASS[library]:
+                if key in DEFAULT_CLASS[library]:
                     params[key]["class"] = DEFAULT_CLASS[library][key]
                 elif key in DEFAULT_CLASS["core"]:
                     params[key]["class"] = DEFAULT_CLASS["core"][key]

@@ -22,16 +22,22 @@ def create_data(num_samples=1000):
 class Data(ivory.core.data.Data):
     num_samples: int = 1000
 
-    def __call__(self):
+    def init(self):
         self.input, self.target = create_data(self.num_samples)
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=5)
+
+    def get(self, index=None):
+        if index is None:
+            return [self.index, self.input]
+        else:
+            return [self.index[index], self.input[index], self.target[index]]
 
 
 @dataclass
 class Dataset(ivory.torch.data.Dataset):
     def get(self, index):
-        return self.index[index], self.input[index], self.target[index]
+        return [x[index] for x in self.data]
 
 
 class Model(nn.Module):

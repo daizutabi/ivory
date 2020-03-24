@@ -23,7 +23,7 @@ class Run(CallbackCaller):
         self.objects["tracking"] = tracker.create_tracking(experiment_id, param_names)
 
     def start(self):
-        self.dataloader(self.data)
+        self.dataloader.init(self.data)
         self.create_callbacks()
         self.trainer.fit(self)
 

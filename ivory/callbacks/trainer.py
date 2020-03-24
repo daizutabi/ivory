@@ -20,7 +20,7 @@ class Trainer(State):
 
     def train_loop(self, run):
         run.on_train_start()
-        dataloader = run.dataloader.train_dataloader
+        dataloader = run.dataloader.train
         if self.verbose == 1:
             dataloader = tqdm(dataloader, desc="-Train  ", leave=False)
         for index, input, target in dataloader:
@@ -30,7 +30,7 @@ class Trainer(State):
 
     def val_loop(self, run):
         run.on_val_start()
-        dataloader = run.dataloader.val_dataloader
+        dataloader = run.dataloader.val
         if self.verbose == 1:
             dataloader = tqdm(dataloader, desc="-Validate", leave=False)
         for index, input, target in dataloader:
@@ -44,7 +44,7 @@ class Trainer(State):
         for self.epoch in it:
             run.on_epoch_start()
             self.train_loop(run)
-            if run.dataloader.val_dataloader is not None:
+            if run.dataloader.val is not None:
                 self.val_loop(run)
             try:
                 run.on_epoch_end()

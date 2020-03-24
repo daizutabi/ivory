@@ -17,6 +17,7 @@ class Run(ivory.core.run.Run):
         state_dict = {}
         for path in os.listdir(directory):
             if path.endswith(".pt"):
+                name = path[:-3]
                 path = os.path.join(directory, path)
-                state_dict[path[:-3]] = torch.load(path)
+                state_dict[name] = torch.load(path)
         return state_dict

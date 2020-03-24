@@ -1,3 +1,4 @@
+import os
 import sys
 
 import click
@@ -10,7 +11,10 @@ if "." not in sys.path:
 
 def normpath(params):
     if "." not in params:
-        return params + ".yaml"
+        params = params + ".yaml"
+    if not os.path.exists(params):
+        click.secho(f"No sufh file: {params}", fg="red", bold=True)
+        sys.exit()
     return params
 
 
@@ -33,6 +37,16 @@ def run(params, args, message):
 @click.option("-m", "--message", default="")
 def chain(params, args, message):
     Client(normpath(params)).chain(args, message)
+
+
+@cli.command(help="List runs.")
+@click.argument("params")
+@click.argument("args", nargs=-1)
+@click.option("-m", "--message", default="")
+def list(params, args, message):
+    runs = Client(normpath(params)).list(args, message)
+    for run in runs:
+        click.echo(run)
 
 
 @cli.command()

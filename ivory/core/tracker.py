@@ -42,8 +42,12 @@ class Tracker:
     def list_run_infos(self, experiment_id):
         return self.client.list_run_infos(experiment_id)
 
-    def search_runs(self, experiment_id, params):
-        filter_string = utils.filter_string(params)
+    def search_runs(self, experiment_id, params=None, tags=None):
+        if params is None:
+            params = {}
+        if tags is None:
+            tags = {}
+        filter_string = utils.filter_string(params, tags)
         runs = self.client.search_runs(experiment_id, filter_string)
         return [run.info.run_id for run in runs]
 
