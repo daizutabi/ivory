@@ -7,10 +7,10 @@ def step(func, index, target, x):
         func(index, x * target, target)
 
 
-def test_metrics(run):
-    metrics = run.metrics
+def test_metrics(metrics, dataloader, data, run):
+    dataloader.init(data)
     metrics.on_epoch_start(run)
-    train_loader, val_loader = run.dataloaders[0]
+    train_loader = dataloader.train
     it = iter(train_loader)
     index, input, target = next(it)
     loss = metrics.train_step(index, 1.02 * target, target)
@@ -23,6 +23,5 @@ def test_metrics(run):
 
     metrics.on_epoch_end(run)
     history = metrics.history
-    assert len(history) == 1
     assert list(history[metrics.epoch].keys()) == ["loss", "val_loss", "lr"]
-    assert 'num_records=1' in repr(metrics)
+    assert "num_records=1" in repr(metrics)

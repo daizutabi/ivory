@@ -46,7 +46,7 @@ class Dataset:
         return f"{cls_name}(mode={self.mode}, num_samples={len(self)})"
 
     def __len__(self):
-        return len(self.data)
+        raise NotImplementedError
 
     def __getitem__(self, index):
         index, input, *target = self.get(index)
@@ -75,10 +75,11 @@ class DataLoader:
             dataset += "." + self.dataset.func.__name__
             kwargs = [f"{key}={value}" for key, value in self.dataset.keywords.items()]
             kwargs = ", ".join(kwargs)
-            dataset = f"{dataset}({kwargs})"
         else:
-            dataset = f"{self.dataset}()"
-        s = f"{cls_name}(dataset={dataset}, fold={self.fold}, "
+            dataset = self.dataset.__module__
+            dataset += "." + self.dataset.__name__
+            kwargs = ''
+        s = f"{cls_name}(dataset={dataset}({kwargs}), fold={self.fold}, "
         return s + f"batch_size={self.batch_size})"
 
     def init(self, data: Data):

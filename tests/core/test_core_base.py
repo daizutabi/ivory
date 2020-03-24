@@ -2,13 +2,14 @@ from ivory.core.base import Base, CallbackCaller
 
 
 def test_base():
-    base = Base({"id": "0", "name": "test"})
+    base = Base({"id": "0", "name": "test", "source_name": "path.yaml"})
     assert not base.objects
 
-    base = Base({}, id="0", name="abc", a=1)
+    base = Base({}, id="0", name="abc", source_name="path.yaml", a=1)
     assert base.objects
     assert base.id == "0"
     assert base.name == "abc"
+    assert base.source_name == "path.yaml"
     assert "num_objects=1" in repr(base)
     assert "a" in base
     assert list(base) == ["a"]

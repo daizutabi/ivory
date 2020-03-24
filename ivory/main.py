@@ -28,7 +28,9 @@ def cli():
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def run(params, args, message):
-    Client(normpath(params)).product(args, message)
+    client = Client(normpath(params))
+    for run in client.product(args, message):
+        run.start()
 
 
 @cli.command(help="Start chain runs.")
@@ -36,7 +38,9 @@ def run(params, args, message):
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def chain(params, args, message):
-    Client(normpath(params)).chain(args, message)
+    client = Client(normpath(params))
+    for run in client.chain(args, message):
+        run.start()
 
 
 @cli.command(help="List runs.")
@@ -44,8 +48,8 @@ def chain(params, args, message):
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="")
 def list(params, args, message):
-    runs = Client(normpath(params)).list(args, message)
-    for run in runs:
+    client = Client(normpath(params))
+    for run in client.list(args, message):
         click.echo(run)
 
 

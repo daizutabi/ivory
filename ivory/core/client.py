@@ -54,7 +54,10 @@ class Client:
         number = 1
         for value in itertools.product(*args_dict.values()):
             update = {key: value for key, value in zip(args_dict.keys(), value)}
-            self._update_run_start(update, mode, number, args, args_dict, message)
+            run = self._create_updated_run(
+                update, mode, number, args, args_dict, message
+            )
+            yield run
             number += 1
 
     def chain(self, args: List[str], message: str = ""):
@@ -64,7 +67,10 @@ class Client:
         for name in args_dict:
             for value in args_dict[name]:
                 update = {name: value}
-                self._update_run_start(update, mode, number, args, args_dict, message)
+                run = self._create_updated_run(
+                    update, mode, number, args, args_dict, message
+                )
+                yield run
                 number += 1
 
     def ui(self):
@@ -106,7 +112,7 @@ class Client:
             run.load_state_dict(state_dict)
         return run
 
-    def _update_run_start(self, update, mode, number, args, args_dict, message):
+    def _create_updated_run(self, update, mode, number, args, args_dict, message):
         params = copy.deepcopy(self.params["run"])
         utils.update_dict(params, update)
         params["name"] = f"{mode}#{number}"
@@ -119,4 +125,4 @@ class Client:
                 key, value = arg.split("=")
                 tags[key] = value
             run.tracking.set_tags(run.id, tags)
-        run.start()
+        return run

@@ -1,8 +1,8 @@
 import pytest
 
 
-def test_tuner(environment):
-    tuner = environment.tuner
+def test_tuner(experiment):
+    tuner = experiment.tuner
     study = tuner.create_study("abc", mode="max")
     assert "MAXIMIZE" in str(study.direction)
 

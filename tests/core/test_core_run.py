@@ -1,12 +1,7 @@
-from ivory.core.run import create_run
-
-
-def test_create_run(params_path):
-    run = create_run(params_path)
+def test_create_run(run):
     assert run.name == ""
 
 
 def test_start(run):
-    pass
-    # run.start()
-    # assert run.id
+    run.start()
+    assert run.id

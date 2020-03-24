@@ -2,11 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 import mlflow
-from mlflow.tracking.context import registry as context_registry
-from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME, MLFLOW_SOURCE_NAME
 
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
+from ivory.utils.mlflow import get_tags
 
 
 @dataclass
@@ -32,10 +31,7 @@ class Tracker:
         return experiment_id
 
     def create_run(self, experiment_id: str, name: str, source_name: str = ""):
-        tags = {MLFLOW_RUN_NAME: name}
-        if source_name:
-            tags[MLFLOW_SOURCE_NAME] = source_name
-        tags = context_registry.resolve_tags(tags)
+        tags = get_tags(name, source_name)
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 

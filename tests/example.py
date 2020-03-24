@@ -34,8 +34,13 @@ class Data(ivory.core.data.Data):
             return [self.index[index], self.input[index], self.target[index]]
 
 
-@dataclass
+@dataclass(repr=False)
 class Dataset(ivory.torch.data.Dataset):
+    dummy: int = 10
+
+    def __len__(self):
+        return len(self.data[0])
+
     def get(self, index):
         return [x[index] for x in self.data]
 

@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
+from ivory.core.state import State
+
 
 @dataclass
-class EarlyStopping:
+class EarlyStopping(State):
     """Early stop training loop when a metric has stopped imporving.
 
     Args:

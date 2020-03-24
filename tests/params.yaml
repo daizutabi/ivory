@@ -1,10 +1,4 @@
-environment:
-  tracker:
-  tuner:
-    storage: sqlite://
-    pruner:
-      class: optuna.pruners.MedianPruner
-    load_if_exists: true
+include: env.yaml
 experiment:
   data:
     class: example.Data
@@ -17,6 +11,7 @@ run:
   dataloader:
     dataset:
       def: example.Dataset
+      dummy: 5
     batch_size: 10
     fold: 0
   model:
