@@ -82,7 +82,7 @@ class Client:
             params = kwargs
         return self.tracker.search_runs(self.experiment.id, params, tags)
 
-    def list(self, args: List[str], message: str = ""):
+    def list_runs(self, args: List[str], message: str = ""):
         filter_params = {}
         filter_tags = {}
         for arg in args:

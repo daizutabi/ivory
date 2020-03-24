@@ -49,6 +49,8 @@ class Dataset:
         raise NotImplementedError
 
     def __getitem__(self, index):
+        if index >= len(self):
+            raise IndexError
         index, input, *target = self.get(index)
         if self.transform:
             input, *target = self.transform(self.mode, input, *target)
@@ -78,7 +80,7 @@ class DataLoader:
         else:
             dataset = self.dataset.__module__
             dataset += "." + self.dataset.__name__
-            kwargs = ''
+            kwargs = ""
         s = f"{cls_name}(dataset={dataset}({kwargs}), fold={self.fold}, "
         return s + f"batch_size={self.batch_size})"
 

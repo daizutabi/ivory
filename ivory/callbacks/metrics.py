@@ -84,9 +84,18 @@ class Metrics(State):
 
     def data_dict(self):
         """Create data from validation data."""
-        index = np.hstack(self.val_batch_index)
-        output = np.vstack(self.val_batch_output)
-        target = np.vstack(self.val_batch_target)
+        if self.val_batch_index[0].ndim == 1:
+            index = np.hstack(self.val_batch_index)
+        else:
+            index = np.vstack(self.val_batch_index)
+        if self.val_batch_output[0].ndim == 1:
+            output = np.hstack(self.val_batch_output)
+        else:
+            output = np.vstack(self.val_batch_output)
+        if self.val_batch_target[0].ndim == 1:
+            target = np.hstack(self.val_batch_target)
+        else:
+            target = np.vstack(self.val_batch_target)
         return dict(index=index, output=output, target=target)
 
     def record_dict(self, run):
