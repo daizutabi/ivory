@@ -1,7 +1,6 @@
 import ast
 import os
 import re
-from functools import wraps
 from typing import Any, Dict
 
 import yaml
@@ -193,6 +192,13 @@ def parse_args(params, args):
 
 
 def filter_string(params: Dict[str, Any], tags: Dict[str, Any] = None):
+    """
+    Examples:
+        >>> params = {"lr": 1e-3, "fold": 2}
+        >>> tags = {"mode": 'train'}
+        >>> filter_string(params, tags)
+        "param.lr='0.001' and param.fold='2' and tag.mode='train'"
+    """
     filters = []
     for key, value in params.items():
         filters.append(f"param.{key}='{value}'")

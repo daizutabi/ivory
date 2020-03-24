@@ -50,7 +50,7 @@ def test_client_product(client):
 
 
 def test_client_chain(client):
-    for k, run in enumerate(client.chain(["fold=1,2", "max_epochs=3,4"], "test")):
+    for k, run in enumerate(client.chain(["fold=1-2", "max_epochs=3,4"], "test")):
         if k == 0:
             assert run.dataloader.fold == 1
             assert run.trainer.max_epochs == 10

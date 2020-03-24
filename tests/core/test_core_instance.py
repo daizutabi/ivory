@@ -1,8 +1,7 @@
 import numpy as np
-import pandas as pd
 import pytest
 
-from ivory.core.instance import create_instance, instantiate, parse_value
+from ivory.core.instance import create_instance, instantiate
 
 
 def test_instantiate_extra():
