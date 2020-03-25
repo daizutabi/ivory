@@ -42,7 +42,7 @@ class Trainer(State):
         width = len(str(max_epoch))
         it = range(self.epoch + 1, max_epoch + 1)
         if self.verbose == 1:
-            it = tqdm(it)
+            it = tqdm(it, desc="Epoch ")
         for self.epoch in it:
             run.on_epoch_start()
             self.train_loop(run)

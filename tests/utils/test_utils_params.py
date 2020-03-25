@@ -1,6 +1,6 @@
 import pytest
 
-from ivory.utils import dot_to_list, get_params_without_dot, literal_eval, update_dict
+from ivory.utils import dot_to_list, literal_eval, update_dict
 
 
 def test_literal_eval():
@@ -39,9 +39,3 @@ def test_dot_to_list():
         dot_to_list({"a.1": 3, "a.0": 5})
     with pytest.raises(KeyError):
         dot_to_list({"a": 3, "a.0": 5})
-
-
-def test_get_params_without_dot(params):
-    param_names = ["optimizer.lr"]
-    params = get_params_without_dot(params["run"], param_names)
-    assert params == {"lr": 1e-3}

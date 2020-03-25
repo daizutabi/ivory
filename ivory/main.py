@@ -29,6 +29,10 @@ def cli():
     parser.add_argument("-m", "--message", default="")
     args = parser.parse_args()
 
+    if args.path == "ui" and os.path.exists("client.yaml"):
+        args.path = "client"
+        args.action = ["ui"]
+
     if not args.action:
         args.action = ["product"]
     elif "=" in args.action[0]:

@@ -1,7 +1,3 @@
 client:
   tracker:
   tuner:
-    storage: sqlite://
-    pruner:
-      class: optuna.pruners.MedianPruner
-    load_if_exists: true

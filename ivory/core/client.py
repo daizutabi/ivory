@@ -4,7 +4,6 @@ import itertools
 import os
 import subprocess
 import tempfile
-from typing import List
 
 from ivory import utils
 from ivory.core.base import Base
@@ -24,7 +23,8 @@ class Client(Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.create_experiment()
+        if "experiment" in self.params:
+            self.create_experiment()
         self.params.pop("client")
 
     def create_experiment(self, params=None):
@@ -82,11 +82,14 @@ class Client(Base):
 
         create_run = functools.partial(self._create_run, message=message)
         create_objective = self.experiment.objective.create_objective
-        has_pruner = self.pruner is not None
-        objective = create_objective(name, self.params, create_run, has_pruner)
+        objective = create_objective(name, self.params, create_run)
         mode = self.create_instance("run.monitor").mode
         study_name = ".".join([self.experiment.name, name])
-        study = self.tuner.create_study(study_name, mode, self.experiment.id)
+        pruner = self.experiment.objective.pruner
+        sampler = self.experiment.objective.sampler
+        study = self.tuner.create_study(
+            study_name, mode, self.experiment.id, sampler=sampler, pruner=pruner
+        )
         study.optimize(objective, **options)
 
     def ui(self):
@@ -96,12 +99,15 @@ class Client(Base):
         except KeyboardInterrupt:
             pass
 
-    def search_runs(self, mode, params, message: str = ""):
+    def search_runs(self, mode=None, params=None, message: str = ""):
         tags = {}
         if mode:
             tags["mode"] = mode
         if message:
             tags["message"] = message
+        if params is None:
+            yield from self.tracker.search_runs(self.experiment.id, None, tags)
+            return
         for value in itertools.product(*params.values()):
             params_ = dict(zip(params.keys(), value))
             yield from self.tracker.search_runs(self.experiment.id, params_, tags)

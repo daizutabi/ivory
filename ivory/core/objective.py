@@ -10,7 +10,9 @@ from ivory.core.parser import Parser
 
 
 class Objective:
-    def __init__(self, **suggest):
+    def __init__(self, sampler=None, pruner=None, **suggest):
+        self.sampler = sampler
+        self.pruner = pruner
         self.suggest = suggest
         for key, value in self.suggest.items():
             if isinstance(value, str):
@@ -21,7 +23,7 @@ class Objective:
         parser = Parser().parse(trial.params, params["run"], values=False)
         return dict(zip(parser.names, parser.options.values()))
 
-    def create_objective(self, name, params, create_run, has_pruner):
+    def create_objective(self, name, params, create_run):
         create_update = functools.partial(self.create_update, name=name, params=params)
         tags = {"suggest": name}
 
@@ -30,7 +32,7 @@ class Objective:
             run = create_run(update, "trial", trial.number, trial.params.keys(), tags)
             if run.tracking:
                 trial.set_user_attr("run_id", run.id)
-            if has_pruner:
+            if self.pruner:
                 run.set(pruning=Pruning(trial, run.monitor.metrics))
             run.start()
             score = run.monitor.best_score
