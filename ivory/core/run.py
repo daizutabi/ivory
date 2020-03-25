@@ -14,13 +14,14 @@ class Run(CallbackCaller):
             self.set_tracking(experiment.tracker, experiment.id)
 
     def set_data(self, data):
-        self.objects["data"] = data
+        self.set(data=data)
 
-    def set_tracking(self, tracker, experiment_id, param_names=None):
+    def set_tracking(self, tracker, experiment_id):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
-            self.params["id"] = self.id
-        self.objects["tracking"] = tracker.create_tracking(experiment_id, param_names)
+            self.params["run"]["id"] = self.id
+        tracking = tracker.create_tracking(experiment_id)
+        self.set(tracking=tracking)
 
     def start(self):
         self.dataloader.init(self.data)

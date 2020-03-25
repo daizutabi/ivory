@@ -1,4 +1,5 @@
 import copy
+import functools
 import itertools
 import os
 import subprocess
@@ -8,6 +9,7 @@ from typing import List
 from ivory import utils
 from ivory.core.base import Base
 from ivory.core.instance import create_base_instance, create_instance
+from ivory.core.parser import Parser
 
 
 def create_client(params, source_name=""):
@@ -41,57 +43,68 @@ class Client(Base):
     def create_instance(self, name):
         return create_instance(self.params, name)
 
-    def product(self, args: List[str], message: str = ""):
-        args_dict = utils.parse_args(self.params["run"], args)
-        if len(args) == 0 or all([len(x) == 1 for x in args_dict.values()]):
-            mode = "single"
-        elif len(args) == 1:
-            mode = "scan"
-        else:
-            mode = "product"
+    def product(self, args, repeat=1, message: str = ""):
+        parser = Parser().parse(args, self.params["run"])
+        if repeat != 1 and parser.mode == "single":
+            parser.mode = "repeat"
+        args = parser.args.keys()
+        tags = parser.args
         number = 1
-        for value in itertools.product(*args_dict.values()):
-            update = {key: value for key, value in zip(args_dict.keys(), value)}
-            run = self._create_updated_run(
-                update, mode, number, args, args_dict, message
-            )
-            yield run
-            number += 1
-
-    def chain(self, args: List[str], message: str = ""):
-        args_dict = utils.parse_args(self.params["run"], args)
-        mode = "chain"
-        number = 1
-        for name in args_dict:
-            for value in args_dict[name]:
-                update = {name: value}
-                run = self._create_updated_run(
-                    update, mode, number, args, args_dict, message
-                )
+        for _ in range(repeat):
+            for value in itertools.product(*parser.values):
+                update = dict(zip(parser.names, value))
+                run = self._create_run(update, parser.mode, number, args, tags, message)
                 yield run
                 number += 1
 
+    def chain(self, args, repeat=1, message: str = ""):
+        parser = Parser().parse(args, self.params["run"])
+        mode = "chain"
+        args = parser.args.keys()
+        tags = parser.args
+        number = 1
+        for _ in range(repeat):
+            for k, name in enumerate(parser.names):
+                for value in parser.values[k]:
+                    update = {name: value}
+                    run = self._create_run(update, mode, number, args, tags, message)
+                    yield run
+                    number += 1
+
+    def optimize(self, name, options, message: str = ""):
+        if name is None:
+            name = list(self.experiment.objective.suggest.keys())[0]
+
+        if "delete" in options:
+            study_name = ".".join([self.experiment.name, options["delete"]])
+            self.tuner.delete_study(study_name)
+            return
+
+        create_run = functools.partial(self._create_run, message=message)
+        create_objective = self.experiment.objective.create_objective
+        has_pruner = self.pruner is not None
+        objective = create_objective(name, self.params, create_run, has_pruner)
+        mode = self.create_instance("run.monitor").mode
+        study_name = ".".join([self.experiment.name, name])
+        study = self.tuner.create_study(study_name, mode, self.experiment.id)
+        study.optimize(objective, **options)
+
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
-        subprocess.run(["mlflow", "ui", "--backend-store-uri", tracking_uri])
+        try:
+            subprocess.run(["mlflow", "ui", "--backend-store-uri", tracking_uri])
+        except KeyboardInterrupt:
+            pass
 
-    def search_runs(self, params=None, tags=None, **kwargs):
-        if kwargs:
-            params = kwargs
-        return self.tracker.search_runs(self.experiment.id, params, tags)
-
-    def list_runs(self, args: List[str], message: str = ""):
-        filter_params = {}
-        filter_tags = {}
-        for arg in args:
-            if "=" not in arg:
-                filter_tags["mode"] = arg
-            else:
-                key, value = arg.split("=")
-                filter_params[key] = value
+    def search_runs(self, mode, params, message: str = ""):
+        tags = {}
+        if mode:
+            tags["mode"] = mode
         if message:
-            filter_tags["message"] = message
-        return self.search_runs(filter_params, filter_tags)
+            tags["message"] = message
+        for value in itertools.product(*params.values()):
+            params_ = dict(zip(params.keys(), value))
+            yield from self.tracker.search_runs(self.experiment.id, params_, tags)
 
     def load_run(self, run_id, epoch="best"):
         client = self.tracker.client
@@ -110,17 +123,18 @@ class Client(Base):
             run.load_state_dict(state_dict)
         return run
 
-    def _create_updated_run(self, update, mode, number, args, args_dict, message):
+    def _create_run(self, update, mode, number, args, tags, message):
         params = copy.deepcopy(self.params)
         utils.update_dict(params["run"], update)
-        params["run"]["name"] = f"{mode}#{number}"
+        run_name = "single" if mode == "single" else f"{mode}#{number}"
+        params["run"]["name"] = run_name
         run = self.create_run(params)
         if run.tracking:
-            run.tracking.param_names = list(args_dict.keys())
-            tags = {"message": message} if message else {}
+            args = {arg: utils.get_value(params["run"], arg) for arg in args}
+            run.tracking.log_params(run.id, args)
+            tags = tags.copy()
             tags["mode"] = mode
-            for arg in args:
-                key, value = arg.split("=")
-                tags[key] = value
+            if message:
+                tags["message"] = message
             run.tracking.set_tags(run.id, tags)
         return run

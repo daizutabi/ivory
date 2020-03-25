@@ -77,7 +77,7 @@ setup(
         "scikit-learn",
         "numpy",
         "pandas",
-        "click",
+        "termcolor",
     ],
     classifiers=[
         "Environment :: Console",

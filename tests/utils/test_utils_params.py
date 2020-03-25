@@ -1,11 +1,11 @@
 import pytest
 
-from ivory.utils import dot_to_list, get_params_without_dot, to_float, update_dict
+from ivory.utils import dot_to_list, get_params_without_dot, literal_eval, update_dict
 
 
-def test_to_float():
+def test_literal_eval():
     x = {"a": "1e2", "b": [1, "1e-1", {"c": ["1e3", "abc"]}]}
-    y = to_float(x)
+    y = literal_eval(x)
     assert y == {"a": 100.0, "b": [1, 0.1, {"c": [1000.0, "abc"]}]}
 
 

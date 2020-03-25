@@ -24,6 +24,7 @@ class Data(ivory.core.data.Data):
 
     def init(self):
         self.input, self.target = create_data(self.num_samples)
+        self.target = self.target.reshape((-1, 1))
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=5)
 

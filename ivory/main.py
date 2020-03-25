@@ -1,71 +1,80 @@
+import argparse
+import datetime
 import os
 import sys
 
-import click
+from termcolor import cprint
 
 from ivory.core.client import create_client
+from ivory.core.parser import Parser
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
 
 
-def normpath(params):
-    if "." not in params:
-        params = params + ".yaml"
-    if not os.path.exists(params):
-        click.secho(f"No sufh file: {params}", fg="red", bold=True)
+def normpath(path):
+    if "." not in path:
+        path = path + ".yaml"
+    if not os.path.exists(path):
+        cprint(f"No sufh file: {path}", "red", attrs=["bold", "dark"], file=sys.stderr)
         sys.exit()
-    return params
+    return path
 
 
-@click.group()
 def cli():
-    pass
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path", metavar="PATH", help="an parameter YAML file path")
+    parser.add_argument("action", metavar="X", help="command and/or argst", nargs="*")
+    parser.add_argument("-r", "--repeat", type=int, default=1)
+    parser.add_argument("-m", "--message", default="")
+    args = parser.parse_args()
 
+    if not args.action:
+        args.action = ["product"]
+    elif "=" in args.action[0]:
+        args.action.insert(0, "product")
 
-@cli.command(help="Start product runs.")
-@click.argument("params")
-@click.argument("args", nargs=-1)
-@click.option("-m", "--message", default="")
-def run(params, args, message):
-    client = create_client(normpath(params))
-    for run in client.product(args, message):
-        run.start()
+    path = normpath(args.path)
+    message = args.message
+    repeat = args.repeat
+    cmd = args.action[0]
+    args = args.action[1:]
 
+    if cmd == "show":
+        with open(path) as file:
+            params_yaml = file.read()
+        print(params_yaml)
+        sys.exit()
 
-@cli.command(help="Start chain runs.")
-@click.argument("params")
-@click.argument("args", nargs=-1)
-@click.option("-m", "--message", default="")
-def chain(params, args, message):
-    client = create_client(normpath(params))
-    for run in client.chain(args, message):
-        run.start()
+    client = create_client(path)
+    if cmd in ["product", "chain"]:
+        args = Parser().parse_args(args).args
+        for run in getattr(client, cmd)(args, repeat, message):
+            run.start()
 
+    elif cmd in ["optimize", "tune"]:
+        if "=" in args[0]:
+            name = None
+        else:
+            name, args = args[0], args[1:]
+        options = Parser().parse_args(args).options
+        client.optimize(name, options, message)
 
-@cli.command(help="List runs.")
-@click.argument("params")
-@click.argument("args", nargs=-1)
-@click.option("-m", "--message", default="")
-def list(params, args, message):
-    client = create_client(normpath(params))
-    for run in client.list(args, message):
-        click.echo(run)
+    elif cmd in ["search", "list"]:
+        if "=" in args[0]:
+            mode = None
+        else:
+            mode, args = args[0], args[1:]
+        parser = Parser().parse_args(args)
+        params = dict(zip(parser.args.keys(), parser.values))
+        for run in client.search_runs(mode, params, message):
+            run_id = run.info.run_id
+            start_dt = datetime.datetime.fromtimestamp(run.info.start_time / 1e3)
+            start_dt = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+            print(run_id, start_dt)
 
-
-@cli.command()
-@click.argument("params")
-def ui(params):
-    create_client(normpath(params)).ui()
-
-
-@cli.command(help="Show the parameter file contents.")
-@click.argument("params")
-def show(params):
-    params = normpath(params)
-    with open(params) as file:
-        params_yaml = file.read()
-    print(params_yaml)
+    elif cmd == "ui":
+        client.ui()
 
 
 def main():

@@ -1,6 +1,5 @@
 import ast
 import os
-import re
 from typing import Any, Dict
 
 import yaml
@@ -9,7 +8,7 @@ import yaml
 def load_params(path: str):
     with open(path, "r") as file:
         params_yaml = file.read()
-    params = to_float(yaml.safe_load(params_yaml))
+    params = literal_eval(yaml.safe_load(params_yaml))
     if "include" in params:
         include_path = params.pop("include")
         directory = os.path.dirname(os.path.abspath(path))
@@ -20,15 +19,15 @@ def load_params(path: str):
     return params
 
 
-def to_float(x):
+def literal_eval(x):
     if isinstance(x, dict):
-        return {key: to_float(value) for key, value in x.items()}
+        return {key: literal_eval(value) for key, value in x.items()}
     elif isinstance(x, list):
-        return [to_float(value) for value in x]
+        return [literal_eval(value) for value in x]
     elif isinstance(x, str):
         try:
-            return float(x)
-        except ValueError:
+            return ast.literal_eval(x)
+        except Exception:
             return x
     else:
         return x
@@ -128,16 +127,6 @@ def dot_get(x: Dict[str, Any], key: str):
         return x[key]
 
 
-def get_params_without_dot(params, param_names):
-    params_dict = {}
-    for name in param_names:
-        value = dot_get(params, name)
-        if value is not None:
-            name = name.split(".")[-1]
-            params_dict[name] = value
-    return params_dict
-
-
 def get_fullname(params, name, prefix="", dict_allowed=False):
     """
     Examples:
@@ -173,36 +162,18 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
             return
 
 
-def parse_args(params, args):
-    parsed = {}
-    for arg in args:
-        name, value = arg.split("=")
-        fullname = get_fullname(params, name)
-        if fullname is None:
-            raise ValueError(f"Unknown params name: {name}")
-        match = re.match(r"(\d+)-(\d+)", value)
-        if match:
-            value = list(range(int(match.group(1)), int(match.group(2)) + 1))
-        elif "," in value:
-            value = [ast.literal_eval(x) for x in value.split(",")]
-        else:
-            value = [ast.literal_eval(value)]
-        parsed[fullname] = value
-    return parsed
-
-
-def filter_string(params: Dict[str, Any], tags: Dict[str, Any] = None):
+def get_value(params, name):
     """
     Examples:
-        >>> params = {"lr": 1e-3, "fold": 2}
-        >>> tags = {"mode": 'train'}
-        >>> filter_string(params, tags)
-        "param.lr='0.001' and param.fold='2' and tag.mode='train'"
+        >>> params = {'a': 1, 'b': {'c': {'d': 2}}}
+        >>> get_value(params, 'a')
+        1
+        >>> get_value(params, 'd')
+        2
+        >>> get_value(params, 'b.c.d')
+        2
+        >>> get_value(params, 'c.d')
+        2
     """
-    filters = []
-    for key, value in params.items():
-        filters.append(f"param.{key}='{value}'")
-    if tags:
-        for key, value in tags.items():
-            filters.append(f"tag.{key}='{value}'")
-    return " and ".join(filters)
+    fullname = get_fullname(params, name)
+    return dot_get(params, fullname)

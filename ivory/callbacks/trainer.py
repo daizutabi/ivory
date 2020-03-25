@@ -22,7 +22,7 @@ class Trainer(State):
         run.on_train_start()
         dataloader = run.dataloader.train
         if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="-Train  ", leave=False)
+            dataloader = tqdm(dataloader, desc="Train", leave=False)
         for index, input, target in dataloader:
             self.global_step += 1
             self.train_step(index, input, target, run)
@@ -32,13 +32,15 @@ class Trainer(State):
         run.on_val_start()
         dataloader = run.dataloader.val
         if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="-Validate", leave=False)
+            dataloader = tqdm(dataloader, desc="Val  ", leave=False)
         for index, input, target in dataloader:
             self.val_step(index, input, target, run)
         run.on_val_end()
 
     def loop(self, run):
-        it = range(self.epoch + 1, self.epoch + self.max_epochs + 1)
+        max_epoch = self.epoch + self.max_epochs
+        width = len(str(max_epoch))
+        it = range(self.epoch + 1, max_epoch + 1)
         if self.verbose == 1:
             it = tqdm(it)
         for self.epoch in it:
@@ -52,7 +54,8 @@ class Trainer(State):
                 break
             finally:
                 if self.verbose:
-                    tqdm.write(f"[{run.name}] epoch={self.epoch:03d} {run.metrics}")
+                    epoch = str(self.epoch).zfill(width)
+                    tqdm.write(f"[{run.name}] epoch={epoch} {run.metrics}")
 
     def fit(self, run):
         run.on_fit_start()

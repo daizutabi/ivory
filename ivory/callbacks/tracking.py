@@ -2,29 +2,22 @@ import os
 import tempfile
 import time
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 import mlflow
 import yaml
 from mlflow.entities import Metric, Param
-
-from ivory.utils.params import get_params_without_dot
 
 
 @dataclass
 class Tracking:
     experiment_id: str = ""
     tracking_uri: Optional[str] = None
-    param_names: Optional[List[str]] = None
 
     def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
 
     def on_fit_start(self, run):
-        if self.param_names:
-            params = get_params_without_dot(run.params, self.param_names)
-            self.log_params(run.id, params)
-
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "params.yaml")
             with open(path, "w") as file:
@@ -34,7 +27,7 @@ class Tracking:
     def on_epoch_end(self, run):
         metrics = run.metrics.record.copy()
         monitor = run.monitor
-        if monitor and monitor.best_epoch != -1:
+        if monitor and monitor.best_epoch > 0:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
         self.log_metrics(run.id, metrics, run.metrics.epoch)
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -52,8 +45,6 @@ class Tracking:
     def log_params(self, run_id, params):
         params_list = []
         for key, value in params.items():
-            if key == "experiment":
-                continue
             value = str(value)[:250]
             params_list.append(Param(key, value))
         self.client.log_batch(run_id, metrics=[], params=params_list, tags=[])

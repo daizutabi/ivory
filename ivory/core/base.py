@@ -38,6 +38,10 @@ class Base:
         if key in self.objects:
             return self.objects[key]
 
+    def set(self, **kwargs):
+        for key, value in kwargs.items():
+            self.objects[key] = value
+
 
 CALLBACK_METHODS = [
     "on_fit_start",

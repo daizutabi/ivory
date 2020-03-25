@@ -6,7 +6,7 @@ import urllib.request
 def to_uri(path: str) -> str:
     """
     Examples:
-        >>> path = "abc\\def"
+        >>> path = r"abc\\def"
         >>> to_uri(path)
         'file:///abc/def'
     """

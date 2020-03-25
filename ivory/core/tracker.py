@@ -43,9 +43,24 @@ class Tracker:
             params = {}
         if tags is None:
             tags = {}
-        filter_string = utils.filter_string(params, tags)
-        runs = self.client.search_runs(experiment_id, filter_string)
-        return [run.info.run_id for run in runs]
+        return self.client.search_runs(experiment_id, filter_string(params, tags))
 
-    def create_tracking(self, experiment_id, param_names=None):
-        return Tracking(experiment_id, self.tracking_uri, param_names)
+    def create_tracking(self, experiment_id):
+        return Tracking(experiment_id, self.tracking_uri)
+
+
+def filter_string(params, tags=None):
+    """
+    Examples:
+        >>> params = {"lr": 1e-3, "fold": 2}
+        >>> tags = {"mode": 'train'}
+        >>> filter_string(params, tags)
+        "param.lr='0.001' and param.fold='2' and tag.mode='train'"
+    """
+    filters = []
+    for key, value in params.items():
+        filters.append(f"param.{key}='{value}'")
+    if tags:
+        for key, value in tags.items():
+            filters.append(f"tag.{key}='{value}'")
+    return " and ".join(filters)
