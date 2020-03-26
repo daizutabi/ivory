@@ -23,5 +23,5 @@ def test_metrics(metrics, dataloader, data, run):
 
     metrics.on_epoch_end(run)
     history = metrics.history
-    assert list(history[metrics.epoch].keys()) == ["loss", "val_loss", "lr"]
-    assert "num_records=1" in repr(metrics)
+    assert list(history.keys()) == ["loss", "val_loss", "lr"]
+    assert "(loss=" in repr(metrics)

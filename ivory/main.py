@@ -25,8 +25,13 @@ def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", metavar="PATH", help="an parameter YAML file path")
     parser.add_argument("action", metavar="X", help="command and/or argst", nargs="*")
-    parser.add_argument("-r", "--repeat", type=int, default=1)
-    parser.add_argument("-m", "--message", default="")
+    parser.add_argument(
+        "-r", "--repeat", type=int, default=1, help="repeat the same action(s)"
+    )
+    parser.add_argument(
+        "-t", "--test", action="store_true", help="Infer after training. "
+    )
+    parser.add_argument("-m", "--message", default="", help="action message.")
     args = parser.parse_args()
 
     if args.path == "ui" and os.path.exists("client.yaml"):
@@ -41,6 +46,7 @@ def cli():
     path = normpath(args.path)
     message = args.message
     repeat = args.repeat
+    test = args.test
     cmd = args.action[0]
     args = args.action[1:]
 
@@ -55,6 +61,8 @@ def cli():
         args = Parser().parse_args(args).args
         for run in getattr(client, cmd)(args, repeat, message):
             run.start()
+            if test:
+                run.start("test")
 
     elif cmd in ["optimize", "tune"]:
         if "=" in args[0]:
@@ -71,7 +79,7 @@ def cli():
             mode, args = args[0], args[1:]
         parser = Parser().parse_args(args)
         params = dict(zip(parser.args.keys(), parser.values))
-        for run in client.search_runs(mode, params, message):
+        for run in client.search_runs(params, mode, message, return_id=False):
             run_id = run.info.run_id
             start_dt = datetime.datetime.fromtimestamp(run.info.start_time / 1e3)
             start_dt = start_dt.strftime("%Y-%m-%d %H:%M:%S")

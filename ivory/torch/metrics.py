@@ -21,5 +21,11 @@ class Metrics(ivory.callbacks.metrics.Metrics):
             target = utils.cpu(target)
         return index.numpy(), output.numpy(), target.numpy(), loss.item()
 
+    def test_evaluate(self, index, output):
+        output = output.detach()
+        if output.device.type != "cpu":
+            output = utils.cpu(output)
+        return index.numpy(), output.numpy()
+
     def record_dict(self, run):
         return {"lr": run.optimizer.param_groups[0]["lr"]}

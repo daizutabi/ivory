@@ -18,3 +18,7 @@ def get_tags(name: str, source_name: str = ""):
             tags[MLFLOW_GIT_COMMIT] = cache[source_name]
     tags = context_registry.resolve_tags(tags)
     return tags
+
+
+def get_source_name(run):
+    return run.data.tags[MLFLOW_SOURCE_NAME]

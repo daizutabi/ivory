@@ -52,6 +52,8 @@ CALLBACK_METHODS = [
     "on_val_end",
     "on_epoch_end",
     "on_fit_end",
+    "on_test_start",
+    "on_test_end",
 ]
 
 

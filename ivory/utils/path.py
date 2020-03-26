@@ -1,3 +1,4 @@
+import contextlib
 import os
 import urllib.parse
 import urllib.request
@@ -18,3 +19,15 @@ def to_uri(path: str) -> str:
     if "\\" in url:
         url = urllib.request.pathname2url(path)
     return urllib.parse.urlunparse(("file", "", url, "", "", ""))
+
+
+@contextlib.contextmanager
+def chdir(source_name):
+    curdir = os.getcwd()
+    if source_name:
+        basedir = os.path.dirname(source_name)
+        os.chdir(basedir)
+    try:
+        yield
+    finally:
+        os.chdir(curdir)

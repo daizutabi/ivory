@@ -1,4 +1,5 @@
 import os
+import pickle
 import tempfile
 import time
 from dataclasses import dataclass
@@ -8,10 +9,13 @@ import mlflow
 import yaml
 from mlflow.entities import Metric, Param
 
+from ivory import utils
+
 
 @dataclass
 class Tracking:
-    experiment_id: str = ""
+    experiment_id: str
+    source_name: str
     tracking_uri: Optional[str] = None
 
     def __post_init__(self):
@@ -22,7 +26,8 @@ class Tracking:
             path = os.path.join(tmpdir, "params.yaml")
             with open(path, "w") as file:
                 yaml.dump(run.params, file, sort_keys=False)
-            self.client.log_artifacts(run.id, tmpdir)
+            with utils.chdir(self.source_name):
+                self.client.log_artifacts(run.id, tmpdir)
 
     def on_epoch_end(self, run):
         metrics = run.metrics.record.copy()
@@ -34,13 +39,22 @@ class Tracking:
             directory = os.path.join(tmpdir, "current")
             os.mkdir(directory)
             run.save(directory)
-            self.client.log_artifacts(run.id, tmpdir)
-            if monitor and monitor.is_best:
-                os.rename(directory, directory.replace("current", "best"))
+            with utils.chdir(self.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
+                if monitor and monitor.is_best and monitor.best_epoch > 0:
+                    os.rename(directory, directory.replace("current", "best"))
+                    self.client.log_artifacts(run.id, tmpdir)
 
     def on_fit_end(self, run):
         self.client.set_terminated(run.id)
+
+    def on_test_end(self, run):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "pred.pickle")
+            with open(path, "wb") as file:
+                pickle.dump(run.metrics.pred, file)
+            with utils.chdir(self.source_name):
+                self.client.log_artifacts(run.id, tmpdir)
 
     def log_params(self, run_id, params):
         params_list = []

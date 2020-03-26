@@ -2,6 +2,7 @@ import copy
 import functools
 import itertools
 import os
+import pickle
 import subprocess
 import tempfile
 
@@ -15,7 +16,8 @@ def create_client(params, source_name=""):
     if isinstance(params, str):
         source_name = os.path.abspath(params)
         params = utils.load_params(params)
-    return create_base_instance(params, "client", source_name)
+    with utils.chdir(source_name):
+        return create_base_instance(params, "client", source_name)
 
 
 class Client(Base):
@@ -99,35 +101,53 @@ class Client(Base):
         except KeyboardInterrupt:
             pass
 
-    def search_runs(self, mode=None, params=None, message: str = ""):
+    def search_runs(self, params=None, mode="", message="", return_id=True, **kwargs):
         tags = {}
         if mode:
             tags["mode"] = mode
         if message:
             tags["message"] = message
+        id = self.experiment.id
         if params is None:
-            yield from self.tracker.search_runs(self.experiment.id, None, tags)
+            yield from self.tracker.search_runs(id, None, tags, return_id, **kwargs)
             return
         for value in itertools.product(*params.values()):
             params_ = dict(zip(params.keys(), value))
-            yield from self.tracker.search_runs(self.experiment.id, params_, tags)
+            yield from self.tracker.search_runs(id, params_, tags, return_id, **kwargs)
+
+    def latest_run(self, return_id=True):
+        runs = self.search_runs(return_id=return_id, order_by=["tag.start_time DESC"])
+        return list(runs)[0]
 
     def load_run(self, run_id, epoch="best"):
+        source_name = self.tracker.get_source_name(run_id)
         client = self.tracker.client
-        if epoch == "best":
-            for artifact in client.list_artifacts(run_id):
-                if artifact.is_dir and artifact.path == "best":
-                    break
-            else:
-                epoch = "current"
-        with tempfile.TemporaryDirectory() as tmpdir:
-            params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-            state_dict_path = client.download_artifacts(run_id, epoch, tmpdir)
-            params = utils.load_params(params_path)
-            run = self.create_run(params)
-            state_dict = run.load(state_dict_path)
-            run.load_state_dict(state_dict)
+        with utils.chdir(source_name):
+            if epoch == "best":
+                for artifact in client.list_artifacts(run_id):
+                    if artifact.is_dir and artifact.path == "best":
+                        break
+                else:
+                    epoch = "current"
+            with tempfile.TemporaryDirectory() as tmpdir:
+                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+                state_dict_path = client.download_artifacts(run_id, epoch, tmpdir)
+                params = utils.load_params(params_path)
+                run = self.create_run(params)
+                state_dict = run.load(state_dict_path)
+                run.load_state_dict(state_dict)
+                try:
+                    pred_path = client.download_artifacts(run_id, "pred.pickle", tmpdir)
+                except FileNotFoundError:
+                    pass
+                else:
+                    with open(pred_path, "rb") as file:
+                        run.metrics.pred = pickle.load(file)
         return run
+
+    def load_runs(self, run_ids, epoch="best"):
+        for run_id in run_ids:
+            yield self.load_run(run_id, epoch)
 
     def _create_run(self, update, mode, number, args, tags, message):
         params = copy.deepcopy(self.params)

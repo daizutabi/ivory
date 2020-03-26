@@ -5,7 +5,7 @@ import mlflow
 
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
-from ivory.utils.mlflow import get_tags
+from ivory.utils.mlflow import get_source_name, get_tags
 
 
 @dataclass
@@ -35,18 +35,30 @@ class Tracker:
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
-    def list_run_infos(self, experiment_id):
-        return self.client.list_run_infos(experiment_id)
-
-    def search_runs(self, experiment_id, params=None, tags=None):
+    def search_runs(
+        self, experiment_id, params=None, tags=None, return_id=True, **kwargs
+    ):
         if params is None:
             params = {}
         if tags is None:
             tags = {}
-        return self.client.search_runs(experiment_id, filter_string(params, tags))
+        runs = self.client.search_runs(
+            experiment_id, filter_string(params, tags), **kwargs
+        )
+        if return_id:
+            return [run.info.run_id for run in runs]
+        else:
+            return runs
 
-    def create_tracking(self, experiment_id):
-        return Tracking(experiment_id, self.tracking_uri)
+    def get_source_name(self, run_or_run_id):
+        if isinstance(run_or_run_id, str):
+            run = self.client.get_run(run_or_run_id)
+        else:
+            run = run_or_run_id
+        return get_source_name(run)
+
+    def create_tracking(self, experiment_id, source_name):
+        return Tracking(experiment_id, source_name, self.tracking_uri)
 
 
 def filter_string(params, tags=None):

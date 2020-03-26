@@ -18,6 +18,9 @@ class Trainer(State):
     def val_step(self, index, input, target, run):
         pass
 
+    def test_step(self, index, input, run):
+        pass
+
     def train_loop(self, run):
         run.on_train_start()
         dataloader = run.dataloader.train
@@ -63,3 +66,12 @@ class Trainer(State):
             self.loop(run)
         finally:
             run.on_fit_end()
+
+    def test(self, run):
+        run.on_test_start()
+        dataloader = run.dataloader.test
+        if self.verbose == 1:
+            dataloader = tqdm(dataloader, desc="Test ", leave=False)
+        for index, input in dataloader:
+            self.test_step(index, input, run)
+        run.on_test_end()

@@ -20,13 +20,19 @@ class Run(CallbackCaller):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             self.params["run"]["id"] = self.id
-        tracking = tracker.create_tracking(experiment_id)
+        tracking = tracker.create_tracking(experiment_id, self.source_name)
         self.set(tracking=tracking)
 
-    def start(self):
+    def start(self, mode="train"):
+        if self.data.mode != mode:
+            self.data.mode = mode
+            self.data.initialized = False
         self.dataloader.init(self.data)
         self.create_callbacks()
-        self.trainer.fit(self)
+        if self.data.mode == "train":
+            self.trainer.fit(self)
+        else:
+            self.trainer.test(self)
 
     def state_dict(self):
         state_dict = {}

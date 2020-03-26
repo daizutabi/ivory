@@ -56,7 +56,7 @@ class Dataset:
             input, *target = self.transform(self.mode, input, *target)
         return [index, input, *target]
 
-    def get(self, index):
+    def get(self):
         """Returns a tuple of (index, input, target) or (index, input)."""
         raise NotImplementedError
 
@@ -92,15 +92,20 @@ class DataLoader:
                 index = self.get_index(mode, data)
                 dataset = self.dataset(mode, data.get(index))
                 self._dataloaders[mode] = self.get_dataloader(mode, dataset)
-        else:
-            dataset = self.dataset("test", data.get())
+        elif data.mode == "test":
+            index = self.get_index("test", data)
+            dataset = self.dataset("test", data.get(index))
             self._dataloaders["test"] = self.get_dataloader("test", dataset)
+        else:
+            raise ValueError(f"Unknown mode: {data.mode}")
 
     def get_index(self, mode, data):
         if mode == "train":
             return data.fold != self.fold
-        else:
+        elif mode == "val":
             return data.fold == self.fold
+        elif mode == "test":
+            return
 
     def get_dataloader(self, mode, dataset):
         return dataset

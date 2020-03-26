@@ -61,3 +61,14 @@ class Trainer(ivory.callbacks.trainer.Trainer):
                 run.scheduler.step(run.monitor.score)
             else:
                 run.scheduler.step()
+
+    def on_test_start(self, run):
+        self.on_fit_start(run)
+        run.model.eval()
+
+    @torch.no_grad()
+    def test_step(self, index, input, run):
+        if self.gpu:
+            input = utils.cuda(input)
+        output = run.model(input)
+        run.metrics.test_step(index, output)

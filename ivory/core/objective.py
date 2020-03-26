@@ -17,6 +17,10 @@ class Objective:
         for key, value in self.suggest.items():
             if isinstance(value, str):
                 self.suggest[key] = get_attr(value)
+            elif isinstance(value, list):
+                value = {key: value}
+            if isinstance(value, dict):
+                self.suggest[key] = create_suggest(key, value)
 
     def create_update(self, trial: Trial, name, params):
         self.suggest[name](trial)
@@ -42,3 +46,20 @@ class Objective:
             return score
 
         return objective
+
+
+def create_suggest(key, params):
+    suggests = []
+    for x, value in params.items():
+        suggest = [f"suggest_{value[0]}", x]
+        if value[0] == "categorical":
+            suggest += [value[1:]]
+        else:
+            suggest += value[1:]
+        suggests.append(suggest)
+
+    def suggest(trial):
+        for s in suggests:
+            getattr(trial, s[0])(*s[1:])
+
+    return suggest
