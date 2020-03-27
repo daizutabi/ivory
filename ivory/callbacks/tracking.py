@@ -30,7 +30,7 @@ class Tracking:
                 self.client.log_artifacts(run.id, tmpdir)
 
     def on_epoch_end(self, run):
-        metrics = run.metrics.record.copy()
+        metrics = run.metrics.copy()
         monitor = run.monitor
         if monitor and monitor.best_epoch > 0:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)

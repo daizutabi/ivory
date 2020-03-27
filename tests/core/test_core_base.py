@@ -6,7 +6,7 @@ def test_base():
     assert not base.objects
 
     base = Base({}, id="0", name="abc", source_name="path.yaml", a=1)
-    assert base.objects
+    assert base.dict
     assert base.id == "0"
     assert base.name == "abc"
     assert base.source_name == "path.yaml"
@@ -18,7 +18,7 @@ def test_base():
 
 class Callback:
     def on_fit_start(self, caller):
-        caller.objects["called"] = True
+        caller["called"] = True
 
 
 def test_callback_caller():

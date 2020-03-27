@@ -38,8 +38,13 @@ def run(client):
 
 
 @pytest.fixture(scope="session")
-def dataloader(run):
-    yield run.dataloader
+def dataloaders(run):
+    yield run.dataloaders
+
+
+@pytest.fixture(scope="session")
+def results(run):
+    yield run.results
 
 
 @pytest.fixture(scope="session")

@@ -1,6 +1,7 @@
 import functools
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Tuple
+from ivory.core.dict import Dict
 
 
 @dataclass
@@ -62,13 +63,10 @@ class Dataset:
 
 
 @dataclass
-class DataLoader:
+class DataLoaders(Dict):
     dataset: Callable
     fold: int = 0
     batch_size: int = 32
-
-    def __post_init__(self):
-        self._dataloaders = {"train": None, "val": None, "test": None}
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -91,11 +89,11 @@ class DataLoader:
             for mode in ["train", "val"]:
                 index = self.get_index(mode, data)
                 dataset = self.dataset(mode, data.get(index))
-                self._dataloaders[mode] = self.get_dataloader(mode, dataset)
+                self[mode] = self.get_dataloader(mode, dataset)
         elif data.mode == "test":
             index = self.get_index("test", data)
             dataset = self.dataset("test", data.get(index))
-            self._dataloaders["test"] = self.get_dataloader("test", dataset)
+            self["test"] = self.get_dataloader("test", dataset)
         else:
             raise ValueError(f"Unknown mode: {data.mode}")
 
@@ -109,15 +107,3 @@ class DataLoader:
 
     def get_dataloader(self, mode, dataset):
         return dataset
-
-    @property
-    def train(self):
-        return self._dataloaders["train"]
-
-    @property
-    def val(self):
-        return self._dataloaders["val"]
-
-    @property
-    def test(self):
-        return self._dataloaders["test"]

@@ -5,8 +5,6 @@ from ivory.core.base import CallbackCaller
 
 
 class Run(CallbackCaller):
-    __slots__ = []  # type:ignore
-
     def set_experiment(self, experiment):
         if experiment.data:
             self.set_data(experiment.data)
@@ -14,20 +12,20 @@ class Run(CallbackCaller):
             self.set_tracking(experiment.tracker, experiment.id)
 
     def set_data(self, data):
-        self.set(data=data)
+        self["data"] = data
 
     def set_tracking(self, tracker, experiment_id):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             self.params["run"]["id"] = self.id
         tracking = tracker.create_tracking(experiment_id, self.source_name)
-        self.set(tracking=tracking)
+        self["tracking"] = tracking
 
     def start(self, mode="train"):
         if self.data.mode != mode:
             self.data.mode = mode
             self.data.initialized = False
-        self.dataloader.init(self.data)
+        self.dataloaders.init(self.data)
         self.create_callbacks()
         if self.data.mode == "train":
             self.trainer.fit(self)
@@ -38,7 +36,8 @@ class Run(CallbackCaller):
         state_dict = {}
         for x in self:
             if hasattr(self[x], "state_dict"):
-                state_dict[x] = self[x].state_dict()
+                if callable(self[x].state_dict):
+                    state_dict[x] = self[x].state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict):

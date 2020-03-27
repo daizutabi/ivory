@@ -34,7 +34,8 @@ class Trainer(ivory.callbacks.trainer.Trainer):
             input = utils.cuda(input)
             target = utils.cuda(target)
         output = run.model(input)
-        loss = run.metrics.train_step(index, output, target)
+        run.results.step(index, output, target)
+        loss = run.metrics.step(output, target)
         optimizer = run.optimizer
         optimizer.zero_grad()
         if self.gpu and self.precision == 16:
@@ -53,7 +54,8 @@ class Trainer(ivory.callbacks.trainer.Trainer):
             input = utils.cuda(input)
             target = utils.cuda(target)
         output = run.model(input)
-        run.metrics.val_step(index, output, target)
+        run.results.step(index, output, target)
+        run.metrics.step(output, target)
 
     def on_epoch_end(self, run):
         if "scheduler" in run:
@@ -71,4 +73,4 @@ class Trainer(ivory.callbacks.trainer.Trainer):
         if self.gpu:
             input = utils.cuda(input)
         output = run.model(input)
-        run.metrics.test_step(index, output)
+        run.results.step(index, output)

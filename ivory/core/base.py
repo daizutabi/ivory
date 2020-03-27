@@ -1,7 +1,9 @@
-class Base:
-    __slots__ = ["id", "name", "source_name", "params", "objects"]
+from ivory.core.dict import Dict
 
+
+class Base(Dict):
     def __init__(self, params, **objects):
+        super().__init__()
         self.id = self.name = self.source_name = ""
         self.params = params
         if "id" in objects:
@@ -10,7 +12,7 @@ class Base:
             self.name = objects.pop("name")
         if "source_name" in objects:
             self.source_name = objects.pop("source_name")
-        self.objects = objects
+        self.dict = objects
 
     def __repr__(self):
         args = []
@@ -21,26 +23,6 @@ class Base:
         args.append(f"num_objects={len(self)}")
         args = ", ".join(args)
         return f"{self.__class__.__name__}({args})"
-
-    def __len__(self):
-        return len(self.objects)
-
-    def __contains__(self, key):
-        return key in self.objects
-
-    def __iter__(self):
-        return iter(self.objects)
-
-    def __getitem__(self, key):
-        return self.objects[key]
-
-    def __getattr__(self, key):
-        if key in self.objects:
-            return self.objects[key]
-
-    def set(self, **kwargs):
-        for key, value in kwargs.items():
-            self.objects[key] = value
 
 
 CALLBACK_METHODS = [
@@ -58,17 +40,17 @@ CALLBACK_METHODS = [
 
 
 class CallbackCaller(Base):
-    __slots__ = []  # type:ignore
-
     def create_callbacks(self):
         for method in CALLBACK_METHODS:
             methods = []
             for key in self:
                 if hasattr(self[key], method):
-                    methods.append(getattr(self[key], method))
+                    callback = getattr(self[key], method)
+                    if callable(callback):
+                        methods.append(callback)
 
             def callback(methods=methods):
                 for method in methods:
                     method(self)
 
-            self.objects[method] = callback
+            self[method] = callback

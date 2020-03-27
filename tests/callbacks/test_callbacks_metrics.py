@@ -1,6 +1,6 @@
 from ivory.callbacks.metrics import Metrics
 
 
-def test_record_dict():
+def test_metrics_dict():
     metrics = Metrics()
-    assert metrics.record_dict(None) == {}
+    assert metrics.metrics_dict(None) == {}

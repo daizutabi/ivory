@@ -11,7 +11,7 @@ class Dataset(ivory.core.data.Dataset, torch.utils.data.Dataset):
 
 
 @dataclass(repr=False)
-class DataLoader(ivory.core.data.DataLoader):
+class DataLoaders(ivory.core.data.DataLoaders):
     def get_dataloader(self, mode, dataset):
         shuffle = True if mode == "train" else False
         return torch.utils.data.DataLoader(

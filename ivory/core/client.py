@@ -21,8 +21,6 @@ def create_client(params, source_name=""):
 
 
 class Client(Base):
-    __slots__ = []  # type:ignore
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if "experiment" in self.params:
@@ -33,7 +31,7 @@ class Client(Base):
         params = params or self.params
         experiment = create_base_instance(params, "experiment", self.source_name)
         experiment.set_client(self)
-        self.objects["experiment"] = experiment
+        self["experiment"] = experiment
         return experiment
 
     def create_run(self, params=None):

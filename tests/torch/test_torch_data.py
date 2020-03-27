@@ -26,26 +26,26 @@ def test_dataset_transform(data):
     assert np.allclose(target, data.target[0] / 2)
 
 
-def test_dataloader(dataloader, data):
-    dataloader.init(data)
-    train_loader, val_loader = dataloader.train, dataloader.val
+def test_dataloaders(dataloaders, data):
+    dataloaders.init(data)
+    train_loader, val_loader = dataloaders.train, dataloaders.val
     assert len(train_loader) == 1000 * 4 // 5 // 10
     assert len(val_loader) == 1000 * 1 // 5 // 10
     assert train_loader.dataset.mode == "train"
     assert val_loader.dataset.mode == "val"
 
 
-def test_dataloader_test(dataloader, data):
+def test_dataloaders_test(dataloaders, data):
     data.mode = "test"
     data.initialized = False
-    dataloader.init(data)
-    test_loader = dataloader.test
+    dataloaders.init(data)
+    test_loader = dataloaders.test
     assert len(test_loader) == 1000 // 10
     assert test_loader.dataset.mode == "test"
 
 
-def test_dataloader_repr(dataloader, data, client, params):
-    assert "dataset=example.Dataset(dummy=5)" in repr(dataloader)
-    params["run"]["dataloader"]["dataset"].pop("dummy")
-    dataloader = create_instance(params, "run.dataloader")
-    assert "dataset=example.Dataset()" in repr(dataloader)
+def test_dataloader_repr(dataloaders, data, client, params):
+    assert "dataset=example.Dataset(dummy=5)" in repr(dataloaders)
+    params["run"]["dataloaders"]["dataset"].pop("dummy")
+    dataloaders = create_instance(params, "run.dataloaders")
+    assert "dataset=example.Dataset()" in repr(dataloaders)

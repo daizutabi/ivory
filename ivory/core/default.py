@@ -7,13 +7,15 @@ DEFAULT_CLASS["core"] = {
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
+    "results": "ivory.callbacks.results.Results",
     "monitor": "ivory.callbacks.monitor.Monitor",
     "early_stopping": "ivory.callbacks.early_stopping.EarlyStopping",
 }
 
 DEFAULT_CLASS["torch"] = {
     "run": "ivory.torch.run.Run",
-    "dataloader": "ivory.torch.data.DataLoader",
+    "dataloaders": "ivory.torch.data.DataLoaders",
+    "results": "ivory.torch.results.Results",
     "metrics": "ivory.torch.metrics.Metrics",
     "trainer": "ivory.torch.trainer.Trainer",
 }

@@ -5,7 +5,7 @@ experiment:
     num_samples: 1000
 run:
   library: torch
-  dataloader:
+  dataloaders:
     dataset:
       def: example.Dataset
       dummy: 5
@@ -23,11 +23,12 @@ run:
     optimizer: $
     factor: 0.5
     patience: 4
+  results:
   metrics:
     criterion:
       def: torch.nn.functional.mse_loss
   monitor:
-    metrics: val_loss
+    metric: val_loss
   early_stopping:
     patience: 8
   trainer:
