@@ -4,7 +4,7 @@ import numpy as np
 import optuna
 from optuna.trial import Trial
 
-from ivory.callback.pruning import Pruning
+from ivory.callbacks.pruning import Pruning
 from ivory.core.instance import get_attr
 from ivory.core.parser import Parser
 

@@ -1,4 +1,4 @@
-from ivory.callback.metrics import Metrics
+from ivory.callbacks.metrics import Metrics
 
 
 def test_metrics_dict():

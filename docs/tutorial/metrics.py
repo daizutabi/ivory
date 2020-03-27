@@ -1,6 +1,6 @@
 # # Metrics
 
-# Ivory has a `ivory.callback.Metrics` that doesn't depend on any specific library such
+# Ivory has a `ivory.callbacks.Metrics` that doesn't depend on any specific library such
 # as PyTorch or scikit-learn, *etc.* As the module name shows, a  `Metrics` is a
 # callback called from a `Trainer`, which is created by a `Run`.
 
@@ -18,10 +18,10 @@ from typing import Dict
 
 import torch
 
-import ivory.torch
+import ivory.torch.metrics
 
 
-class MyMetrics(ivory.torch.Metrics):
+class MyMetrics(ivory.torch.metrics.Metrics):
     def evaluate(self, loss, output, target) -> Dict[str, float]:
         mse = torch.mean((output - target) ** 2).item()
         return {"loss": loss.item(), "mse": mse}  # Here, loss == mse

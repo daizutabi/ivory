@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ivory.callback.monitor import Monitor
+from ivory.callbacks.monitor import Monitor
 
 
 def test_monitor():

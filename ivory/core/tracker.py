@@ -5,7 +5,7 @@ from typing import Optional
 import mlflow
 
 from ivory import utils
-from ivory.callback.tracking import Tracking
+from ivory.callbacks.tracking import Tracking
 from ivory.utils.mlflow import get_source_name, get_tags
 
 
