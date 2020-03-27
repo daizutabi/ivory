@@ -7,9 +7,9 @@ DEFAULT_CLASS["core"] = {
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
-    "results": "ivory.callbacks.results.Results",
-    "monitor": "ivory.callbacks.monitor.Monitor",
-    "early_stopping": "ivory.callbacks.early_stopping.EarlyStopping",
+    "results": "ivory.callback.results.Results",
+    "monitor": "ivory.callback.monitor.Monitor",
+    "early_stopping": "ivory.callback.early_stopping.EarlyStopping",
 }
 
 DEFAULT_CLASS["torch"] = {

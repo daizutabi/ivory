@@ -1,8 +1,8 @@
-import ivory.callbacks.results
+import ivory.callback.results
 from ivory import utils
 
 
-class Results(ivory.callbacks.results.Results):
+class Results(ivory.callback.results.Results):
     def step(self, index, output, target=None):
         output = output.detach()
         if output.device.type != "cpu":

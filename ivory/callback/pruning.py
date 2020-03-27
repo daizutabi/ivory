@@ -10,20 +10,20 @@ class Pruning:
         trial:
             `optuna.trial.Trial` corresponding to the current evaluation of the
             objective function.
-        monitor:
+        metric:
             An evaluation metric for pruning, e.g., `val_loss`
     """
 
-    def __init__(self, trial: Trial, monitor: str):
+    def __init__(self, trial: Trial, metric: str):
         self.trial = trial
-        self.monitor = monitor
+        self.metric = metric
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(trial={self.trial}, monitor='{self.monitor}')"
+        return f"{class_name}(trial={self.trial}, metric='{self.metric}')"
 
     def on_epoch_end(self, run):
-        score = run.metrics.record[self.monitor]
+        score = run.metrics[self.metric]
         if np.isnan(score):
             return
         epoch = run.metrics.epoch

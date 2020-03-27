@@ -2,9 +2,9 @@ import copy
 import functools
 import itertools
 import os
-import pickle
 import subprocess
-import tempfile
+
+from tqdm import tqdm
 
 from ivory import utils
 from ivory.core.base import Base
@@ -49,37 +49,39 @@ class Client(Base):
             parser.mode = "repeat"
         args = parser.args.keys()
         tags = parser.args
+        it = itertools.product(range(repeat), *parser.values)
+        total = repeat
+        for value in parser.values:
+            total *= len(value)
         number = 1
-        for _ in range(repeat):
-            for value in itertools.product(*parser.values):
-                update = dict(zip(parser.names, value))
-                run = self._create_run(update, parser.mode, number, args, tags, message)
-                yield run
-                number += 1
+        for _, *value in tqdm(it, total=total):
+            update = dict(zip(parser.names, value))
+            run = self._create_run(update, parser.mode, number, args, tags, message)
+            yield run
+            number += 1
 
     def chain(self, args, repeat=1, message: str = ""):
         parser = Parser().parse(args, self.params["run"])
         mode = "chain"
         args = parser.args.keys()
         tags = parser.args
+        total = repeat * sum(len(value) for value in parser.values)
         number = 1
-        for _ in range(repeat):
-            for k, name in enumerate(parser.names):
-                for value in parser.values[k]:
-                    update = {name: value}
-                    run = self._create_run(update, mode, number, args, tags, message)
-                    yield run
-                    number += 1
+        it = itertools.product(range(repeat), enumerate(parser.names))
+        for _, (k, name) in tqdm(it, total=total):
+            for value in parser.values[k]:
+                update = {name: value}
+                run = self._create_run(update, mode, number, args, tags, message)
+                yield run
+                number += 1
 
     def optimize(self, name, options, message: str = ""):
         if name is None:
             name = list(self.experiment.objective.suggest.keys())[0]
-
         if "delete" in options:
             study_name = ".".join([self.experiment.name, options["delete"]])
             self.tuner.delete_study(study_name)
             return
-
         create_run = functools.partial(self._create_run, message=message)
         create_objective = self.experiment.objective.create_objective
         objective = create_objective(name, self.params, create_run)
@@ -117,35 +119,12 @@ class Client(Base):
         runs = self.search_runs(return_id=return_id, order_by=["tag.start_time DESC"])
         return list(runs)[0]
 
-    def load_run(self, run_id, epoch="best"):
-        source_name = self.tracker.get_source_name(run_id)
-        client = self.tracker.client
-        with utils.chdir(source_name):
-            if epoch == "best":
-                for artifact in client.list_artifacts(run_id):
-                    if artifact.is_dir and artifact.path == "best":
-                        break
-                else:
-                    epoch = "current"
-            with tempfile.TemporaryDirectory() as tmpdir:
-                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-                state_dict_path = client.download_artifacts(run_id, epoch, tmpdir)
-                params = utils.load_params(params_path)
-                run = self.create_run(params)
-                state_dict = run.load(state_dict_path)
-                run.load_state_dict(state_dict)
-                try:
-                    pred_path = client.download_artifacts(run_id, "pred.pickle", tmpdir)
-                except FileNotFoundError:
-                    pass
-                else:
-                    with open(pred_path, "rb") as file:
-                        run.metrics.pred = pickle.load(file)
-        return run
+    def load_run(self, run_id, name="best"):
+        return self.tracker.load_run(run_id, name, self.create_run)
 
-    def load_runs(self, run_ids, epoch="best"):
+    def load_runs(self, run_ids, name="best"):
         for run_id in run_ids:
-            yield self.load_run(run_id, epoch)
+            yield self.load_run(run_id, name)
 
     def _create_run(self, update, mode, number, args, tags, message):
         params = copy.deepcopy(self.params)

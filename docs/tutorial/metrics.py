@@ -1,6 +1,6 @@
 # # Metrics
 
-# Ivory has a `ivory.callbacks.Metrics` that doesn't depend on any specific library such
+# Ivory has a `ivory.callback.Metrics` that doesn't depend on any specific library such
 # as PyTorch or scikit-learn, *etc.* As the module name shows, a  `Metrics` is a
 # callback called from a `Trainer`, which is created by a `Run`.
 

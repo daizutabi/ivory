@@ -4,7 +4,7 @@ import numpy as np
 import optuna
 from optuna.trial import Trial
 
-from ivory.callbacks.pruning import Pruning
+from ivory.callback.pruning import Pruning
 from ivory.core.instance import get_attr
 from ivory.core.parser import Parser
 
@@ -37,7 +37,7 @@ class Objective:
             if run.tracking:
                 trial.set_user_attr("run_id", run.id)
             if self.pruner:
-                run.set(pruning=Pruning(trial, run.monitor.metrics))
+                run["pruning"] = Pruning(trial, run.monitor.metric)
             run.start()
             score = run.monitor.best_score
             if np.isnan(score):

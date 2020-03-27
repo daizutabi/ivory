@@ -26,25 +26,24 @@ class Results(Dict, State):
             self.targets.append(target)
 
     def on_train_end(self, run):
-        self["train"] = self.data_dict()
+        self["train"] = self.result_dict()
 
     def on_val_end(self, run):
-        self["val"] = self.data_dict()
+        self["val"] = self.result_dict()
 
     def on_test_end(self, run):
-        self["test"] = self.data_dict()
+        self["test"] = self.result_dict()
 
-    def data_dict(self):
-        """Create data from validation/test data."""
-        index = list_stack(self.indexes)
-        output = list_stack(self.outputs)
+    def result_dict(self):
+        index = stack_list(self.indexes)
+        output = stack_list(self.outputs)
         if not self.targets:
             return dict(index=index, output=output)
-        target = list_stack(self.targets)
+        target = stack_list(self.targets)
         return dict(index=index, output=output, target=target)
 
 
-def list_stack(x):
+def stack_list(x):
     if not x:
         return
     elif x[0].ndim == 1:

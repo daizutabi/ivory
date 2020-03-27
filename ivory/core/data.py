@@ -7,9 +7,9 @@ from ivory.core.dict import Dict
 @dataclass
 class Data:
     mode: str = "train"
-    initialized: bool = False
 
     def __post_init__(self):
+        self.initialized = False
         self.fold = None
 
     def initialize(self):
@@ -31,7 +31,7 @@ class Data:
         Args:
             index (list): 1d-array of bool, optional. The length is the same as `fold`.
 
-        Called from ivory.core.data.DataLoader.
+        Called from ivory.core.data.DataLoaders.
         """
         raise NotImplementedError
 
@@ -40,7 +40,7 @@ class Data:
 class Dataset:
     mode: str
     data: Any
-    transform: Optional[Callable[[str, Any, Any], Tuple[Any, Any]]] = None
+    transform: Optional[Callable] = None
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -57,7 +57,7 @@ class Dataset:
             input, *target = self.transform(self.mode, input, *target)
         return [index, input, *target]
 
-    def get(self):
+    def get(self, index):
         """Returns a tuple of (index, input, target) or (index, input)."""
         raise NotImplementedError
 

@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+import tempfile
 from typing import Optional
 
 import mlflow
 
 from ivory import utils
-from ivory.callbacks.tracking import Tracking
+from ivory.callback.tracking import Tracking
 from ivory.utils.mlflow import get_source_name, get_tags
 
 
@@ -57,8 +58,27 @@ class Tracker:
             run = run_or_run_id
         return get_source_name(run)
 
-    def create_tracking(self, experiment_id, source_name):
-        return Tracking(experiment_id, source_name, self.tracking_uri)
+    def create_tracking(self):
+        return Tracking(self.tracking_uri)
+
+    def load_run(self, run_id, name, create_run):
+        source_name = self.get_source_name(run_id)
+        client = self.client
+        with utils.chdir(source_name):
+            if name == "best":
+                for artifact in client.list_artifacts(run_id):
+                    if artifact.is_dir and artifact.path == "best":
+                        break
+                else:
+                    name = "current"
+            with tempfile.TemporaryDirectory() as tmpdir:
+                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+                state_dict_path = client.download_artifacts(run_id, name, tmpdir)
+                params = utils.load_params(params_path)
+                run = create_run(params)
+                state_dict = run.load(state_dict_path)
+                run.load_state_dict(state_dict)
+        return run
 
 
 def filter_string(params, tags=None):

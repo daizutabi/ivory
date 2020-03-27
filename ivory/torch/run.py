@@ -6,8 +6,6 @@ import ivory.core.run
 
 
 class Run(ivory.core.run.Run):
-    __slots__ = []  # type:ignore
-
     def save(self, directory):
         for key, state_dict in self.state_dict().items():
             path = os.path.join(directory, f"{key}.pt")
@@ -17,7 +15,5 @@ class Run(ivory.core.run.Run):
         state_dict = {}
         for path in os.listdir(directory):
             if path.endswith(".pt"):
-                name = path[:-3]
-                path = os.path.join(directory, path)
-                state_dict[name] = torch.load(path)
+                state_dict[path[:-3]] = torch.load(os.path.join(directory, path))
         return state_dict

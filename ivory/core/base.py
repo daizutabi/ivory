@@ -40,7 +40,7 @@ CALLBACK_METHODS = [
 
 
 class CallbackCaller(Base):
-    def create_callbacks(self):
+    def create_callback(self):
         for method in CALLBACK_METHODS:
             methods = []
             for key in self:

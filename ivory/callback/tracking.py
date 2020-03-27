@@ -1,9 +1,6 @@
 import os
-import pickle
 import tempfile
 import time
-from dataclasses import dataclass
-from typing import Optional
 
 import mlflow
 import yaml
@@ -12,21 +9,16 @@ from mlflow.entities import Metric, Param
 from ivory import utils
 
 
-@dataclass
 class Tracking:
-    experiment_id: str
-    source_name: str
-    tracking_uri: Optional[str] = None
-
-    def __post_init__(self):
-        self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
+    def __init__(self, tracking_uri):
+        self.client = mlflow.tracking.MlflowClient(tracking_uri)
 
     def on_fit_start(self, run):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "params.yaml")
             with open(path, "w") as file:
                 yaml.dump(run.params, file, sort_keys=False)
-            with utils.chdir(self.source_name):
+            with utils.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
 
     def on_epoch_end(self, run):
@@ -35,26 +27,27 @@ class Tracking:
         if monitor and monitor.best_epoch > 0:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
         self.log_metrics(run.id, metrics, run.metrics.epoch)
-        with tempfile.TemporaryDirectory() as tmpdir:
-            directory = os.path.join(tmpdir, "current")
-            os.mkdir(directory)
-            run.save(directory)
-            with utils.chdir(self.source_name):
-                self.client.log_artifacts(run.id, tmpdir)
-                if monitor and monitor.is_best and monitor.best_epoch > 0:
-                    os.rename(directory, directory.replace("current", "best"))
-                    self.client.log_artifacts(run.id, tmpdir)
+        self.save_run(run, "current")
 
     def on_fit_end(self, run):
         self.client.set_terminated(run.id)
 
     def on_test_end(self, run):
+        self.save_run(run, "test")
+
+    def save_run(self, run, name):
         with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, "pred.pickle")
-            with open(path, "wb") as file:
-                pickle.dump(run.metrics.pred, file)
-            with utils.chdir(self.source_name):
+            directory = os.path.join(tmpdir, name)
+            os.mkdir(directory)
+            run.save(directory)
+            with utils.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
+                if name != "current":
+                    return
+                monitor = run.monitor
+                if monitor and monitor.is_best and monitor.best_epoch > 0:
+                    os.rename(directory, directory.replace("current", "best"))
+                    self.client.log_artifacts(run.id, tmpdir)
 
     def log_params(self, run_id, params):
         params_list = []

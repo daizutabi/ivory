@@ -24,7 +24,7 @@ class Callback:
 def test_callback_caller():
     callback = Callback()
     caller = CallbackCaller({}, callback=callback)
-    caller.create_callbacks()
+    caller.create_callback()
     assert caller.on_fit_start
     assert caller.on_fit_end
     caller.on_fit_end()

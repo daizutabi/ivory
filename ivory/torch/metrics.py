@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Callable
 
-import ivory.callbacks.metrics
+import ivory.callback.metrics
 
 
 @dataclass(repr=False)
-class Metrics(ivory.callbacks.metrics.Metrics):
+class Metrics(ivory.callback.metrics.Metrics):
     criterion: Callable
 
     def step(self, output, target):

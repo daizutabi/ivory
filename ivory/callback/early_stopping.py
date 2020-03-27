@@ -5,14 +5,9 @@ from ivory.core.state import State
 
 @dataclass
 class EarlyStopping(State):
-    """Early stop training loop when a metric has stopped imporving.
+    """Early stop training loop when a metric has stopped improving.
 
     Args:
-        monitor (str): quantity to be monitored. Default: `'val_loss'`.
-        mode (str): one of `min`, `max`. In `min` mode, training will
-            stop when the quantity monitored has stopped decreasing;
-            in `max` mode it will stop when the quantity monitored has
-            stopped increasing. Default: `min`.
         patience (int): number of epochs with no improvement
             after which training will be stopped. Default: `0`.
         min_delta (float): minimum change in the monitored quantity

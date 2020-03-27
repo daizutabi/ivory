@@ -6,6 +6,10 @@
 [![Coverage Status][coveralls-image]][coveralls-link]
 [![Code style: black][black-image]][black-link]
 
+
+![overview](overview.png "Overview of Ivory components")
+
+
 [pypi-image]: https://badge.fury.io/py/ivory.svg
 [pypi-link]: https://pypi.org/project/ivory
 [travis-image]: https://travis-ci.org/daizutabi/ivory.svg?branch=master
