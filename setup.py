@@ -74,9 +74,9 @@ setup(
     install_requires=[
         "mlflow",
         "optuna",
-        "scikit-learn",
         "numpy",
         "pandas",
+        "scikit-learn",
         "termcolor",
     ],
     classifiers=[

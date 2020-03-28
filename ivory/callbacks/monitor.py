@@ -21,6 +21,10 @@ class Monitor(State):
             raise ValueError(f"mode must be 'min' or 'max': {self.mode} given.")
 
     def on_epoch_end(self, run):
+        if self.metric not in run.metrics:
+            msg = f"Metric '{self.metric}' not found. Available metrics are: "
+            msg += f"{run.metrics}"
+            raise ValueError(msg)
         score = run.metrics[self.metric]
         if self.mode == "min":
             self.is_best = score < self.best_score

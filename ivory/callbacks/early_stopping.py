@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from ivory.core.exceptions import EarlyStopped
 from ivory.core.state import State
 
 
@@ -27,4 +28,4 @@ class EarlyStopping(State):
         else:
             self.wait += 1
             if self.wait >= self.patience:
-                raise StopIteration
+                raise EarlyStopped

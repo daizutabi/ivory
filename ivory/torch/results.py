@@ -1,5 +1,5 @@
 import ivory.callbacks.results
-from ivory import utils
+from ivory.torch import utils
 
 
 class Results(ivory.callbacks.results.Results):
@@ -7,7 +7,7 @@ class Results(ivory.callbacks.results.Results):
         output = output.detach()
         if output.device.type != "cpu":
             output = utils.cpu(output)
-            if target:
+            if target is not None:
                 target = utils.cpu(target)
         self.indexes.append(index.numpy())
         self.outputs.append(output.numpy())

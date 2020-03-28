@@ -36,16 +36,12 @@ class Tracker:
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
-    def search_runs(
-        self, experiment_id, params=None, tags=None, return_id=True, **kwargs
-    ):
+    def search_runs(self, experiment_id, params=None, tags=None, return_id=True):
         if params is None:
             params = {}
         if tags is None:
             tags = {}
-        runs = self.client.search_runs(
-            experiment_id, filter_string(params, tags), **kwargs
-        )
+        runs = self.client.search_runs(experiment_id, filter_string(params, tags))
         if return_id:
             return [run.info.run_id for run in runs]
         else:

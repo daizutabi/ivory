@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 
+from ivory.core.exceptions import EarlyStopped
 from ivory.core.state import State
 
 
@@ -37,12 +38,12 @@ class Trainer(State):
     def val_step(self, index, input, target, run):
         pass
 
-    def loop(self, run):
+    def loop(self, run, leave):
         max_epoch = self.epoch + self.max_epochs
         width = len(str(max_epoch))
         epochs = range(self.epoch + 1, max_epoch + 1)
         if self.verbose == 1:
-            epochs = tqdm(epochs, desc="Epoch ")
+            epochs = tqdm(epochs, desc="Epoch", leave=leave)
         for self.epoch in epochs:
             run.on_epoch_start()
             self.train_loop(run)
@@ -50,25 +51,25 @@ class Trainer(State):
                 self.val_loop(run)
             try:
                 run.on_epoch_end()
-            except StopIteration:
+            except EarlyStopped:
                 break
             finally:
                 if self.verbose:
                     epoch = str(self.epoch).zfill(width)
                     tqdm.write(f"[{run.name}] epoch={epoch} {run.metrics}")
 
-    def fit(self, run):
+    def fit(self, run, leave=True):
         run.on_fit_start()
         try:
-            self.loop(run)
+            self.loop(run, leave)
         finally:
             run.on_fit_end()
 
-    def test(self, run):
+    def test(self, run, leave=False):
         run.on_test_start()
         dataloader = run.dataloaders.test
         if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="Test ", leave=False)
+            dataloader = tqdm(dataloader, desc="Test ", leave=leave)
         for index, input in dataloader:
             self.test_step(index, input, run)
         run.on_test_end()

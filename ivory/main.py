@@ -37,12 +37,10 @@ def cli():
     if args.path == "ui" and os.path.exists("client.yaml"):
         args.path = "client"
         args.action = ["ui"]
-
     if not args.action:
         args.action = ["product"]
     elif "=" in args.action[0]:
         args.action.insert(0, "product")
-
     path = normpath(args.path)
     message = args.message
     repeat = args.repeat
@@ -55,15 +53,14 @@ def cli():
             params_yaml = file.read()
         print(params_yaml)
         sys.exit()
-
     client = create_client(path)
     if cmd in ["product", "chain"]:
         args = Parser().parse_args(args).args
         for run in getattr(client, cmd)(args, repeat, message):
-            run.start()
+            run.start(leave=False)
             if test:
+                run = client.load_run(run.id, "best")
                 run.start("test")
-
     elif cmd in ["optimize", "tune"]:
         if "=" in args[0]:
             name = None
@@ -71,7 +68,6 @@ def cli():
             name, args = args[0], args[1:]
         options = Parser().parse_args(args).options
         client.optimize(name, options, message)
-
     elif cmd in ["search", "list"]:
         if "=" in args[0]:
             mode = None
@@ -84,7 +80,6 @@ def cli():
             start_dt = datetime.datetime.fromtimestamp(run.info.start_time / 1e3)
             start_dt = start_dt.strftime("%Y-%m-%d %H:%M:%S")
             print(run_id, start_dt)
-
     elif cmd == "ui":
         client.ui()
 

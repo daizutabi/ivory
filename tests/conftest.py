@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.abspath("tests"))
 @pytest.fixture(scope="session")
 def client():
     yield create_client("tests/params.yaml")
-    if os.path.exists("mlruns"):
-        shutil.rmtree("mlruns")
+    if os.path.exists("tests/mlruns"):
+        shutil.rmtree("tests/mlruns")
 
 
 @pytest.fixture(scope="function")
@@ -54,4 +54,4 @@ def metrics(run):
 
 @pytest.fixture(scope="session")
 def trainer(run):
-    yield run.metrics
+    yield run.trainer

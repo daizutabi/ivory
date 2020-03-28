@@ -2,7 +2,7 @@ import copy
 import functools
 import itertools
 import os
-import subprocess
+from collections.abc import Iterable
 
 from tqdm import tqdm
 
@@ -10,6 +10,7 @@ from ivory import utils
 from ivory.core.base import Base
 from ivory.core.instance import create_base_instance, create_instance
 from ivory.core.parser import Parser
+import ivory.core.ui
 
 
 def create_client(params, source_name=""):
@@ -54,7 +55,7 @@ class Client(Base):
         for value in parser.values:
             total *= len(value)
         number = 1
-        for _, *value in tqdm(it, total=total):
+        for _, *value in tqdm(it, total=total, desc="Run  "):
             update = dict(zip(parser.names, value))
             run = self._create_run(update, parser.mode, number, args, tags, message)
             yield run
@@ -68,7 +69,7 @@ class Client(Base):
         total = repeat * sum(len(value) for value in parser.values)
         number = 1
         it = itertools.product(range(repeat), enumerate(parser.names))
-        for _, (k, name) in tqdm(it, total=total):
+        for _, (k, name) in tqdm(it, total=total, desc="Run  "):
             for value in parser.values[k]:
                 update = {name: value}
                 run = self._create_run(update, mode, number, args, tags, message)
@@ -96,10 +97,7 @@ class Client(Base):
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
-        try:
-            subprocess.run(["mlflow", "ui", "--backend-store-uri", tracking_uri])
-        except KeyboardInterrupt:
-            pass
+        ivory.core.ui.run(tracking_uri)
 
     def search_runs(self, params=None, mode="", message="", return_id=True, **kwargs):
         tags = {}
@@ -109,15 +107,19 @@ class Client(Base):
             tags["message"] = message
         id = self.experiment.id
         if params is None:
-            yield from self.tracker.search_runs(id, None, tags, return_id, **kwargs)
+            params = {}
+        else:
+            params = params.copy()
+        for key, value in kwargs.items():
+            if isinstance(value, str) or not isinstance(value, Iterable):
+                value = [value]
+            params[key] = value
+        if not params:
+            yield from self.tracker.search_runs(id, None, tags, return_id)
             return
         for value in itertools.product(*params.values()):
             params_ = dict(zip(params.keys(), value))
-            yield from self.tracker.search_runs(id, params_, tags, return_id, **kwargs)
-
-    def latest_run(self, return_id=True):
-        runs = self.search_runs(return_id=return_id, order_by=["tag.start_time DESC"])
-        return list(runs)[0]
+            yield from self.tracker.search_runs(id, params_, tags, return_id)
 
     def load_run(self, run_id, name="best"):
         return self.tracker.load_run(run_id, name, self.create_run)
