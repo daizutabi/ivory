@@ -7,6 +7,7 @@ import mlflow
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
 from ivory.utils.mlflow import get_source_name, get_tags
+import ivory.core.state
 
 
 @dataclass
@@ -57,24 +58,56 @@ class Tracker:
     def create_tracking(self):
         return Tracking(self.tracking_uri)
 
-    def load_run(self, run_id, name, create_run):
+    def load_run(self, run_id, mode, create_run):
         source_name = self.get_source_name(run_id)
         client = self.client
         with utils.chdir(source_name):
-            if name == "best":
-                for artifact in client.list_artifacts(run_id):
-                    if artifact.is_dir and artifact.path == "best":
-                        break
-                else:
-                    name = "current"
+            mode = get_valid_mode(client, run_id, mode)
             with tempfile.TemporaryDirectory() as tmpdir:
                 params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-                state_dict_path = client.download_artifacts(run_id, name, tmpdir)
+                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
                 params = utils.load_params(params_path)
                 run = create_run(params)
                 state_dict = run.load(state_dict_path)
                 run.load_state_dict(state_dict)
         return run
+
+    def load_instance(self, run_id, name, mode, create_run, create_instance):
+        source_name = self.get_source_name(run_id)
+        client = self.client
+        with utils.chdir(source_name):
+            mode = get_valid_mode(client, run_id, mode)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
+                params = utils.load_params(params_path)
+                instance = create_instance(name, params)
+                if isinstance(instance, ivory.core.state.State):
+                    state_dict = ivory.core.state.load(state_dict_path, name)
+                else:
+                    run = create_run(params)
+                    state_dict = run.load_instance(state_dict_path, name)
+                instance.load_state_dict(state_dict)
+        return instance
+
+
+def get_valid_mode(client, run_id, mode):
+    modes = get_modes(client, run_id)
+    if mode == "test" and mode not in modes:
+        mode = "best"
+    if mode == "best" and mode not in modes:
+        mode = "current"
+    if mode == "current" and mode not in modes:
+        raise ValueError(f"'{mode}' artifacts not found.")
+    return mode
+
+
+def get_modes(client, run_id):
+    modes = []
+    for artifact in client.list_artifacts(run_id):
+        if artifact.is_dir:
+            modes.append(artifact.path)
+    return modes
 
 
 def filter_string(params, tags=None):

@@ -6,11 +6,11 @@ from collections.abc import Iterable
 
 from tqdm import tqdm
 
+import ivory.core.ui
 from ivory import utils
 from ivory.core.base import Base
 from ivory.core.instance import create_base_instance, create_instance
 from ivory.core.parser import Parser
-import ivory.core.ui
 
 
 def create_client(params, source_name=""):
@@ -41,8 +41,11 @@ class Client(Base):
         run.set_experiment(self.experiment)
         return run
 
-    def create_instance(self, name):
-        return create_instance(self.params, name)
+    def create_instance(self, name, params=None):
+        params = params or self.params
+        if "." not in name:
+            name = f"run.{name}"
+        return create_instance(params, name)
 
     def product(self, args, repeat=1, message: str = ""):
         parser = Parser().parse(args, self.params["run"])
@@ -56,7 +59,10 @@ class Client(Base):
             total *= len(value)
         number = 1
         for _, *value in tqdm(it, total=total, desc="Run  "):
-            update = dict(zip(parser.names, value))
+            update = {}
+            for names, v in zip(parser.names, value):
+                for name in names:
+                    update[name] = v
             run = self._create_run(update, parser.mode, number, args, tags, message)
             yield run
             number += 1
@@ -69,9 +75,9 @@ class Client(Base):
         total = repeat * sum(len(value) for value in parser.values)
         number = 1
         it = itertools.product(range(repeat), enumerate(parser.names))
-        for _, (k, name) in tqdm(it, total=total, desc="Run  "):
+        for _, (k, names) in tqdm(it, total=total, desc="Run  "):
             for value in parser.values[k]:
-                update = {name: value}
+                update = {name: value for name in names}
                 run = self._create_run(update, mode, number, args, tags, message)
                 yield run
                 number += 1
@@ -121,12 +127,17 @@ class Client(Base):
             params_ = dict(zip(params.keys(), value))
             yield from self.tracker.search_runs(id, params_, tags, return_id)
 
-    def load_run(self, run_id, name="best"):
-        return self.tracker.load_run(run_id, name, self.create_run)
+    def load_run(self, run_id, mode="test"):
+        return self.tracker.load_run(run_id, mode, self.create_run)
 
-    def load_runs(self, run_ids, name="best"):
+    def load_runs(self, run_ids, mode="test"):
         for run_id in run_ids:
-            yield self.load_run(run_id, name)
+            yield self.load_run(run_id, mode)
+
+    def load_instance(self, run_id, name, mode="test"):
+        return self.tracker.load_instance(
+            run_id, name, mode, self.create_run, self.create_instance
+        )
 
     def _create_run(self, update, mode, number, args, tags, message):
         params = copy.deepcopy(self.params)

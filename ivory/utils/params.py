@@ -162,6 +162,15 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
             return
 
 
+def get_fullnames(params, name):
+    fullnames = []
+    for key in params:
+        fullname = get_fullname({key: params[key]}, name)
+        if fullname:
+            fullnames.append(fullname)
+    return tuple(fullnames)
+
+
 def get_value(params, name):
     """
     Examples:

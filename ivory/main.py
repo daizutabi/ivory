@@ -54,6 +54,7 @@ def cli():
         print(params_yaml)
         sys.exit()
     client = create_client(path)
+
     if cmd in ["product", "chain"]:
         args = Parser().parse_args(args).args
         for run in getattr(client, cmd)(args, repeat, message):

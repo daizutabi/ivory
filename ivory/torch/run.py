@@ -6,14 +6,10 @@ import ivory.core.run
 
 
 class Run(ivory.core.run.Run):
-    def save(self, directory):
-        for key, state_dict in self.state_dict().items():
-            path = os.path.join(directory, f"{key}.pt")
-            torch.save(state_dict, path)
+    def save_instance(self, state_dict, directory, x):
+        path = os.path.join(directory, f"{x}.pt")
+        torch.save(state_dict, path)
 
-    def load(self, directory):
-        state_dict = {}
-        for path in os.listdir(directory):
-            if path.endswith(".pt"):
-                state_dict[path[:-3]] = torch.load(os.path.join(directory, path))
-        return state_dict
+    def load_instance(self, directory, x):
+        path = os.path.join(directory, f"{x}.pt")
+        return torch.load(path)

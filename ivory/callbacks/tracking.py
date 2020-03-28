@@ -35,14 +35,14 @@ class Tracking:
     def on_test_end(self, run):
         self.save_run(run, "test")
 
-    def save_run(self, run, name):
+    def save_run(self, run, mode):
         with tempfile.TemporaryDirectory() as tmpdir:
-            directory = os.path.join(tmpdir, name)
+            directory = os.path.join(tmpdir, mode)
             os.mkdir(directory)
             run.save(directory)
             with utils.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
-                if name != "current":
+                if mode != "current":
                     return
                 monitor = run.monitor
                 if monitor and monitor.is_best and monitor.best_epoch > 0:

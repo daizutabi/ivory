@@ -35,8 +35,8 @@ class Parser:
 def parse_names(names, params):
     fullnames = []
     for name in names:
-        fullname = utils.get_fullname(params, name)
-        if fullname is None:
+        fullname = utils.get_fullnames(params, name)
+        if not fullname:
             raise ValueError(f"Unknown parameter name: {name}")
         fullnames.append(fullname)
     return fullnames

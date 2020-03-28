@@ -1,6 +1,6 @@
 import os
-import pickle
 
+import ivory.core.state
 from ivory.core.base import CallbackCaller
 
 
@@ -45,17 +45,25 @@ class Run(CallbackCaller):
                 self[x].load_state_dict(state_dict[x])
 
     def save(self, directory):
-        for key, state_dict in self.state_dict().items():
-            path = os.path.join(directory, f"{key}.pickle")
-            with open(path, "wb") as file:
-                pickle.dump(state_dict, file)
+        for x, state_dict in self.state_dict().items():
+            if isinstance(self[x], ivory.core.state.State):
+                ivory.core.state.save(state_dict, directory, x)
+            else:
+                self.save_instance(state_dict, directory, x)
+
+    def save_instance(self, state_dict, directory, x):
+        raise ValueError(f"Unknown save method for {self[x]}.")
 
     def load(self, directory):
         state_dict = {}
         for path in os.listdir(directory):
-            if path.endswith(".pickle"):
-                name = path.split(".")[0]
-                path = os.path.join(directory, path)
-                with open(path, "rb") as file:
-                    state_dict[name] = pickle.load(file)
+            x = path.split(".")[0]
+            if x in self:
+                if isinstance(self[x], ivory.core.state.State):
+                    state_dict[x] = ivory.core.state.load(directory, x)
+                else:
+                    state_dict[x] = self.load_instance(directory, x)
         return state_dict
+
+    def load_instance(self, directory, x):
+        raise ValueError(f"Unknown load method for {self[x]}.")

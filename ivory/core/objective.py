@@ -25,7 +25,11 @@ class Objective:
     def create_update(self, trial: Trial, name, params):
         self.suggest[name](trial)
         parser = Parser().parse(trial.params, params["run"], values=False)
-        return dict(zip(parser.names, parser.options.values()))
+        update = {}
+        for names, v in zip(parser.names, parser.options.values()):
+            for name in names:
+                update[name] = v
+        return update
 
     def create_objective(self, name, params, create_run):
         create_update = functools.partial(self.create_update, name=name, params=params)
