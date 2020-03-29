@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+import optuna
+from termcolor import colored
 from tqdm import tqdm
 
 from ivory.core.exceptions import EarlyStopped
@@ -40,23 +42,30 @@ class Trainer(State):
 
     def loop(self, run, leave):
         max_epoch = self.epoch + self.max_epochs
-        width = len(str(max_epoch))
         epochs = range(self.epoch + 1, max_epoch + 1)
         if self.verbose == 1:
             epochs = tqdm(epochs, desc="Epoch", leave=leave)
+        early_stopped = None
+        pruned = None
         for self.epoch in epochs:
+            if early_stopped or pruned:  # for tqdm
+                continue
             run.on_epoch_start()
             self.train_loop(run)
             if run.dataloaders.val:
                 self.val_loop(run)
             try:
                 run.on_epoch_end()
-            except EarlyStopped:
-                break
+            except EarlyStopped as e:
+                early_stopped = e
+            except optuna.exceptions.TrialPruned as e:
+                pruned = e
             finally:
                 if self.verbose:
-                    epoch = str(self.epoch).zfill(width)
-                    tqdm.write(f"[{run.name}] epoch={epoch} {run.metrics}")
+                    msg = self.message(max_epoch, early_stopped, pruned, run=run)
+                    tqdm.write(msg)
+        if pruned:
+            raise pruned
 
     def fit(self, run, leave=True):
         run.on_fit_start()
@@ -76,3 +85,17 @@ class Trainer(State):
 
     def test_step(self, index, input, run):
         pass
+
+    def message(self, max_epoch, early_stopped, pruned, run):
+        width = len(str(max_epoch))
+        epoch = str(self.epoch).zfill(width)
+        msg = f"[{run.name}] epoch={epoch} {run.metrics}"
+        if run.monitor.is_best:
+            msg = colored(msg, "green")
+        else:
+            msg = colored(msg, "yellow")
+        if early_stopped:
+            msg += colored(" early stopped", "red")
+        if pruned:
+            msg += colored(" pruned", "red")
+        return msg

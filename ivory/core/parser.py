@@ -5,29 +5,35 @@ from ivory import utils
 
 
 class Parser:
-    def parse_args(self, args, values=True):
-        if isinstance(args, list):
+    def __init__(self, values=True):
+        self.values = values
+
+    def parse_args(self, args=None, **kwargs):
+        if args is None:
+            self.args = {}
+        elif isinstance(args, (list, tuple)):
             self.args = dict(arg.split("=") for arg in args)
         else:
-            self.args = args
+            self.args = args.copy()
+        self.args.update(kwargs)
         self.options = parse_options(self.args)
-        if not values:
+        if not self.values:
             return self
         self.values = parse_values(self.args.values())
-        if len(args) == 0 or all([len(x) == 1 for x in self.values]):
+        if len(self.args) == 0 or all([len(x) == 1 for x in self.values]):
             self.mode = "single"
-        elif len(args) == 1:
+        elif len(self.args) == 1:
             self.mode = "scan"
         else:
-            self.mode = "product"
+            self.mode = "prod"
         return self
 
     def parse_params(self, params):
         self.names = parse_names(self.args.keys(), params)
         return self
 
-    def parse(self, args, params, values=True):
-        self.parse_args(args, values)
+    def parse(self, args, params, **kwargs):
+        self.parse_args(args, **kwargs)
         self.parse_params(params)
         return self
 
@@ -45,16 +51,16 @@ def parse_names(names, params):
 def parse_values(values):
     list_values = []
     for value in values:
-        match = re.match(r"(\d+)-(\d+)", value)
-        if match:
-            value = list(range(int(match.group(1)), int(match.group(2)) + 1))
-        elif "," in value:
-            value = [ast.literal_eval(x) for x in value.split(",")]
+        if not isinstance(value, (list, str)):
+            value = [value]
         else:
-            try:
-                value = [ast.literal_eval(value)]
-            except ValueError:
-                value = [value]
+            match = re.match(r"(\d+)-(\d+)", value)
+            if match:
+                value = list(range(int(match.group(1)), int(match.group(2)) + 1))
+            elif "," in value:
+                value = [literal_eval(x) for x in value.split(",")]
+            else:
+                value = [literal_eval(value)]
         list_values.append(value)
     return list_values
 
@@ -68,3 +74,10 @@ def parse_options(args):
             pass
         options[key] = value
     return options
+
+
+def literal_eval(value):
+    try:
+        return ast.literal_eval(value)
+    except ValueError:
+        return value

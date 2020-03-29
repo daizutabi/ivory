@@ -34,15 +34,13 @@ class Run(CallbackCaller):
     def state_dict(self):
         state_dict = {}
         for x in self:
-            if hasattr(self[x], "state_dict"):
-                if callable(self[x].state_dict):
-                    state_dict[x] = self[x].state_dict()
+            if hasattr(self[x], "state_dict") and callable(self[x].state_dict):
+                state_dict[x] = self[x].state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict):
         for x in state_dict:
-            if x in self:
-                self[x].load_state_dict(state_dict[x])
+            self[x].load_state_dict(state_dict[x])
 
     def save(self, directory):
         for x, state_dict in self.state_dict().items():
@@ -58,11 +56,10 @@ class Run(CallbackCaller):
         state_dict = {}
         for path in os.listdir(directory):
             x = path.split(".")[0]
-            if x in self:
-                if isinstance(self[x], ivory.core.state.State):
-                    state_dict[x] = ivory.core.state.load(directory, x)
-                else:
-                    state_dict[x] = self.load_instance(directory, x)
+            if isinstance(self[x], ivory.core.state.State):
+                state_dict[x] = ivory.core.state.load(directory, x)
+            else:
+                state_dict[x] = self.load_instance(directory, x)
         return state_dict
 
     def load_instance(self, directory, x):

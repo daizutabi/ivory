@@ -58,7 +58,7 @@ class Trainer(ivory.callbacks.trainer.Trainer):
         run.metrics.step(output, target)
 
     def on_epoch_end(self, run):
-        if "scheduler" in run:
+        if run.scheduler:
             if isinstance(run.scheduler, ReduceLROnPlateau):
                 run.scheduler.step(run.monitor.score)
             else:

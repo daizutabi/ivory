@@ -78,6 +78,8 @@ setup(
         "pandas",
         "scikit-learn",
         "termcolor",
+        "click",
+        "logzero",
     ],
     classifiers=[
         "Environment :: Console",

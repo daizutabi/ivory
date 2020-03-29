@@ -163,6 +163,12 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
 
 
 def get_fullnames(params, name):
+    """
+    Examples:
+        >>> params = {'a': 1, 'b': {'x': 2}, 'c': {'x': 2}}
+        >>> get_fullnames(params, 'x')
+        ('b.x', 'c.x')
+    """
     fullnames = []
     for key in params:
         fullname = get_fullname({key: params[key]}, name)

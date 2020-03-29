@@ -47,40 +47,22 @@ class Client(Base):
             name = f"run.{name}"
         return create_instance(params, name)
 
-    def product(self, args, repeat=1, message: str = ""):
-        parser = Parser().parse(args, self.params["run"])
+    def run(self, args=None, repeat=1, message: str = "", **kwargs):
+        parser = Parser().parse(args, self.params["run"], **kwargs)
         if repeat != 1 and parser.mode == "single":
             parser.mode = "repeat"
         args = parser.args.keys()
         tags = parser.args
-        it = itertools.product(range(repeat), *parser.values)
-        total = repeat
-        for value in parser.values:
-            total *= len(value)
-        number = 1
-        for _, *value in tqdm(it, total=total, desc="Run  "):
+        it = list(itertools.product(range(repeat), *parser.values))
+        if len(it) > 1:
+            it = tqdm(it, desc="Run  ")
+        for number, (_, *value) in enumerate(it, 1):
             update = {}
             for names, v in zip(parser.names, value):
                 for name in names:
                     update[name] = v
             run = self._create_run(update, parser.mode, number, args, tags, message)
             yield run
-            number += 1
-
-    def chain(self, args, repeat=1, message: str = ""):
-        parser = Parser().parse(args, self.params["run"])
-        mode = "chain"
-        args = parser.args.keys()
-        tags = parser.args
-        total = repeat * sum(len(value) for value in parser.values)
-        number = 1
-        it = itertools.product(range(repeat), enumerate(parser.names))
-        for _, (k, names) in tqdm(it, total=total, desc="Run  "):
-            for value in parser.values[k]:
-                update = {name: value for name in names}
-                run = self._create_run(update, mode, number, args, tags, message)
-                yield run
-                number += 1
 
     def optimize(self, name, options, message: str = ""):
         if name is None:
@@ -105,12 +87,7 @@ class Client(Base):
         tracking_uri = self.tracker.tracking_uri
         ivory.core.ui.run(tracking_uri)
 
-    def search_runs(self, params=None, mode="", message="", return_id=True, **kwargs):
-        tags = {}
-        if mode:
-            tags["mode"] = mode
-        if message:
-            tags["message"] = message
+    def search_runs(self, params=None, tags=None, return_id=True, **kwargs):
         id = self.experiment.id
         if params is None:
             params = {}
@@ -138,6 +115,10 @@ class Client(Base):
         return self.tracker.load_instance(
             run_id, name, mode, self.create_run, self.create_instance
         )
+
+    def load_instances(self, run_ids, name, mode="test"):
+        for run_id in run_ids:
+            yield self.load_instances(run_ids, name, mode)
 
     def _create_run(self, update, mode, number, args, tags, message):
         params = copy.deepcopy(self.params)

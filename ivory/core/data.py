@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Optional
 from ivory.core.dict import Dict
 
 

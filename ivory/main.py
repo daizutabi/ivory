@@ -1,9 +1,11 @@
-import argparse
 import datetime
+import logging
 import os
 import sys
 
-from termcolor import cprint
+import click
+import logzero
+from logzero import logger
 
 from ivory.core.client import create_client
 from ivory.core.parser import Parser
@@ -12,77 +14,98 @@ if "." not in sys.path:
     sys.path.insert(0, ".")
 
 
-def normpath(path):
-    if "." not in path:
-        path = path + ".yaml"
+def normpath(ctx, param, path):
+    if not path:
+        path = "client"
+    elif isinstance(path, tuple):
+        path = path[0]
+    name = None
+    if "." in path:
+        path, name = path.split(".")
+    path += ".yaml"
     if not os.path.exists(path):
-        cprint(f"No sufh file: {path}", "red", attrs=["bold", "dark"], file=sys.stderr)
-        sys.exit()
-    return path
+        raise click.BadParameter(f"No sufh file: {path}")
+    if name:
+        return path, name
+    else:
+        return path
 
 
+def loglevel(ctx, param, value):
+    if param.name == "quiet" and value is True:
+        logzero.loglevel(logging.WARNING)
+    elif param.name == "verbose" and value is True:
+        logzero.loglevel(logging.DEBUG)
+    else:
+        logzero.loglevel(logging.INFO)
+    return value
+
+
+@click.group()
 def cli():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("path", metavar="PATH", help="an parameter YAML file path")
-    parser.add_argument("action", metavar="X", help="command and/or argst", nargs="*")
-    parser.add_argument(
-        "-r", "--repeat", type=int, default=1, help="repeat the same action(s)"
-    )
-    parser.add_argument(
-        "-t", "--test", action="store_true", help="Infer after training. "
-    )
-    parser.add_argument("-m", "--message", default="", help="action message.")
-    args = parser.parse_args()
+    pass
 
-    if args.path == "ui" and os.path.exists("client.yaml"):
-        args.path = "client"
-        args.action = ["ui"]
-    if not args.action:
-        args.action = ["product"]
-    elif "=" in args.action[0]:
-        args.action.insert(0, "product")
-    path = normpath(args.path)
-    message = args.message
-    repeat = args.repeat
-    test = args.test
-    cmd = args.action[0]
-    args = args.action[1:]
 
-    if cmd == "show":
-        with open(path) as file:
-            params_yaml = file.read()
-        print(params_yaml)
-        sys.exit()
+@cli.command(help="Invoke a run or product runs.")
+@click.argument("path", callback=normpath)
+@click.argument("args", nargs=-1)
+@click.option("-r", "--repeat", default=1, help="Number of repeatation.")
+@click.option("-t", "--test", is_flag=True, help="Infer after training.")
+@click.option("-m", "--message", default="", help="Message for tracking.")
+def run(path, args, repeat, test, message):
     client = create_client(path)
+    for run in client.run(args, repeat=repeat, message=message):
+        run.start(leave=False)
+        if test:
+            run = client.load_run(run.id, "best")
+            run.start("test")
 
-    if cmd in ["product", "chain"]:
-        args = Parser().parse_args(args).args
-        for run in getattr(client, cmd)(args, repeat, message):
-            run.start(leave=False)
-            if test:
-                run = client.load_run(run.id, "best")
-                run.start("test")
-    elif cmd in ["optimize", "tune"]:
-        if "=" in args[0]:
-            name = None
-        else:
-            name, args = args[0], args[1:]
-        options = Parser().parse_args(args).options
-        client.optimize(name, options, message)
-    elif cmd in ["search", "list"]:
-        if "=" in args[0]:
-            mode = None
-        else:
-            mode, args = args[0], args[1:]
-        parser = Parser().parse_args(args)
-        params = dict(zip(parser.args.keys(), parser.values))
-        for run in client.search_runs(params, mode, message, return_id=False):
-            run_id = run.info.run_id
-            start_dt = datetime.datetime.fromtimestamp(run.info.start_time / 1e3)
-            start_dt = start_dt.strftime("%Y-%m-%d %H:%M:%S")
-            print(run_id, start_dt)
-    elif cmd == "ui":
-        client.ui()
+
+@cli.command(help="Optimize hyper parameters.")
+@click.argument("path", callback=normpath)
+@click.argument("args", nargs=-1)
+@click.option("-m", "--message", default="", help="Message for tracking.")
+def optimize(path, args, message):
+    if isinstance(path, str):
+        name = None
+    else:
+        path, name = path
+    client = create_client(path)
+    client.optimize(name, args, message)
+
+
+@cli.command(help="Search runs.")
+@click.argument("path", callback=normpath)
+@click.argument("args", nargs=-1)
+@click.option("-m", "--message", default="", help="Message for tracking.")
+def search(path, args, message):
+    pass
+
+
+@cli.command(help="Start tracking UI.")
+@click.argument("path", nargs=-1, callback=normpath)
+@click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
+def ui(path, quiet):
+    logger.info("Tracking UI.")
+    return
+    client = create_client(path)
+    client.ui()
+
+
+#     elif cmd in ["search", "list"]:
+#         if "=" in args[0]:
+#             mode = None
+#         else:
+#             mode, args = args[0], args[1:]
+#         parser = Parser().parse_args(args)
+#         params = dict(zip(parser.args.keys(), parser.values))
+#         for run in client.search_runs(params, mode, message, return_id=False):
+#             run_id = run.info.run_id
+#             start_dt = datetime.datetime.fromtimestamp(run.info.start_time / 1e3)
+#             start_dt = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+#             print(run_id, start_dt)
+#     elif cmd == "ui":
+#         client.ui()
 
 
 def main():
