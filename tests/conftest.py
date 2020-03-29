@@ -33,6 +33,11 @@ def data(experiment):
 
 
 @pytest.fixture(scope="session")
+def objective(experiment):
+    yield experiment.objective
+
+
+@pytest.fixture(scope="session")
 def run(client):
     yield client.create_run()
 

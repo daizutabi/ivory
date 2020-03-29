@@ -8,7 +8,6 @@ import logzero
 from logzero import logger
 
 from ivory.core.client import create_client
-from ivory.core.parser import Parser
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -17,18 +16,10 @@ if "." not in sys.path:
 def normpath(ctx, param, path):
     if not path:
         path = "client"
-    elif isinstance(path, tuple):
-        path = path[0]
-    name = None
-    if "." in path:
-        path, name = path.split(".")
     path += ".yaml"
     if not os.path.exists(path):
-        raise click.BadParameter(f"No sufh file: {path}")
-    if name:
-        return path, name
-    else:
-        return path
+        raise click.BadParameter(f"File not found: {path}")
+    return path
 
 
 def loglevel(ctx, param, value):
@@ -63,15 +54,12 @@ def run(path, args, repeat, test, message):
 
 @cli.command(help="Optimize hyper parameters.")
 @click.argument("path", callback=normpath)
+@click.argument("name")
 @click.argument("args", nargs=-1)
 @click.option("-m", "--message", default="", help="Message for tracking.")
-def optimize(path, args, message):
-    if isinstance(path, str):
-        name = None
-    else:
-        path, name = path
+def optimize(path, name, args, message):
     client = create_client(path)
-    client.optimize(name, args, message)
+    client.optimize(name, args, message=message)
 
 
 @cli.command(help="Search runs.")

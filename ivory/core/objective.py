@@ -10,34 +10,41 @@ from ivory.core.parser import Parser
 
 
 class Objective:
-    def __init__(self, sampler=None, pruner=None, **suggest):
+    def __init__(self, sampler=None, pruner=None, **suggests):
         self.sampler = sampler
         self.pruner = pruner
-        self.suggest = suggest
-        for key, value in self.suggest.items():
+        self.suggests = suggests
+        for key, value in self.suggests.items():
             if isinstance(value, str):
-                self.suggest[key] = get_attr(value)
-            elif isinstance(value, list):
-                value = {key: value}
-            if isinstance(value, dict):
-                self.suggest[key] = create_suggest(key, value)
+                self.suggests[key] = get_attr(value)
 
-    def create_update(self, trial: Trial, name, params):
-        self.suggest[name](trial)
-        parser = Parser(values=False).parse(trial.params, params["run"])
-        update = {}
-        for names, v in zip(parser.names, parser.options.values()):
+    def optimize(
+        self, study_name, name, update, options, params, create_run, tuner, mode
+    ):
+        objective = self.create_objective(name, update, params, create_run)
+        study = tuner.create_study(
+            study_name, mode, sampler=self.sampler, pruner=self.pruner,
+        )
+        study.optimize(objective, **options)
+        return study
+
+    def create_update(self, trial: Trial, name, update, params):
+        self.suggests[name](trial)
+        parser = Parser().parse(trial.params, params["run"])
+        update = update.copy()
+        for names, v in zip(parser.names, parser.values):
             for name in names:
-                update[name] = v
+                update[name] = v[0]
         return update
 
-    def create_objective(self, name, params, create_run):
-        create_update = functools.partial(self.create_update, name=name, params=params)
-        tags = {"suggest": name}
+    def create_objective(self, name, update, params, create_run):
+        create_update = functools.partial(
+            self.create_update, name=name, update=update, params=params
+        )
 
         def objective(trial: Trial):
             update = create_update(trial)
-            run = create_run(update, "trial", trial.number, trial.params.keys(), tags)
+            run = create_run(update, "trial", trial.number, trial.params.keys())
             if run.tracking:
                 trial.set_user_attr("run_id", run.id)
             if self.pruner:
@@ -50,20 +57,3 @@ class Objective:
             return score
 
         return objective
-
-
-def create_suggest(key, params):
-    suggests = []
-    for x, value in params.items():
-        suggest = [f"suggest_{value[0]}", x]
-        if value[0] == "categorical":
-            suggest += [value[1:]]
-        else:
-            suggest += value[1:]
-        suggests.append(suggest)
-
-    def suggest(trial):
-        for s in suggests:
-            getattr(trial, s[0])(*s[1:])
-
-    return suggest

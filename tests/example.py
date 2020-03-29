@@ -60,5 +60,11 @@ class Model(nn.Module):
         return self.layers[-1](x)
 
 
-def suggest(trial):
-    trial.suggest_loguniform("optimizer.lr", 1e-4, 1e-1)
+def suggest_lr(trial):
+    trial.suggest_loguniform("lr", 1e-4, 1e-1)
+
+
+def suggest_hidden_sizes(trial):
+    num_layers = trial.suggest_int("num_layers", 2, 3)
+    for k in range(num_layers):
+        trial.suggest_int(f"hidden_sizes.{k}", 10, 30)

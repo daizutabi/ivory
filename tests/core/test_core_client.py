@@ -69,3 +69,23 @@ def test_client_run_kwargs(client):
             assert run.dataloaders.fold == 2
             assert run.trainer.max_epochs == 4
             assert run.name == "prod#4"
+
+
+def test_client_optimize(client):
+    for k, run in enumerate(client.run(fold="1-2", max_epochs="3,4")):
+        if k == 0:
+            assert run.dataloaders.fold == 1
+            assert run.trainer.max_epochs == 3
+            assert run.name == "prod#1"
+        if k == 1:
+            assert run.dataloaders.fold == 1
+            assert run.trainer.max_epochs == 4
+            assert run.name == "prod#2"
+        if k == 2:
+            assert run.dataloaders.fold == 2
+            assert run.trainer.max_epochs == 3
+            assert run.name == "prod#3"
+        if k == 3:
+            assert run.dataloaders.fold == 2
+            assert run.trainer.max_epochs == 4
+            assert run.name == "prod#4"

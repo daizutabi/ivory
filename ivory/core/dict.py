@@ -19,10 +19,7 @@ class Dict:
             return Missing(self, key)
 
     def __getattr__(self, key):
-        if key in self.dict:
-            return self.dict[key]
-        else:
-            return Missing(self, key)
+        return self.__getitem__(key)
 
     def __contains__(self, key):
         return key in self.dict

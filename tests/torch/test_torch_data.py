@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from example import Dataset
 from ivory.core.instance import create_instance
@@ -13,6 +14,8 @@ def test_dataset(data):
     dataset = Dataset("train", data.get([1, 2, 3]))
     assert len(dataset) == 3
     assert "num_samples=3" in repr(dataset)
+    with pytest.raises(IndexError):
+        dataset[4]
 
 
 def test_dataset_transform(data):
@@ -33,6 +36,12 @@ def test_dataloaders(dataloaders, data):
     assert len(val_loader) == 1000 * 1 // 5 // 10
     assert train_loader.dataset.mode == "train"
     assert val_loader.dataset.mode == "val"
+
+    mode = data.mode
+    data.mode = 'mean'
+    with pytest.raises(ValueError):
+        dataloaders.init(data)
+    data.mode = mode
 
 
 def test_dataloaders_test(dataloaders, data):

@@ -8,9 +8,7 @@ class Tuner:
     storage: str = "sqlite://"
     load_if_exists: bool = True
 
-    def create_study(
-        self, study_name: str, mode: str, experiment_id=None, sampler=None, pruner=None
-    ):
+    def create_study(self, study_name: str, mode: str, sampler=None, pruner=None):
         """Creates and returns a Optuna Study object."""
         if mode == "min":
             direction = "minimize"
@@ -26,8 +24,6 @@ class Tuner:
             direction=direction,
             load_if_exists=self.load_if_exists,
         )
-        if experiment_id:
-            study.set_user_attr("experiment_id", experiment_id)
         return study
 
     def delete_study(self, study_name: str):

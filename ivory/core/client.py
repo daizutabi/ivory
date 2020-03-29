@@ -48,40 +48,32 @@ class Client(Base):
         return create_instance(params, name)
 
     def run(self, args=None, repeat=1, message: str = "", **kwargs):
-        parser = Parser().parse(args, self.params["run"], **kwargs)
-        if repeat != 1 and parser.mode == "single":
-            parser.mode = "repeat"
-        args = parser.args.keys()
-        tags = parser.args
-        it = list(itertools.product(range(repeat), *parser.values))
-        if len(it) > 1:
-            it = tqdm(it, desc="Run  ")
-        for number, (_, *value) in enumerate(it, 1):
-            update = {}
-            for names, v in zip(parser.names, value):
-                for name in names:
-                    update[name] = v
-            run = self._create_run(update, parser.mode, number, args, tags, message)
+        it = product(args, self.params["run"], repeat, **kwargs)
+        for update, _, mode, number, args, _, tags in it:
+            run = self._create_run(update, mode, number, args, tags, message)
             yield run
 
-    def optimize(self, name, options, message: str = ""):
-        if name is None:
-            name = list(self.experiment.objective.suggest.keys())[0]
-        if "delete" in options:
-            study_name = ".".join([self.experiment.name, options["delete"]])
-            self.tuner.delete_study(study_name)
-            return
-        create_run = functools.partial(self._create_run, message=message)
-        create_objective = self.experiment.objective.create_objective
-        objective = create_objective(name, self.params, create_run)
+    def optimize(self, name, args=None, message: str = "", **kwargs):
+        it = product(args, self.params["run"], repeat=1, **kwargs)
         mode = self.create_instance("run.monitor").mode
-        study_name = ".".join([self.experiment.name, name])
-        pruner = self.experiment.objective.pruner
-        sampler = self.experiment.objective.sampler
-        study = self.tuner.create_study(
-            study_name, mode, self.experiment.id, sampler=sampler, pruner=pruner
-        )
-        study.optimize(objective, **options)
+        for update, options, _, _, args, values, tags in it:
+            names = sorted([f"{arg}={value}" for arg, value in zip(args, values)])
+            extra_name = ",".join(names)
+            study_name = ".".join([self.experiment.name, name, extra_name])
+            tags.update(suggest=name)
+            create_run = functools.partial(self._create_run, tags=tags, message=message)
+            study = self.experiment.objective.optimize(
+                study_name,
+                name,
+                update,
+                options,
+                self.params,
+                create_run,
+                self.tuner,
+                mode,
+            )
+            if self.experiment.id:
+                study.set_user_attr("experiment_id", self.experiment.id)
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
@@ -135,3 +127,25 @@ class Client(Base):
                 tags["message"] = message
             run.tracking.set_tags(run.id, tags)
         return run
+
+
+def product(args, params, repeat=1, **kwargs):
+    parser = Parser().parse(args, params, **kwargs)
+    if repeat != 1 and parser.mode == "single":
+        parser.mode = "repeat"
+    args = parser.args.keys()
+    tags = parser.args
+    it = list(itertools.product(range(repeat), *parser.values))
+    if len(it) > 1:
+        it = tqdm(it, desc="Run  ")
+    for number, (_, *value) in enumerate(it, 1):
+        update = {}
+        options = {}
+        values_ = []
+        for names, v in zip(parser.names, value):
+            if isinstance(names, str):
+                options[names] = v
+            else:
+                for name in names:
+                    update[name] = v
+        yield update, options, parser.mode, number, args, value, tags
