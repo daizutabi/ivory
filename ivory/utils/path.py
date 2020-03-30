@@ -5,12 +5,6 @@ import urllib.request
 
 
 def to_uri(path: str) -> str:
-    """
-    Examples:
-        >>> path = r"abc\\def"
-        >>> to_uri(path)
-        'file:///abc/def'
-    """
     if urllib.parse.urlparse(path).scheme:
         return path
     if "~" in path:
