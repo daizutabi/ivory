@@ -1,4 +1,6 @@
-include: client.yaml
+client:
+  tracker:
+  tuner:
 experiment:
   name: example
   data:
@@ -8,6 +10,7 @@ experiment:
     lr: example.suggest_lr
     hidden_sizes:
       def: example.suggest_hidden_sizes
+      max_num_layers: 3
     pruner:
       class: optuna.pruners.MedianPruner
 run:
@@ -40,4 +43,4 @@ run:
     patience: 8
   trainer:
     max_epochs: 10
-    verbose: 1
+    verbose: 2

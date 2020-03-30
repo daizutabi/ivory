@@ -20,9 +20,10 @@ plugins:
 nav:
   - Home: index.md
   - Tutorial:
-      Data: tutorial/data.py
-      Model: tutorial/model.py
-      Metrics: tutorial/metrics.py
+      Overview: tutorial/overview.py
+      Client: tutorial/client_experiment_run.py
+      # Model: tutorial/model.py
+      # Metrics: tutorial/metrics.py
       # Trainer: tutorial/trainer.md
       # Run: tutorial/run.md
       # Experiment: tutorial/experiment.md

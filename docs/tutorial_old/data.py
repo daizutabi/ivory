@@ -1,6 +1,7 @@
 # # Data
 
-# All of machine learning need data. So, we will start from data.
+# Ivory uses three classes for data presentation: `Data`, `Dataset`, `DataLoaders`. Note
+# that the last one is not a `DataLoader`.
 
 # ## Create data
 
