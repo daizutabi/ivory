@@ -17,6 +17,8 @@ def create_client(params, source_name=""):
     if isinstance(params, str):
         source_name = os.path.abspath(params)
         params = utils.load_params(params)
+        name = os.path.splitext(os.path.basename(source_name))[0]
+        params["client"]["name"] = name
     with utils.chdir(source_name):
         return create_base_instance(params, "client", source_name)
 
@@ -128,6 +130,9 @@ class Client(Base):
                 tags["message"] = message
             run.tracking.set_tags(run.id, tags)
         return run
+
+    def update_params(self, **kwargs):
+        self.tracker.update_params(self.experiment.id, **kwargs)
 
 
 def product(args, params, repeat=1, desc="Run  ", **kwargs):

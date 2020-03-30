@@ -24,7 +24,7 @@ class Tracking:
     def on_epoch_end(self, run):
         metrics = run.metrics.copy()
         monitor = run.monitor
-        if monitor and monitor.best_epoch > 0:
+        if monitor:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
         self.log_metrics(run.id, metrics, run.metrics.epoch)
         self.save_run(run, "current")
@@ -45,7 +45,7 @@ class Tracking:
                 if mode != "current":
                     return
                 monitor = run.monitor
-                if monitor and monitor.is_best and monitor.best_epoch > 0:
+                if monitor and monitor.is_best:
                     os.rename(directory, directory.replace("current", "best"))
                     self.client.log_artifacts(run.id, tmpdir)
 

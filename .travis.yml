@@ -17,7 +17,7 @@ install:
 before_script:
   - pycodestyle ivory
   - pyflakes ivory
-  - mypy pheasant
+  - mypy ivory
   - pycodestyle tests
   - pyflakes tests
 

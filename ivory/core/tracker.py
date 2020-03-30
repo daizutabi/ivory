@@ -1,13 +1,13 @@
-from dataclasses import dataclass
 import tempfile
+from dataclasses import dataclass
 from typing import Optional
 
 import mlflow
 
+import ivory.core.state
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
 from ivory.utils.mlflow import get_source_name, get_tags
-import ivory.core.state
 
 
 @dataclass
@@ -55,40 +55,62 @@ class Tracker:
             run = run_or_run_id
         return get_source_name(run)
 
+    def load_params(self, run_id):
+        return load(self, run_id, "params")
+
+    def load_run(self, run_id, mode, create_run):
+        return load(self, run_id, "run", mode, create_run)
+
+    def load_instance(self, run_id, name, mode, create_run, create_instance):
+        return load(self, run_id, name, mode, create_run, create_instance)
+
     def create_tracking(self):
         return Tracking(self.tracking_uri)
 
-    def load_run(self, run_id, mode, create_run):
-        source_name = self.get_source_name(run_id)
-        client = self.client
-        with utils.chdir(source_name):
+    def update_params(self, experiment_id, **kwargs):
+        runs = self.search_runs(experiment_id, return_id=False)
+        args = []
+        for run in runs:
+            args.extend(list(run.data.params.keys()))
+        args = list(set(args))
+        tracking = self.create_tracking()
+        for run in runs:
+            run_id = run.info.run_id
+            params = self.load_params(run_id)
+            update = {}
+            for arg in args:
+                value = utils.get_value(params["run"], arg)
+                if value is not None:
+                    update[arg] = value
+                elif arg in kwargs:
+                    update[arg] = kwargs[arg]
+            tracking.log_params(run_id, update)
+
+
+def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None):
+    source_name = tracker.get_source_name(run_id)
+    client = tracker.client
+    with utils.chdir(source_name):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+            params = utils.load_params(params_path)
+            if name == "params":
+                return params
             mode = get_valid_mode(client, run_id, mode)
-            with tempfile.TemporaryDirectory() as tmpdir:
-                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
-                params = utils.load_params(params_path)
+            state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
+            if name == "run":
                 run = create_run(params)
                 state_dict = run.load(state_dict_path)
                 run.load_state_dict(state_dict)
-        return run
-
-    def load_instance(self, run_id, name, mode, create_run, create_instance):
-        source_name = self.get_source_name(run_id)
-        client = self.client
-        with utils.chdir(source_name):
-            mode = get_valid_mode(client, run_id, mode)
-            with tempfile.TemporaryDirectory() as tmpdir:
-                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
-                params = utils.load_params(params_path)
-                instance = create_instance(name, params)
-                if isinstance(instance, ivory.core.state.State):
-                    state_dict = ivory.core.state.load(state_dict_path, name)
-                else:
-                    run = create_run(params)
-                    state_dict = run.load_instance(state_dict_path, name)
-                instance.load_state_dict(state_dict)
-        return instance
+                return run
+            instance = create_instance(name, params)
+            if isinstance(instance, ivory.core.state.State):
+                state_dict = ivory.core.state.load(state_dict_path, name)
+            else:
+                run = create_run(params)
+                state_dict = run.load_instance(state_dict_path, name)
+            instance.load_state_dict(state_dict)
+            return instance
 
 
 def get_valid_mode(client, run_id, mode):

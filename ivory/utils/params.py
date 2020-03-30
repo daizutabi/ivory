@@ -197,4 +197,5 @@ def get_value(params, name):
         2
     """
     fullname = get_fullname(params, name)
-    return dot_get(params, fullname)
+    if fullname:
+        return dot_get(params, fullname)
