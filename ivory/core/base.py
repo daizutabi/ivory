@@ -1,5 +1,3 @@
-from itertools import product
-
 from ivory.core.dict import Dict
 
 

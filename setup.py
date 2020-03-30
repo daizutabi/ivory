@@ -80,6 +80,7 @@ setup(
         "termcolor",
         "click",
         "logzero",
+        "tqdm",
     ],
     classifiers=[
         "Environment :: Console",
