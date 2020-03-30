@@ -15,7 +15,7 @@ The relationship of these libraries is like below:
 
 Using Ivory, you can obtain the both tuning and tracking workflow at one place.
 
-Another key feature of Ivory is its model design. You can write down all of your model structure and tuning/tracking process in one YAML file. Its allows us to understand the whole process at a glance.
+Another key feature of Ivory is its model design. You can write down all of your model structure and tuning/tracking process in one YAML file. It allows us to understand the whole process at a glance.
 
 
 ## Setup
