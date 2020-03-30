@@ -1,4 +1,3 @@
-# import datetime
 import logging
 import os
 import sys
@@ -71,22 +70,12 @@ def search(path, args, message):
 
 
 @cli.command(help="Start tracking UI.")
-@click.argument("path", callback=normpath)
+@click.argument("path", nargs=-1, callback=normpath)
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
 def ui(path, quiet):
     logger.info("Tracking UI.")
     client = create_client(path)
     client.ui()
-
-
-# elif cmd in ["search", "list"]:         if "=" in args[0]:             mode = None
-# else:             mode, args = args[0], args[1:]         parser =
-# Parser().parse_args(args)         params = dict(zip(parser.args.keys(),
-# parser.values))         for run in client.search_runs(params, mode, message,
-# return_id=False):             run_id = run.info.run_id             start_dt =
-# datetime.datetime.fromtimestamp(run.info.start_time / 1e3)             start_dt =
-# start_dt.strftime("%Y-%m-%d %H:%M:%S")             print(run_id, start_dt)     elif
-# cmd == "ui":         client.ui()
 
 
 def main():
