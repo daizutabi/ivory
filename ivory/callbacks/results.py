@@ -35,18 +35,11 @@ class Results(Dict, State):
         self["test"] = self.result_dict()
 
     def result_dict(self):
-        index = stack_list(self.indexes)
-        output = stack_list(self.outputs)
+        if not (self.indexes):
+            return None
+        index = np.vstack(self.indexes)
+        output = np.vstack(self.outputs)
         if not self.targets:
             return dict(index=index, output=output)
-        target = stack_list(self.targets)
+        target = np.vstack(self.targets)
         return dict(index=index, output=output, target=target)
-
-
-def stack_list(x):
-    if not x:
-        return
-    elif x[0].ndim == 1:
-        return np.hstack(x)
-    else:
-        return np.vstack(x)

@@ -36,13 +36,13 @@ class Client(Base):
         return experiment
 
     def create_run(self, params=None):
-        params = params or self.params
+        params = params or copy.deepcopy(self.params)
         run = create_base_instance(params, "run", self.source_name)
         run.set_experiment(self.experiment)
         return run
 
     def create_instance(self, name, params=None):
-        params = params or self.params
+        params = params or copy.deepcopy(self.params)
         if "." not in name:
             name = f"run.{name}"
         return create_instance(params, name)
@@ -54,7 +54,7 @@ class Client(Base):
             yield run
 
     def optimize(self, name, args=None, message: str = "", **kwargs):
-        it = product(args, self.params["run"], repeat=1, **kwargs)
+        it = product(args, self.params["run"], repeat=1, desc="Study", **kwargs)
         mode = self.create_instance("run.monitor").mode
         for update, options, _, _, args, values, tags in it:
             names = sorted([f"{arg}={value}" for arg, value in zip(args, values)])
@@ -74,6 +74,7 @@ class Client(Base):
             )
             if self.experiment.id:
                 study.set_user_attr("experiment_id", self.experiment.id)
+            yield study
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
@@ -129,23 +130,19 @@ class Client(Base):
         return run
 
 
-def product(args, params, repeat=1, **kwargs):
+def product(args, params, repeat=1, desc="Run  ", **kwargs):
     parser = Parser().parse(args, params, **kwargs)
     if repeat != 1 and parser.mode == "single":
         parser.mode = "repeat"
-    args = parser.args.keys()
+    args = parser.fullnames.keys()
     tags = parser.args
-    it = list(itertools.product(range(repeat), *parser.values))
+    options = parser.options
+    it = list(itertools.product(range(repeat), *parser.update.values()))
     if len(it) > 1:
-        it = tqdm(it, desc="Run  ")
-    for number, (_, *value) in enumerate(it, 1):
+        it = tqdm(it, desc=desc)
+    for number, (_, *values) in enumerate(it, 1):
         update = {}
-        options = {}
-        values_ = []
-        for names, v in zip(parser.names, value):
-            if isinstance(names, str):
-                options[names] = v
-            else:
-                for name in names:
-                    update[name] = v
-        yield update, options, parser.mode, number, args, value, tags
+        for fullnames, value in zip(parser.update, values):
+            for fullname in fullnames:
+                update[fullname] = value
+        yield update, options, parser.mode, number, args, values, tags

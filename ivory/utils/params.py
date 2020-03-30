@@ -6,6 +6,7 @@ import yaml
 
 
 def load_params(path: str):
+    """Loads a parameter YAML file."""
     with open(path, "r") as file:
         params_yaml = file.read()
     params = literal_eval(yaml.safe_load(params_yaml))
@@ -60,7 +61,7 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
 
 
 def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert suffix integers into list.
+    """Converts suffix integers into a list.
 
     Examples:
         >>> x = {"a.0": 1, "a.1": 3, "b.x.0": 10, "b.x.1": 20}
@@ -104,7 +105,7 @@ def dot_flatten(x: Dict[str, Any], flattened=None, prefix="") -> Dict[str, Any]:
 
 
 def dot_get(x: Dict[str, Any], key: str):
-    """Dot style dictionay access
+    """Dot style dictionay access.
 
     Examples:
         >>> x = {"a": 1, "b": {"x": "abc", "y": 2, "z": [0, 1, 2]}}
@@ -128,19 +129,23 @@ def dot_get(x: Dict[str, Any], key: str):
 
 
 def get_fullname(params, name, prefix="", dict_allowed=False):
-    """
+    """Returns a fullname found first.
+
     Examples:
-        >>> params = {'a': 1, 'b': {'c': {'d': 2}}}
+        >>> params = {'a': 1, 'b': {'c': {'d': 2, 'e': [1, 2, 3]}}}
         >>> get_fullname(params, 'a')
         'a'
         >>> get_fullname(params, 'c')
         >>> get_fullname(params, 'd')
         'b.c.d'
         >>> get_fullname(params, 'e')
+        'b.c.e'
         >>> get_fullname(params, 'b.c.d')
         'b.c.d'
         >>> get_fullname(params, 'c.d')
         'b.c.d'
+        >>> get_fullname(params, 'e.2')
+        'b.c.e.2'
     """
     if "." in name:
         name, _, suffix = name.partition(".")
@@ -163,7 +168,8 @@ def get_fullname(params, name, prefix="", dict_allowed=False):
 
 
 def get_fullnames(params, name):
-    """
+    """Returns a tuple of fullnames.
+
     Examples:
         >>> params = {'a': 1, 'b': {'x': 2}, 'c': {'x': 2}}
         >>> get_fullnames(params, 'x')

@@ -28,23 +28,14 @@ class Objective:
         study.optimize(objective, **options)
         return study
 
-    def create_update(self, trial: Trial, name, update, params):
-        self.suggests[name](trial)
-        parser = Parser().parse(trial.params, params["run"])
-        update = update.copy()
-        for names, v in zip(parser.names, parser.values):
-            for name in names:
-                update[name] = v[0]
-        return update
-
     def create_objective(self, name, update, params, create_run):
         create_update = functools.partial(
             self.create_update, name=name, update=update, params=params
         )
 
         def objective(trial: Trial):
-            update = create_update(trial)
-            run = create_run(update, "trial", trial.number, trial.params.keys())
+            update, args = create_update(trial)
+            run = create_run(update, "trial", trial.number, args)
             if run.tracking:
                 trial.set_user_attr("run_id", run.id)
             if self.pruner:
@@ -57,3 +48,12 @@ class Objective:
             return score
 
         return objective
+
+    def create_update(self, trial: Trial, name, update, params):
+        self.suggests[name](trial)
+        parser = Parser().parse(trial.params, params["run"])
+        update = update.copy()
+        for fullnames, values in parser.update.items():
+            for fullname in fullnames:
+                update[fullname] = values[0]
+        return update, parser.fullnames.keys()

@@ -6,12 +6,14 @@ from ivory import utils
 
 class Parser:
     def parse_args(self, args=None, **kwargs):
-        if args is None:
+        if not args:
             self.args = {}
         elif isinstance(args, (list, tuple)):
             self.args = dict(arg.split("=") for arg in args)
-        else:
+        elif isinstance(args, dict):
             self.args = args.copy()
+        else:
+            raise ValueError(f"Invalid arguments type: {type(args)}.")
         self.args.update(kwargs)
         self.values = parse_values(self.args.values())
         counts = [len(x) for x in self.values]
@@ -25,7 +27,9 @@ class Parser:
         return self
 
     def parse_params(self, params):
-        self.names = parse_names(self.args.keys(), params)
+        self.update, self.fullnames, self.options = parse_names(
+            self.args, self.values, params
+        )
         return self
 
     def parse(self, args, params, **kwargs):
@@ -34,14 +38,18 @@ class Parser:
         return self
 
 
-def parse_names(names, params):
-    fullnames = []
-    for name in names:
-        fullname = utils.get_fullnames(params, name)
-        if not fullname:
-            fullname = name
-        fullnames.append(fullname)
-    return fullnames
+def parse_names(args, values, params):
+    update = {}
+    names = {}
+    options = {}
+    for name, value in zip(args, values):
+        fullnames = utils.get_fullnames(params, name)
+        if not fullnames:
+            options[name] = value[0]
+        else:
+            names[name] = fullnames
+            update[fullnames] = value
+    return update, names, options
 
 
 def parse_values(values):
@@ -49,7 +57,7 @@ def parse_values(values):
     for value in values:
         if not isinstance(value, (list, str)):
             value = [value]
-        else:
+        elif isinstance(value, str):
             match = re.match(r"(.+)-(.+)", value)
             if match:
                 try:
