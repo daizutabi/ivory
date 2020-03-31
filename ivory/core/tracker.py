@@ -1,3 +1,4 @@
+import os
 import tempfile
 from dataclasses import dataclass
 from typing import Optional
@@ -37,23 +38,12 @@ class Tracker:
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
-    def search_runs(self, experiment_id, params=None, tags=None, return_id=True):
-        if params is None:
-            params = {}
-        if tags is None:
-            tags = {}
-        runs = self.client.search_runs(experiment_id, filter_string(params, tags))
-        if return_id:
-            return [run.info.run_id for run in runs]
-        else:
-            return runs
+    def list_run_ids(self, experiment_id: str):
+        for run_info in self.client.list_run_infos(experiment_id):
+            yield run_info.run_id
 
-    def get_source_name(self, run_or_run_id):
-        if isinstance(run_or_run_id, str):
-            run = self.client.get_run(run_or_run_id)
-        else:
-            run = run_or_run_id
-        return get_source_name(run)
+    def get_source_name(self, run_id):
+        return get_source_name(self.client.get_run(run_id))
 
     def load_params(self, run_id):
         return load(self, run_id, "params")
@@ -68,7 +58,9 @@ class Tracker:
         return Tracking(self.tracking_uri)
 
     def update_params(self, experiment_id, **kwargs):
-        runs = self.search_runs(experiment_id, return_id=False)
+        runs = []
+        for run_id in self.list_run_ids(experiment_id):
+            runs.append(self.client.get_run(run_id))
         args = []
         for run in runs:
             args.extend(list(run.data.params.keys()))
@@ -97,18 +89,21 @@ def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None
             if name == "params":
                 return params
             mode = get_valid_mode(client, run_id, mode)
-            state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
             if name == "run":
+                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
                 run = create_run(params)
                 state_dict = run.load(state_dict_path)
                 run.load_state_dict(state_dict)
                 return run
+            os.mkdir(os.path.join(tmpdir, mode))
+            path = os.path.join(mode, name)
+            state_dict_path = client.download_artifacts(run_id, path, tmpdir)
             instance = create_instance(name, params)
             if isinstance(instance, ivory.core.state.State):
-                state_dict = ivory.core.state.load(state_dict_path, name)
+                state_dict = ivory.core.state.load(state_dict_path)
             else:
                 run = create_run(params)
-                state_dict = run.load_instance(state_dict_path, name)
+                state_dict = run.load_instance(state_dict_path)
             instance.load_state_dict(state_dict)
             return instance
 
@@ -130,20 +125,3 @@ def get_modes(client, run_id):
         if artifact.is_dir:
             modes.append(artifact.path)
     return modes
-
-
-def filter_string(params, tags=None):
-    """
-    Examples:
-        >>> params = {"lr": 1e-3, "fold": 2}
-        >>> tags = {"mode": 'train'}
-        >>> filter_string(params, tags)
-        "param.lr='0.001' and param.fold='2' and tag.mode='train'"
-    """
-    filters = []
-    for key, value in params.items():
-        filters.append(f"param.{key}='{value}'")
-    if tags:
-        for key, value in tags.items():
-            filters.append(f"tag.{key}='{value}'")
-    return " and ".join(filters)

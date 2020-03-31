@@ -10,9 +10,9 @@ from ivory.core.state import State
 
 @dataclass
 class Trainer(State):
-    epoch: int = -1
+    epoch: int = 0
     max_epochs: int = 1000
-    global_step: int = -1
+    global_step: int = 0
     verbose: int = 1
 
     def train_loop(self, run):

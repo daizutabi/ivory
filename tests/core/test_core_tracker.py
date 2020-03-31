@@ -13,13 +13,6 @@ def test_create_experiment(experiment):
     assert int(id1) + 1 == int(id2)
 
 
-def test_search_runs(experiment, tracker, run):
-    runs = list(tracker.search_runs(experiment.id))
-    assert isinstance(runs[0], str)
-    runs = list(tracker.search_runs(experiment.id, return_id=False))
-    assert not isinstance(runs[0], str)
-
-
 def test_get_modes(tracker, run):
     modes = get_modes(tracker.client, run.id)
     for mode in ["best", "current", "test"]:

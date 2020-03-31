@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("tests"))
 
 @pytest.fixture(scope="session")
 def client():
-    client = create_client(path="tests")
+    client = create_client(directory="tests")
     client.create_experiment("example")
     yield client
     if os.path.exists("tests/mlruns"):

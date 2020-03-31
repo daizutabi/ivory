@@ -13,31 +13,42 @@ from ivory.core.instance import create_base_instance, create_instance
 from ivory.core.parser import Parser
 
 
-def create_client(name="client", path="."):
-    source_name = utils.normpath(name, path)
+def create_client(path="client", directory="."):
+    source_name = utils.normpath(path, directory)
     params = utils.load_params(source_name)
     with utils.chdir(source_name):
         return create_base_instance(params, "client", source_name)
 
 
 class Client(Base):
-    def create_experiment(self, name: str):
-        path = os.path.dirname(self.source_name)
-        source_name = utils.normpath(name, path)
-        self.params = utils.load_params(source_name)
-        experiment = create_base_instance(self.params, "experiment", source_name)
+    def create_experiment(self, path: str):
+        directory = os.path.dirname(self.source_name)
+        source_name = utils.normpath(path, directory)
+        params = utils.load_params(source_name)
+        experiment = create_base_instance(params, "experiment", source_name)
         experiment.set_client(self)
-        self["experiment"] = experiment
+        self.set_experiment(experiment)
         return experiment
 
+    def set_experiment(self, experiment):
+        self["experiment"] = experiment
+        self.params = experiment.params
+
+    def create_params(self, params=None):
+        if not params:
+            return copy.deepcopy(self.params)
+        if params["experiment"]["id"] != self.experiment.id:
+            raise ValueError("Experiment ids don't match.")
+        return params
+
     def create_run(self, params=None):
-        params = params or copy.deepcopy(self.params)
+        params = self.create_params(params)
         run = create_base_instance(params, "run")
         run.set_experiment(self.experiment)
         return run
 
     def create_instance(self, name, params=None):
-        params = params or copy.deepcopy(self.params)
+        params = self.create_params(params)
         if "." not in name:
             name = f"run.{name}"
         return create_instance(params, name)
@@ -51,29 +62,27 @@ class Client(Base):
     def optimize(self, name, args=None, message: str = "", **kwargs):
         it = product(args, self.params["run"], repeat=1, desc="Study", **kwargs)
         mode = self.create_instance("run.monitor").mode
+        tuner = self.tuner
+        optimize = self.experiment.objective.optimize
+        params = self.params
         for update, options, _, _, args, values, tags in it:
             names = sorted([f"{arg}={value}" for arg, value in zip(args, values)])
             extra_name = ",".join(names)
             study_name = ".".join([self.experiment.name, name, extra_name])
             tags.update(suggest=name)
+            create_study = functools.partial(tuner.create_study, study_name, mode)
             create_run = functools.partial(self._create_run, tags=tags, message=message)
-            study = self.experiment.objective.optimize(
-                study_name,
-                name,
-                update,
-                options,
-                self.params,
-                create_run,
-                self.tuner,
-                mode,
-            )
-            if self.experiment.id:
-                study.set_user_attr("experiment_id", self.experiment.id)
-            yield study
+            study = optimize(name, update, params, options, create_run, create_study)
+        if self.experiment.id:
+            study.set_user_attr("experiment_id", self.experiment.id)
+        yield study
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
         ivory.core.ui.run(tracking_uri)
+
+    def list_run_ids(self):
+        return self.tracker.list_run_ids(self.experiment.id)
 
     def search_runs(self, params=None, tags=None, return_id=True, **kwargs):
         id = self.experiment.id

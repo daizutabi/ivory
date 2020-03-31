@@ -1,15 +1,11 @@
-import os
-
 import torch
 
 import ivory.core.run
 
 
 class Run(ivory.core.run.Run):
-    def save_instance(self, state_dict, directory, x):
-        path = os.path.join(directory, f"{x}.pt")
+    def save_instance(self, state_dict, path):
         torch.save(state_dict, path)
 
-    def load_instance(self, directory, x):
-        path = os.path.join(directory, f"{x}.pt")
+    def load_instance(self, path):
         return torch.load(path)

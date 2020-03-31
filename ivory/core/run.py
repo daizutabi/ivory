@@ -35,34 +35,35 @@ class Run(CallbackCaller):
 
     def state_dict(self):
         state_dict = {}
-        for x in self:
-            if hasattr(self[x], "state_dict") and callable(self[x].state_dict):
-                state_dict[x] = self[x].state_dict()
+        for name in self:
+            if hasattr(self[name], "state_dict") and callable(self[name].state_dict):
+                state_dict[name] = self[name].state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict):
-        for x in state_dict:
-            self[x].load_state_dict(state_dict[x])
+        for name in state_dict:
+            self[name].load_state_dict(state_dict[name])
 
     def save(self, directory):
-        for x, state_dict in self.state_dict().items():
-            if isinstance(self[x], ivory.core.state.State):
-                ivory.core.state.save(state_dict, directory, x)
+        for name, state_dict in self.state_dict().items():
+            path = os.path.join(directory, name)
+            if isinstance(self[name], ivory.core.state.State):
+                ivory.core.state.save(state_dict, path)
             else:
-                self.save_instance(state_dict, directory, x)
+                self.save_instance(state_dict, path)
 
-    def save_instance(self, state_dict, directory, x):
-        raise ValueError(f"Unknown save method for {self[x]}.")
+    def save_instance(self, state_dict, path):
+        raise NotImplementedError
 
     def load(self, directory):
         state_dict = {}
-        for path in os.listdir(directory):
-            x = path.split(".")[0]
-            if isinstance(self[x], ivory.core.state.State):
-                state_dict[x] = ivory.core.state.load(directory, x)
+        for name in os.listdir(directory):
+            path = os.path.join(directory, name)
+            if isinstance(self[name], ivory.core.state.State):
+                state_dict[name] = ivory.core.state.load(path)
             else:
-                state_dict[x] = self.load_instance(directory, x)
+                state_dict[name] = self.load_instance(path)
         return state_dict
 
-    def load_instance(self, directory, x):
-        raise ValueError(f"Unknown load method for {self[x]}.")
+    def load_instance(self, path):
+        raise NotImplementedError

@@ -1,4 +1,3 @@
-import os
 import pickle
 
 
@@ -14,13 +13,11 @@ class State:
         self.__dict__.update(state_dict)
 
 
-def save(state_dict, directory, name):
-    path = os.path.join(directory, f"{name}.pickle")
+def save(state_dict, path):
     with open(path, "wb") as file:
         pickle.dump(state_dict, file)
 
 
-def load(directory, name):
-    path = os.path.join(directory, f"{name}.pickle")
+def load(path):
     with open(path, "rb") as file:
         return pickle.load(file)

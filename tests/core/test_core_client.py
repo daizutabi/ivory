@@ -89,15 +89,6 @@ def test_optimize_hidden_sizes(client):
     assert study.user_attrs == {"experiment_id": client.experiment.id}
 
 
-def test_search_runs(client):
-    runs = list(client.search_runs())
-    assert len(runs) >= 0
-    runs = list(client.search_runs(tags={"batch_size": "10"}))
-    assert len(runs) == 3
-    runs = list(client.search_runs(tags={"batch_size": "20"}))
-    assert len(runs) == 4
-
-
 def test_load_run(client, run):
     run.start()
     run = client.load_run(run.id, "best")
@@ -116,10 +107,3 @@ def test_load_instance(client, run):
 
     results = list(client.load_instances([run.id], "results", "best"))
     assert len(results) == 1
-
-
-# def suggest_lr(trial):
-#     trial.suggest_loguniform("lr", 1e-4, 1e-1)
-#
-#
-# def suggest_hidden_sizes(trial):

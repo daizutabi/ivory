@@ -8,7 +8,8 @@ def load_params(path: str):
     """Loads a parameter YAML file."""
     with open(path, "r") as file:
         params_yaml = file.read()
-    return literal_eval(yaml.safe_load(params_yaml))
+    params = yaml.safe_load(params_yaml)
+    return literal_eval(params)
 
 
 def literal_eval(x):
@@ -18,9 +19,14 @@ def literal_eval(x):
         return [literal_eval(value) for value in x]
     elif isinstance(x, str):
         try:
-            return ast.literal_eval(x)
+            v = ast.literal_eval(x)
         except Exception:
             return x
+        if isinstance(v, int):
+            return x
+        if isinstance(v, float) and "e" not in x and "E" not in x:
+            return x
+        return v
     else:
         return x
 
@@ -190,3 +196,19 @@ def get_value(params, name):
     fullname = get_fullname(params, name)
     if fullname:
         return dot_get(params, fullname)
+
+
+def match(params, **kwargs):
+    for name, cond in kwargs.items():
+        value = get_value(params, name)
+        if value is None:
+            return False
+        elif isinstance(cond, tuple):
+            if value < cond[0] or value > cond[1]:
+                return False
+        elif isinstance(cond, list):
+            if value not in cond:
+                return False
+        elif value != cond:
+            return False
+    return True

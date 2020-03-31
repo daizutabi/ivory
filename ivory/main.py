@@ -1,25 +1,14 @@
 import logging
-import os
 import sys
 
 import click
 import logzero
 from logzero import logger
 
-from ivory.core.client import create_client
+import ivory
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
-
-
-def normpath(ctx, param, path):
-    if not path:
-        path = "client"
-    if os.path.exists(path + ".yaml"):
-        return path + ".yaml"
-    if os.path.exists(path + ".yml"):
-        return path + ".yml"
-    raise click.BadParameter(f"File not found: {path}")
 
 
 def loglevel(ctx, param, value):
@@ -38,44 +27,45 @@ def cli():
 
 
 @cli.command(help="Invoke a run or product runs.")
-@click.argument("path", callback=normpath)
+@click.argument("path")
 @click.argument("args", nargs=-1)
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
-@click.option("-t", "--test", is_flag=True, help="Infer after training.")
+@click.option("--notest", is_flag=True, help="Skip inference after training.")
 @click.option("-m", "--message", default="", help="Message for tracking.")
-def run(path, args, repeat, test, message):
-    client = create_client(path)
+def run(path, args, repeat, notest, message):
+    client = ivory.create_client()
+    client.create_experiment(path)
     for run in client.run(args, repeat=repeat, message=message):
         run.start(leave=False)
-        if test:
+        if not notest:
             run = client.load_run(run.id, "best")
             run.start("test")
 
 
-@cli.command(help="Optimize hyper parameters.")
-@click.argument("path", callback=normpath)
-@click.argument("name")
-@click.argument("args", nargs=-1)
-@click.option("-m", "--message", default="", help="Message for tracking.")
-def optimize(path, name, args, message):
-    client = create_client(path)
-    client.optimize(name, args, message=message)
-
-
-@cli.command(help="Search runs.")
-@click.argument("path", callback=normpath)
-@click.argument("args", nargs=-1)
-@click.option("-m", "--message", default="", help="Message for tracking.")
-def search(path, args, message):
-    pass
+# @cli.command(help="Optimize hyper parameters.")
+# @click.argument("path", callback=normpath)
+# @click.argument("name")
+# @click.argument("args", nargs=-1)
+# @click.option("-m", "--message", default="", help="Message for tracking.")
+# def optimize(path, name, args, message):
+#     client = create_client(path)
+#     client.optimize(name, args, message=message)
+#
+#
+# @cli.command(help="Search runs.")
+# @click.argument("path", callback=normpath)
+# @click.argument("args", nargs=-1)
+# @click.option("-m", "--message", default="", help="Message for tracking.")
+# def search(path, args, message):
+#     pass
+#
 
 
 @cli.command(help="Start tracking UI.")
-@click.argument("path", nargs=-1, callback=normpath)
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
-def ui(path, quiet):
+def ui(quiet):
     logger.info("Tracking UI.")
-    client = create_client(path)
+    client = ivory.create_client()
     client.ui()
 
 

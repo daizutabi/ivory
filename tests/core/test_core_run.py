@@ -28,8 +28,8 @@ def test_state_dict(run):
 def test_save_and_load(run, tmpdir):
     run.save(tmpdir)
     listdir = os.listdir(tmpdir)
-    assert "model.pt" in listdir
-    assert "results.pickle" in listdir
+    assert "model" in listdir
+    assert "results" in listdir
 
     epoch = run.trainer.epoch
     state_dict = run.load(tmpdir)

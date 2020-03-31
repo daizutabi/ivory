@@ -18,23 +18,17 @@ class Objective:
             if isinstance(value, str):
                 self.suggests[key] = get_attr(value)
 
-    def optimize(
-        self, study_name, name, update, options, params, create_run, tuner, mode
-    ):
+    def optimize(self, name, update, params, options, create_run, create_study):
         objective = self.create_objective(name, update, params, create_run)
-        study = tuner.create_study(
-            study_name, mode, sampler=self.sampler, pruner=self.pruner,
-        )
+        study = create_study(sampler=self.sampler, pruner=self.pruner)
         study.optimize(objective, **options)
         return study
 
     def create_objective(self, name, update, params, create_run):
-        create_update = functools.partial(
-            self.create_update, name=name, update=update, params=params
-        )
+        create_update = functools.partial(self.create_update, name, update, params)
 
         def objective(trial: Trial):
-            update, args = create_update(trial)
+            update, args = create_update(trial=trial)
             run = create_run(update, "trial", trial.number, args)
             if run.tracking:
                 trial.set_user_attr("run_id", run.id)
@@ -49,7 +43,7 @@ class Objective:
 
         return objective
 
-    def create_update(self, trial: Trial, name, update, params):
+    def create_update(self, name, update, params, trial: Trial):
         self.suggests[name](trial)
         parser = Parser().parse(trial.params, params["run"])
         update = update.copy()
