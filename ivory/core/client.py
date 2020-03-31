@@ -99,6 +99,9 @@ class Client(Base):
             params_ = dict(zip(params.keys(), value))
             yield from self.tracker.search_runs(id, params_, tags, return_id)
 
+    def load_params(self, run_id):
+        return self.tracker.load_params(run_id)
+
     def load_run(self, run_id, mode="test"):
         return self.tracker.load_run(run_id, mode, self.create_run)
 

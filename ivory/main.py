@@ -15,10 +15,11 @@ if "." not in sys.path:
 def normpath(ctx, param, path):
     if not path:
         path = "client"
-    path += ".yaml"
-    if not os.path.exists(path):
-        raise click.BadParameter(f"File not found: {path}")
-    return path
+    if os.path.exists(path + ".yaml"):
+        return path + ".yaml"
+    if os.path.exists(path + ".yml"):
+        return path + ".yml"
+    raise click.BadParameter(f"File not found: {path}")
 
 
 def loglevel(ctx, param, value):

@@ -65,20 +65,3 @@ class CallbackCaller(Base):
                         methods[key] = callback
 
             self[method] = Callback(self, methods)
-
-
-# class CallbackCaller(Base):
-#     def create_callback(self):
-#         for method in CALLBACK_METHODS:
-#             methods = []
-#             for key in self:
-#                 if hasattr(self[key], method):
-#                     callback = getattr(self[key], method)
-#                     if callable(callback):
-#                         methods.append(callback)
-#
-#             def callback(methods=methods):
-#                 for method in methods:
-#                     method(self)
-#
-#             self[method] = callback
