@@ -1,5 +1,4 @@
 import ast
-import os
 from typing import Any, Dict
 
 import yaml
@@ -9,15 +8,7 @@ def load_params(path: str):
     """Loads a parameter YAML file."""
     with open(path, "r") as file:
         params_yaml = file.read()
-    params = literal_eval(yaml.safe_load(params_yaml))
-    if "include" in params:
-        include_path = params.pop("include")
-        directory = os.path.dirname(os.path.abspath(path))
-        include_path = os.path.join(directory, include_path)
-        include = load_params(include_path)
-        include.update(params)
-        params = include
-    return params
+    return literal_eval(yaml.safe_load(params_yaml))
 
 
 def literal_eval(x):

@@ -25,3 +25,14 @@ def chdir(source_name):
         yield
     finally:
         os.chdir(curdir)
+
+
+def normpath(name, path="."):
+    """Converts name into absolute path with an extension."""
+    path = os.path.abspath(os.path.join(path, name))
+    if os.path.exists(path + ".yaml"):
+        return path + ".yaml"
+    if os.path.exists(path + ".yml"):
+        return path + ".yml"
+    else:
+        return path

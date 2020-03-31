@@ -13,33 +13,26 @@ from ivory.core.instance import create_base_instance, create_instance
 from ivory.core.parser import Parser
 
 
-def create_client(params, source_name=""):
-    if isinstance(params, str):
-        source_name = os.path.abspath(params)
-        params = utils.load_params(params)
-        name = os.path.splitext(os.path.basename(source_name))[0]
-        params["client"]["name"] = name
+def create_client(name="client", path="."):
+    source_name = utils.normpath(name, path)
+    params = utils.load_params(source_name)
     with utils.chdir(source_name):
         return create_base_instance(params, "client", source_name)
 
 
 class Client(Base):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if "experiment" in self.params:
-            self.create_experiment()
-        self.params.pop("client")
-
-    def create_experiment(self, params=None):
-        params = params or self.params
-        experiment = create_base_instance(params, "experiment", self.source_name)
+    def create_experiment(self, name: str):
+        path = os.path.dirname(self.source_name)
+        source_name = utils.normpath(name, path)
+        self.params = utils.load_params(source_name)
+        experiment = create_base_instance(self.params, "experiment", source_name)
         experiment.set_client(self)
         self["experiment"] = experiment
         return experiment
 
     def create_run(self, params=None):
         params = params or copy.deepcopy(self.params)
-        run = create_base_instance(params, "run", self.source_name)
+        run = create_base_instance(params, "run")
         run.set_experiment(self.experiment)
         return run
 

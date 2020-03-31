@@ -10,9 +10,11 @@ from ivory.core.client import create_client
 sys.path.insert(0, os.path.abspath("tests"))
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 def client():
-    yield create_client("tests/params.yaml")
+    client = create_client(path="tests")
+    client.create_experiment("example")
+    yield client
     if os.path.exists("tests/mlruns"):
         shutil.rmtree("tests/mlruns")
 

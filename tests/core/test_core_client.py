@@ -2,7 +2,7 @@ import torch
 
 
 def test_client_repr(client):
-    assert repr(client) == "Client(name='params', num_objects=3)"
+    assert repr(client) == "Client(num_objects=4)"
 
 
 def test_client_create_run(client, params):

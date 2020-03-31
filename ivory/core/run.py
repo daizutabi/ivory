@@ -6,6 +6,8 @@ from ivory.core.base import CallbackCaller
 
 class Run(CallbackCaller):
     def set_experiment(self, experiment):
+        if experiment.source_name:
+            self.source_name = experiment.source_name
         if experiment.data:
             self.set_data(experiment.data)
         if experiment.tracker:
