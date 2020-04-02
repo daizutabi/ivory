@@ -4,13 +4,14 @@ DEFAULT_CLASS["core"] = {
     "client": "ivory.core.client.Client",
     "tracker": "ivory.core.tracker.Tracker",
     "tuner": "ivory.core.tuner.Tuner",
-    "evaluator": "ivory.core.evaluator.Evaluator",
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
+    "runloader": "ivory.core.run.RunLoader",
     "results": "ivory.callbacks.results.Results",
     "monitor": "ivory.callbacks.monitor.Monitor",
     "early_stopping": "ivory.callbacks.early_stopping.EarlyStopping",
+    "evaluator": "ivory.callbacks.evaluator.Evaluator",
 }
 
 DEFAULT_CLASS["torch"] = {
@@ -25,10 +26,14 @@ DEFAULT_CLASS["torch"] = {
 def update_class(params, library="core"):
     for name in ["client", "experiment"]:
         if name in params:
+            if params[name] is None:
+                params[name] = {}
             if "class" not in params[name]:
                 params[name]["class"] = DEFAULT_CLASS["core"][name]
             update_class(params[name])
     if "run" in params:
+        if params["run"] is None:
+            params["run"] = {}
         if "library" in params["run"]:
             library = params["run"].pop("library")
         if "class" not in params["run"]:

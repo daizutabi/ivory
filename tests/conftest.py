@@ -1,4 +1,3 @@
-import copy
 import os
 import shutil
 import sys
@@ -13,20 +12,19 @@ sys.path.insert(0, os.path.abspath("tests"))
 @pytest.fixture(scope="session")
 def client():
     client = create_client(directory="tests")
-    client.create_experiment("example")
     yield client
     if os.path.exists("tests/mlruns"):
         shutil.rmtree("tests/mlruns")
 
 
-@pytest.fixture(scope="function")
-def params(client):
-    yield copy.deepcopy(client.params)
-
-
 @pytest.fixture(scope="session")
 def experiment(client):
-    yield client.experiment
+    return client.create_experiment("example")
+
+
+@pytest.fixture(scope="function")
+def params(experiment):
+    yield experiment.create_params()
 
 
 @pytest.fixture(scope="session")
@@ -45,8 +43,8 @@ def objective(experiment):
 
 
 @pytest.fixture(scope="session")
-def run(client):
-    yield client.create_run()
+def run(experiment):
+    yield experiment.create_run()
 
 
 @pytest.fixture(scope="session")

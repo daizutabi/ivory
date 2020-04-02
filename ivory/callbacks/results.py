@@ -19,23 +19,25 @@ class Results(Dict, State):
     def on_test_start(self, run):
         self.reset()
 
-    def step(self, index, output, target=None):
+    def step(self, index, output, *target):
         self.indexes.append(index)
         self.outputs.append(output)
-        if target is not None:
-            self.targets.append(target)
+        if target:
+            self.targets.append(*target)
 
     def on_train_end(self, run):
         self["train"] = self.result_dict()
 
     def on_val_end(self, run):
         self["val"] = self.result_dict()
+        self.reset()
 
     def on_test_end(self, run):
         self["test"] = self.result_dict()
+        self.reset()
 
     def result_dict(self):
-        if not (self.indexes):
+        if not self.indexes:
             return None
         index = np.vstack(self.indexes)
         output = np.vstack(self.outputs)

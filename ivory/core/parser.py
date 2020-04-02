@@ -5,8 +5,13 @@ from ivory import utils
 
 
 class Parser:
+    def __init__(self, params, args, **kwargs):
+        self.parse_args(args, **kwargs)
+        if params:
+            self.parse_params(params)
+
     def parse_args(self, args=None, **kwargs):
-        if not args:
+        if args is None:
             self.args = {}
         elif isinstance(args, (list, tuple)):
             self.args = dict(arg.split("=") for arg in args)
@@ -24,18 +29,11 @@ class Parser:
             self.mode = "scan"
         else:
             self.mode = "prod"
-        return self
 
     def parse_params(self, params):
         self.update, self.fullnames, self.options = parse_names(
             self.args, self.values, params
         )
-        return self
-
-    def parse(self, args, params, **kwargs):
-        self.parse_args(args, **kwargs)
-        self.parse_params(params)
-        return self
 
 
 def parse_names(args, values, params):

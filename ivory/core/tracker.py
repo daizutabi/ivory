@@ -1,7 +1,7 @@
 import os
 import tempfile
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import mlflow
 
@@ -57,7 +57,7 @@ class Tracker:
     def create_tracking(self):
         return Tracking(self.tracking_uri)
 
-    def update_params(self, experiment_id, **kwargs):
+    def update_params(self, experiment_id, **default):
         runs = []
         for run_id in self.list_run_ids(experiment_id):
             runs.append(self.client.get_run(run_id))
@@ -74,20 +74,28 @@ class Tracker:
                 value = utils.get_value(params["run"], arg)
                 if value is not None:
                     update[arg] = value
-                elif arg in kwargs:
-                    update[arg] = kwargs[arg]
+                elif arg in default:
+                    update[arg] = default[arg]
             tracking.log_params(run_id, update)
 
 
+params_cache: Dict[str, Dict[str, Any]] = {}
+
+
 def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None):
+    if name == "params" and run_id in params_cache:
+        return params_cache[run_id]
     source_name = tracker.get_source_name(run_id)
     client = tracker.client
     with utils.chdir(source_name):
         with tempfile.TemporaryDirectory() as tmpdir:
-            params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-            params = utils.load_params(params_path)
-            if name == "params":
-                return params
+            if run_id not in params_cache:
+                params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
+                params, _ = utils.load_params(params_path)
+                params_cache[run_id] = params
+                if name == "params":
+                    return params
+            params = params_cache[run_id]
             mode = get_valid_mode(client, run_id, mode)
             if name == "run":
                 state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
@@ -109,7 +117,10 @@ def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None
 
 
 def get_valid_mode(client, run_id, mode):
-    modes = get_modes(client, run_id)
+    modes = []
+    for artifact in client.list_artifacts(run_id):
+        if artifact.is_dir:
+            modes.append(artifact.path)
     if mode == "test" and mode not in modes:
         mode = "best"
     if mode == "best" and mode not in modes:
@@ -117,11 +128,3 @@ def get_valid_mode(client, run_id, mode):
     if mode == "current" and mode not in modes:
         raise ValueError(f"'{mode}' artifacts not found.")
     return mode
-
-
-def get_modes(client, run_id):
-    modes = []
-    for artifact in client.list_artifacts(run_id):
-        if artifact.is_dir:
-            modes.append(artifact.path)
-    return modes

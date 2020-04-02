@@ -34,11 +34,11 @@ def cli():
 @click.option("-m", "--message", default="", help="Message for tracking.")
 def run(path, args, repeat, notest, message):
     client = ivory.create_client()
-    client.create_experiment(path)
-    for run in client.run(args, repeat=repeat, message=message):
+    experiment = client.create_experiment(path)
+    for run in experiment.start(args, repeat=repeat, message=message):
         run.start(leave=False)
         if not notest:
-            run = client.load_run(run.id, "best")
+            run = experiment.load_run(run.id, "best")
             run.start("test")
 
 

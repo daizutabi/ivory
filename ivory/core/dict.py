@@ -27,6 +27,9 @@ class Dict:
     def __iter__(self):
         return iter(self.dict)
 
+    def __dir__(self):
+        return super().__dir__() + list(self.dict.keys())
+
     def set(self, **kwargs):
         for key, value in kwargs.items():
             self.dict[key] = value

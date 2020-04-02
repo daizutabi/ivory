@@ -6,7 +6,7 @@ from ivory.core.instance import create_instance
 
 
 def test_dataset(data):
-    data.initialize()
+    data.init()
     assert data.input.shape == (1000, 2)
     assert data.fold.shape == (1000,)
     dataset = Dataset("train", data.get())

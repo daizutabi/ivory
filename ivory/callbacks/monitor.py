@@ -20,6 +20,13 @@ class Monitor(State):
         else:
             raise ValueError(f"mode must be 'min' or 'max': {self.mode} given.")
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        s = f"metric='{self.metric}', mode='{self.mode}'"
+        if self.best_epoch != -1:
+            s += f", best_score={self.best_score:.3g}, best_epoch={self.best_epoch}"
+        return f"{class_name}({s})"
+
     def on_epoch_end(self, run):
         if self.metric not in run.metrics:
             msg = f"Metric '{self.metric}' not found. Available metrics are: "

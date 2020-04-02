@@ -1,23 +1,20 @@
 import functools
-from dataclasses import dataclass
-from typing import Any, Callable, Optional
-from ivory.core.dict import Dict
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, Optional
+
+import numpy as np
+
+import ivory.core.dict
 
 
 @dataclass
 class Data:
     mode: str = "train"
+    initialized: bool = False
+    fold: Any = field(default=None, repr=False)
 
-    def __post_init__(self):
-        self.initialized = False
-        self.fold = None
-
-    def initialize(self):
-        self.init()
-        self.initialized = True
-
-    def init(self):
-        """Initialzes the data. For example, read a csv file as a DataFrame.
+    def init(self, **kwargs):
+        """Initializes the data. For example, read a csv file as a DataFrame.
 
         Called from ivory.core.data.Data.
         """
@@ -63,10 +60,23 @@ class Dataset:
 
 
 @dataclass
-class DataLoaders(Dict):
+class DataLoader:
+    dataset: Dataset
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, index):
+        data = self.dataset[index]
+        return [np.expand_dims(x, 0) for x in data]
+
+
+@dataclass
+class DataLoaders(ivory.core.dict.Dict):
     dataset: Callable
     fold: int = 0
     batch_size: int = 32
+    data_init: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -84,7 +94,8 @@ class DataLoaders(Dict):
 
     def init(self, data: Data):
         if not data.initialized:
-            data.initialize()
+            data.init(**self.data_init)
+            data.initialized = True
         if data.mode == "train":
             for mode in ["train", "val"]:
                 index = self.get_index(mode, data)
@@ -106,4 +117,4 @@ class DataLoaders(Dict):
             return
 
     def get_dataloader(self, mode, dataset):
-        return dataset
+        return DataLoader(dataset)

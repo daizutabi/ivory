@@ -1,34 +1,4 @@
-import ast
 from typing import Any, Dict
-
-import yaml
-
-
-def load_params(path: str):
-    """Loads a parameter YAML file."""
-    with open(path, "r") as file:
-        params_yaml = file.read()
-    params = yaml.safe_load(params_yaml)
-    return literal_eval(params)
-
-
-def literal_eval(x):
-    if isinstance(x, dict):
-        return {key: literal_eval(value) for key, value in x.items()}
-    elif isinstance(x, list):
-        return [literal_eval(value) for value in x]
-    elif isinstance(x, str):
-        try:
-            v = ast.literal_eval(x)
-        except Exception:
-            return x
-        if isinstance(v, int):
-            return x
-        if isinstance(v, float) and "e" not in x and "E" not in x:
-            return x
-        return v
-    else:
-        return x
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -198,8 +168,8 @@ def get_value(params, name):
         return dot_get(params, fullname)
 
 
-def match(params, **kwargs):
-    for name, cond in kwargs.items():
+def match(params, **query):
+    for name, cond in query.items():
         value = get_value(params, name)
         if value is None:
             return False

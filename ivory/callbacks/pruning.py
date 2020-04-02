@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 import numpy as np
 import optuna
 from optuna.trial import Trial
 
 
+@dataclass
 class Pruning:
     """Callback to prune unpromising trials.
 
@@ -14,13 +17,8 @@ class Pruning:
             An evaluation metric for pruning, e.g., `val_loss`
     """
 
-    def __init__(self, trial: Trial, metric: str):
-        self.trial = trial
-        self.metric = metric
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        return f"{class_name}(trial={self.trial}, metric='{self.metric}')"
+    trial: Trial
+    metric: str
 
     def on_epoch_end(self, run):
         score = run.metrics[self.metric]

@@ -1,6 +1,7 @@
 import os
 import tempfile
 import time
+from dataclasses import dataclass
 
 import mlflow
 import yaml
@@ -9,9 +10,12 @@ from mlflow.entities import Metric, Param
 from ivory import utils
 
 
+@dataclass
 class Tracking:
-    def __init__(self, tracking_uri):
-        self.client = mlflow.tracking.MlflowClient(tracking_uri)
+    tracking_uri: str
+
+    def __post_init__(self):
+        self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
 
     def on_fit_start(self, run):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -34,6 +38,7 @@ class Tracking:
 
     def on_test_end(self, run):
         self.save_run(run, "test")
+        self.client.set_terminated(run.id)
 
     def save_run(self, run, mode):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -63,3 +68,8 @@ class Tracking:
     def set_tags(self, run_id, tags):
         for key, value in tags.items():
             self.client.set_tag(run_id, key, value)
+
+    def create_tracker(self):
+        from ivory.core.tracker import Tracker
+
+        return Tracker(self.tracking_uri)

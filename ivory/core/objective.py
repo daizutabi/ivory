@@ -45,7 +45,7 @@ class Objective:
 
     def create_update(self, name, update, params, trial: Trial):
         self.suggests[name](trial)
-        parser = Parser().parse(trial.params, params["run"])
+        parser = Parser(params["run"], trial.params)
         update = update.copy()
         for fullnames, values in parser.update.items():
             for fullname in fullnames:
