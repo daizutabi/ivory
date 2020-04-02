@@ -15,3 +15,11 @@ def test_monitor(run):
     monitor.metric = "abc"
     with pytest.raises(ValueError):
         monitor.on_epoch_end(run)
+
+
+def test_monitor_repr():
+    monitor = Monitor(mode="min")
+    assert "mode='min'" in repr(monitor)
+    monitor.best_score = 0.1
+    monitor.best_epoch = 10
+    assert "best_score=0.1, best_epoch=10" in repr(monitor)

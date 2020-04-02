@@ -169,6 +169,22 @@ def get_value(params, name):
 
 
 def match(params, **query):
+    """
+    Examples:
+        >>> params = {'a': 1, 'b': {'c': {'d': 2}}}
+        >>> match(params, a=1)
+        True
+        >>> match(params, a=2)
+        False
+        >>> match(params, a=(0, 3))
+        True
+        >>> match(params, a=(3, 4))
+        False
+        >>> match(params, a=[5, 6])
+        False
+        >>> match(params, a=[0, 1])
+        True
+    """
     for name, cond in query.items():
         value = get_value(params, name)
         if value is None:
