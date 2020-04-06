@@ -4,8 +4,8 @@ experiment:
     class: example.Data
     num_samples: 1000
   objective:
-    lr: example.suggest_lr
-    hidden_sizes:
+    suggest_lr: example.suggest_lr
+    suggest_hidden_sizes:
       def: example.suggest_hidden_sizes
       max_num_layers: 3
     pruner:

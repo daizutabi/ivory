@@ -49,14 +49,14 @@ class Experiment(Base):
         return create_instance(params, name)
 
     def start(self, args=None, repeat=1, message: str = "", **kwargs):
-        it = product(args, self.params["run"], repeat=repeat, **kwargs)
+        it = product(args, self.params, repeat=repeat, **kwargs)
         for update, _, mode, number, args, _, tags in it:
             run = self._create_run(update, mode, number, args, tags, message)
             yield run
 
     def optimize(self, name, args=None, message: str = "", **kwargs):
         params = self.params
-        it = product(args, params["run"], repeat=1, desc="Study", **kwargs)
+        it = product(args, params, repeat=1, desc="Study", **kwargs)
         mode = self.create_instance("run.monitor").mode
         tuner = self.tuner
         optimize = self.objective.optimize
@@ -74,12 +74,12 @@ class Experiment(Base):
 
     def _create_run(self, update, mode, number, args, tags, message):
         params = self.create_params()
-        utils.update_dict(params["run"], update)
+        utils.update_dict(params, update)
         run_name = "single" if mode == "single" else f"{mode}#{number}"
         params["run"]["name"] = run_name
         run = self.create_run(params)
         if run.tracking:
-            args = {arg: utils.get_value(params["run"], arg) for arg in args}
+            args = {arg: utils.get_value(params, arg) for arg in args}
             run.tracking.log_params(run.id, args)
             tags = tags.copy()
             tags["mode"] = mode

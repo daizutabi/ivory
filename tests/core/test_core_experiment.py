@@ -71,7 +71,9 @@ def test_experiment_run_kwargs(experiment):
 
 
 def test_optimize_lr(experiment):
-    study = next(experiment.optimize("lr", {"fold": 2, "batch_size": 10}, n_trials=3))
+    study = next(
+        experiment.optimize("suggest_lr", {"fold": 2, "batch_size": 10}, n_trials=3)
+    )
     assert study.user_attrs == {"experiment_id": experiment.id}
     trials = study.trials
     assert len(trials) == 3
@@ -80,7 +82,9 @@ def test_optimize_lr(experiment):
 
 def test_optimize_hidden_sizes(experiment):
     study = next(
-        experiment.optimize("hidden_sizes", {"fold": 1, "batch_size": 20}, n_trials=4)
+        experiment.optimize(
+            "suggest_hidden_sizes", {"fold": 1, "batch_size": 20}, n_trials=4
+        )
     )
     assert study.user_attrs == {"experiment_id": experiment.id}
 
