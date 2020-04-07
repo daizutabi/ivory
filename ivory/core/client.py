@@ -22,8 +22,8 @@ class Client(Base):
         experiment.set_client(self)
         return experiment
 
-    def get_experiments(self, pattern="", exists_only=True):
-        for params, source_name in utils.params_iter(self.source_name, pattern):
+    def get_experiments(self, path="", exists_only=True):
+        for params, source_name in utils.params_iter(self.source_name, path):
             if source_name in self.experiments:
                 yield self.experiments[source_name]
                 continue
@@ -34,8 +34,8 @@ class Client(Base):
             self.experiments[source_name] = experiment
             yield experiment
 
-    def search_runs(self, pattern="", **query):
-        for experiment in self.get_experiments(pattern):
+    def search_runs(self, path="", **query):
+        for experiment in self.get_experiments(path):
             for run_id in experiment.search_runs(**query):
                 self.run_id_experiment[run_id] = experiment
                 yield run_id
@@ -44,7 +44,7 @@ class Client(Base):
         if run_id not in self.run_id_experiment:
             msg = "Unknown run_id. You have to get a run_id from client.search_runs."
             raise ValueError(msg)
-        return self.run_id_experiment(run_id)
+        return self.run_id_experiment[run_id]
 
     def load_params(self, run_id):
         try:

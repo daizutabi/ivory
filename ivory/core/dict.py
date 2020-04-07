@@ -30,6 +30,11 @@ class Dict:
     def __dir__(self):
         return super().__dir__() + list(self.dict.keys())
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        args = ", ".join(f"'{key}'" for key in self.keys())
+        return f"{class_name}({args})"
+
     def set(self, **kwargs):
         for key, value in kwargs.items():
             self.dict[key] = value
