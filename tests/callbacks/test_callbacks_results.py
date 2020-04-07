@@ -17,9 +17,9 @@ def test_resutls():
     results.on_val_end(None)
     results.on_test_start(None)
     results.step([3, 4], [[3, 4], [5, 6]])
-    assert results.indexes == [[3, 4]]
-    assert results.outputs == [[[3, 4], [5, 6]]]
-    assert results.targets == []
+    assert np.allclose(results.indexes, [[3, 4]])
+    assert np.allclose(results.outputs, [[[3, 4], [5, 6]]])
+    assert len(results.targets) == 0
     results.step([5, 6], [[3, 4], [5, 6]])
     results.on_test_end(None)
     assert results.train is None

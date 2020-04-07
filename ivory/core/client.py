@@ -1,5 +1,7 @@
 from typing import Dict
 
+import numpy as np
+
 import ivory.core.ui
 from ivory import utils
 from ivory.core.base import Base
@@ -42,7 +44,7 @@ class Client(Base):
 
     def get_experiment_from_run_id(self, run_id):
         if run_id not in self.run_id_experiment:
-            msg = "Unknown run_id. You have to get a run_id from client.search_runs."
+            msg = "Unknown a run_id. You have to get a run_id from client.search_runs."
             raise ValueError(msg)
         return self.run_id_experiment[run_id]
 
@@ -61,6 +63,10 @@ class Client(Base):
         return self.tracker.load_instance(
             run_id, name, mode, experiment.create_run, experiment.create_instance
         )
+
+    def load_results(self, run_id):
+        results = self.load_instance(run_id, "results", mode="test")
+        return results.stack()
 
     def ui(self):
         ivory.core.ui.run(self.tracker.tracking_uri)

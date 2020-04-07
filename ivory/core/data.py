@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 
@@ -13,7 +13,7 @@ class Data:
     initialized: bool = False
     fold: Any = field(default=None, repr=False)
 
-    def init(self, **kwargs):
+    def init(self):
         """Initializes the data. For example, read a csv file as a DataFrame.
 
         Called from ivory.core.data.Data.
@@ -103,6 +103,7 @@ class DataLoaders(ivory.core.dict.Dict):
         if not data.initialized:
             data.init()
             data.initialized = True
+        self.preprocess(data)
         if data.mode == "train":
             for mode in ["train", "val"]:
                 index = self.get_index(mode, data)
@@ -114,6 +115,9 @@ class DataLoaders(ivory.core.dict.Dict):
             self["test"] = self.get_dataloader("test", dataset)
         else:
             raise ValueError(f"Unknown mode: {data.mode}")
+
+    def preprocess(self, data: Data):
+        pass
 
     def get_index(self, mode, data):
         if mode == "train":

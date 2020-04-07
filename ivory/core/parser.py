@@ -62,7 +62,10 @@ def parse_values(values):
                     start = literal_eval(match.group(1))
                     stop = literal_eval(match.group(2))
                     if isinstance(start, int) and isinstance(stop, int):
-                        value = range(start, stop + 1)
+                        if stop >= start:
+                            value = range(start, stop + 1)
+                        else:
+                            value = range(start, stop - 1, -1)
                     else:
                         value = (start, stop)
                 except Exception:
