@@ -41,7 +41,7 @@ def parse_names(args, values, params):
     names = {}
     options = {}
     for name, value in zip(args, values):
-        fullnames = utils.get_fullnames(params, name)
+        fullnames = tuple(utils.get_fullnames(params, name))
         if not fullnames:
             options[name] = value[0]
         else:

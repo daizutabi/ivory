@@ -88,6 +88,12 @@ class Experiment(Base):
             run.tracking.set_tags(run.id, tags)
         return run
 
+    def search_runs(self, **query):
+        for run_id in self.tracker.list_run_ids(self.id):
+            params = self.load_params(run_id)
+            if utils.match(params, **query):
+                yield run_id
+
     def load_params(self, run_id):
         return self.tracker.load_params(run_id)
 
@@ -98,12 +104,6 @@ class Experiment(Base):
         return self.tracker.load_instance(
             run_id, name, mode, self.create_run, self.create_instance
         )
-
-    def search_runs(self, **query):
-        for run_id in self.tracker.list_run_ids(self.id):
-            params = self.load_params(run_id)
-            if utils.match(params, **query):
-                yield run_id
 
     def update_params(self, **default):
         self.tracker.update_params(self.id, **default)

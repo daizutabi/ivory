@@ -62,6 +62,11 @@ class Dataset:
 @dataclass
 class DataLoader:
     dataset: Dataset
+    batch_size: int = 1
+
+    def __post_init__(self):
+        if self.batch_size != 1:
+            raise NotImplementedError("batch_size muse be 1.")
 
     def __len__(self):
         return len(self.dataset)
@@ -75,8 +80,7 @@ class DataLoader:
 class DataLoaders(ivory.core.dict.Dict):
     dataset: Callable
     fold: int = 0
-    batch_size: int = 32
-    data_init: Dict[str, Any] = field(default_factory=dict)
+    batch_size: int = 1
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -89,12 +93,15 @@ class DataLoaders(ivory.core.dict.Dict):
             dataset = self.dataset.__module__
             dataset += "." + self.dataset.__name__
             kwargs = ""
-        s = f"{cls_name}(dataset={dataset}({kwargs}), fold={self.fold}, "
-        return s + f"batch_size={self.batch_size})"
+        args = ""
+        for key in self.__dataclass_fields__:
+            if key != "dataset":
+                args += f", {key}={getattr(self, key)}"
+        return f"{cls_name}(dataset={dataset}({kwargs}){args})"
 
     def init(self, data: Data):
         if not data.initialized:
-            data.init(**self.data_init)
+            data.init()
             data.initialized = True
         if data.mode == "train":
             for mode in ["train", "val"]:
@@ -117,4 +124,4 @@ class DataLoaders(ivory.core.dict.Dict):
             return
 
     def get_dataloader(self, mode, dataset):
-        return DataLoader(dataset)
+        return DataLoader(dataset, batch_size=self.batch_size)

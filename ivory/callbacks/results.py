@@ -39,7 +39,7 @@ class Results(Dict, State):
     def result_dict(self):
         if not self.indexes:
             return None
-        index = np.vstack(self.indexes)
+        index = np.hstack(self.indexes)
         output = np.vstack(self.outputs)
         if not self.targets:
             return dict(index=index, output=output)

@@ -95,59 +95,39 @@ def dot_get(x: Dict[str, Any], key: str):
         return x[key]
 
 
-def get_fullname(params, name, prefix="", dict_allowed=False):
+def get_fullnames(params, name, prefix="", dict_allowed=False):
     """Returns a fullname found first.
 
     Examples:
-        >>> params = {'a': 1, 'b': {'c': {'d': 2, 'e': [1, 2, 3]}}}
-        >>> get_fullname(params, 'a')
-        'a'
-        >>> get_fullname(params, 'c')
-        >>> get_fullname(params, 'd')
-        'b.c.d'
-        >>> get_fullname(params, 'e')
-        'b.c.e'
-        >>> get_fullname(params, 'b.c.d')
-        'b.c.d'
-        >>> get_fullname(params, 'c.d')
-        'b.c.d'
-        >>> get_fullname(params, 'e.2')
-        'b.c.e.2'
+        >>> params = {'a': 1, 'b': {'c': {'d': 2, 'e': [1, 2, 3]}}, "x": {'d': 2}}
+        >>> list(get_fullnames(params, 'a'))
+        ['a']
+        >>> list(get_fullnames(params, 'c'))
+        []
+        >>> list(get_fullnames(params, 'd'))
+        ['b.c.d', 'x.d']
+        >>> list(get_fullnames(params, 'e'))
+        ['b.c.e']
+        >>> list(get_fullnames(params, 'b.c.d'))
+        ['b.c.d']
+        >>> list(get_fullnames(params, 'c.d'))
+        ['b.c.d']
+        >>> list(get_fullnames(params, 'e.2'))
+        ['b.c.e.2']
     """
     if "." in name:
         name, _, suffix = name.partition(".")
-        fullname = get_fullname(params, name, dict_allowed=True)
-        if fullname:
-            return ".".join([fullname, suffix])
+        for fullname in get_fullnames(params, name, dict_allowed=True):
+            yield ".".join([fullname, suffix])
     elif not isinstance(params, dict):
         return
     elif name in params:
         if dict_allowed or not isinstance(params[name], dict):
-            return prefix + name
+            yield prefix + name
     else:
         for key in params:
             prefix_ = prefix + key + "."
-            fullname = get_fullname(params[key], name, prefix_, dict_allowed)
-            if fullname:
-                return fullname
-        else:
-            return
-
-
-def get_fullnames(params, name):
-    """Returns a tuple of fullnames.
-
-    Examples:
-        >>> params = {'a': 1, 'b': {'x': 2}, 'c': {'x': 2}}
-        >>> get_fullnames(params, 'x')
-        ('b.x', 'c.x')
-    """
-    fullnames = []
-    for key in params:
-        fullname = get_fullname({key: params[key]}, name)
-        if fullname:
-            fullnames.append(fullname)
-    return tuple(fullnames)
+            yield from get_fullnames(params[key], name, prefix_, dict_allowed)
 
 
 def get_value(params, name):
@@ -163,13 +143,19 @@ def get_value(params, name):
         >>> get_value(params, 'c.d')
         2
     """
-    fullname = get_fullname(params, name)
-    if fullname:
-        return dot_get(params, fullname)
+    fullnames = list(get_fullnames(params, name))
+    if fullnames:
+        return dot_get(params, fullnames[0])
 
 
 def match(params, **query):
-    """
+    """Returns if params match the query or not.
+
+    Avaliable query type:
+        tuple: (start, top) range including the stop value.
+        list: [a1, a2, ..., an] parameters set.
+        other: exact match.
+
     Examples:
         >>> params = {'a': 1, 'b': {'c': {'d': 2}}}
         >>> match(params, a=1)
