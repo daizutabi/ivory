@@ -1,5 +1,5 @@
 import functools
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 import numpy as np
@@ -10,8 +10,10 @@ import ivory.core.dict
 @dataclass
 class Data:
     mode: str = "train"
-    initialized: bool = False
-    fold: Any = field(default=None, repr=False)
+
+    def __post_init__(self):
+        self.initialized = False
+        self.fold = None
 
     def init(self):
         """Initializes the data. For example, read a csv file as a DataFrame.

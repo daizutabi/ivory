@@ -57,4 +57,4 @@ def test_dataloader_repr(dataloaders, data, client, params):
     assert "dataset=example.Dataset(dummy=5)" in repr(dataloaders)
     params["run"]["dataloaders"]["dataset"].pop("dummy")
     dataloaders = create_instance(params, "run.dataloaders")
-    assert "dataset=example.Dataset()" in repr(dataloaders)
+    assert "dataset=example.Dataset(dummy=10)" in repr(dataloaders)

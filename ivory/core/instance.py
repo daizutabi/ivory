@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import re
 from functools import partial
 from typing import Any, Dict
@@ -35,6 +36,18 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
         raise ValueError("dict-key must include one of (class, call, def)")
 
     attr = get_attr(params[key])
+    try:
+        signature = inspect.signature(attr)
+    except ValueError:
+        pass
+    else:
+        parameters = signature.parameters
+        for k, value in parameters.items():
+            default = value.default
+            if k not in params and default not in [inspect.Parameter.empty, None]:
+                if isinstance(default, tuple):
+                    default = list(default)
+                params[k] = default
     args = {k: v for k, v in params.items() if k != key}
     args = parse_value(args, globals, "")
     if key != "def":
