@@ -16,15 +16,18 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
         attrs = key.split(".")
         for attr in attrs[:-1]:
             x = x[attr]
-        if attrs[-1] not in x:
-            x[attrs[-1]] = value
-        elif type(x[attrs[-1]]) is not type(value):
-            raise ValueError(f"different type: {type(x[attrs[-1]])} != {type(value)}")
+        k = attrs[-1]
+        if k not in x:
+            x[k] = value
+        elif isinstance(x[k], str) and x[k].startswith("$"):
+            x[k] = value
+        elif type(x[k]) is not type(value):
+            raise ValueError(f"different type: {type(x[k])} != {type(value)}")
         else:
             if isinstance(value, dict):
-                x[attrs[-1]].update(value)
+                x[k].update(value)
             else:
-                x[attrs[-1]] = value
+                x[k] = value
 
 
 def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
