@@ -8,7 +8,7 @@ def step(func, target, x):
 
 
 def test_metrics(metrics, dataloaders, data, run):
-    dataloaders.init(data)
+    dataloaders.init("train", data)
     metrics.on_epoch_start(run)
     metrics.on_train_start(run)
     train_loader = dataloaders.train

@@ -9,9 +9,7 @@ def test_dataset(data):
     data.init()
     assert data.input.shape == (1000, 2)
     assert data.fold.shape == (1000,)
-    dataset = Dataset("train", data.get())
-    assert len(dataset) == 1000
-    dataset = Dataset("train", data.get([1, 2, 3]))
+    dataset = Dataset("train", data.get("train", [1, 2, 3]))
     assert len(dataset) == 3
     assert "num_samples=3" in repr(dataset)
     with pytest.raises(IndexError):
@@ -22,8 +20,7 @@ def test_dataset_transform(data):
     def transform(mode, input, target):
         return input * 2, target / 2
 
-    data.mode = "train"
-    dataset = Dataset("train", data.get([0, 2, 3]), transform)
+    dataset = Dataset("train", data.get("train", [0, 2, 3]), transform)
     index, input, target = dataset[0]
     assert index == 0
     assert np.allclose(input, data.input[0] * 2)
@@ -31,24 +28,16 @@ def test_dataset_transform(data):
 
 
 def test_dataloaders(dataloaders, data):
-    dataloaders.init(data)
+    dataloaders.init("train", data)
     train_loader, val_loader = dataloaders.train, dataloaders.val
     assert len(train_loader) == 1000 * 4 // 5 // 10
     assert len(val_loader) == 1000 * 1 // 5 // 10
     assert train_loader.dataset.mode == "train"
     assert val_loader.dataset.mode == "val"
 
-    mode = data.mode
-    data.mode = "mean"
-    with pytest.raises(ValueError):
-        dataloaders.init(data)
-    data.mode = mode
-
 
 def test_dataloaders_test(dataloaders, data):
-    data.mode = "test"
-    data.initialized = False
-    dataloaders.init(data)
+    dataloaders.init("test", data)
     test_loader = dataloaders.test
     assert len(test_loader) == 1000 // 10
     assert test_loader.dataset.mode == "test"

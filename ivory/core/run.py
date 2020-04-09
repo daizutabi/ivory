@@ -23,15 +23,12 @@ class Run(CallbackCaller):
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode="train"):
-        if self.data.mode != mode:
-            self.data.mode = mode
-            self.data.initialized = False
-        self.dataloaders.init(self.data)
+        self.dataloaders.init(mode, self.data)
         self.create_callback()
 
     def start(self, mode="train", leave=True):
         self.init(mode)
-        if self.data.mode == "train":
+        if mode == "train":
             self.trainer.fit(self, leave)
         else:
             self.trainer.test(self)
