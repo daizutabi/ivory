@@ -56,7 +56,22 @@ def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
         params_yaml = file.read()
     params = yaml.safe_load(params_yaml)
     params = literal_eval(params)
+    update_include(params, source_name)
     return params, source_name
+
+
+def update_include(params, source_name, cache=None):
+    if cache is None:
+        cache = {}
+    for key in params:
+        if isinstance(params[key], dict):
+            if "include" in params[key]:
+                path = params[key]["include"]
+                if path not in cache:
+                    cache[path] = load_params(path, source_name)[0]
+                params[key] = cache[path][key]
+            else:
+                update_include(params[key], source_name, cache)
 
 
 def literal_eval(x):

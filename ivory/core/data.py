@@ -32,7 +32,12 @@ class Data:
 
         Called from ivory.core.data.DataLoaders.
         """
-        raise NotImplementedError
+        if index is None:
+            return [self.index, self.input]
+        elif self.mode == "test":
+            return [self.index[index], self.input[index]]
+        else:
+            return [self.index[index], self.input[index], self.target[index]]
 
 
 @dataclass
@@ -43,10 +48,10 @@ class Dataset:
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        return f"{cls_name}(mode={self.mode}, num_samples={len(self)})"
+        return f"{cls_name}(mode={self.mode!r}, num_samples={len(self)})"
 
     def __len__(self):
-        raise NotImplementedError
+        return len(self.data[0])
 
     def __getitem__(self, index):
         if index >= len(self):
@@ -58,7 +63,7 @@ class Dataset:
 
     def get(self, index):
         """Returns a tuple of (index, input, target) or (index, input)."""
-        raise NotImplementedError
+        return [x[index] for x in self.data]
 
 
 @dataclass
@@ -89,7 +94,8 @@ class DataLoaders(ivory.core.dict.Dict):
         if isinstance(self.dataset, functools.partial):
             dataset = self.dataset.func.__module__
             dataset += "." + self.dataset.func.__name__
-            kwargs = [f"{key}={value}" for key, value in self.dataset.keywords.items()]
+            items = self.dataset.keywords.items()
+            kwargs = [f"{key}={value!r}" for key, value in items]
             kwargs = ", ".join(kwargs)
         else:
             dataset = self.dataset.__module__
@@ -98,7 +104,7 @@ class DataLoaders(ivory.core.dict.Dict):
         args = ""
         for key in self.__dataclass_fields__:
             if key != "dataset":
-                args += f", {key}={getattr(self, key)}"
+                args += f", {key}={getattr(self, key)!r}"
         return f"{cls_name}(dataset={dataset}({kwargs}){args})"
 
     def init(self, data: Data):
@@ -123,10 +129,12 @@ class DataLoaders(ivory.core.dict.Dict):
 
     def get_index(self, mode, data):
         if mode == "train":
-            return data.fold != self.fold
+            return (data.fold != self.fold) & (data.fold != -1)
         elif mode == "val":
             return data.fold == self.fold
-        elif mode == "test":
+        elif mode == "test" and -1 in data.fold:
+            return data.fold == -1
+        else:
             return
 
     def get_dataloader(self, mode, dataset):

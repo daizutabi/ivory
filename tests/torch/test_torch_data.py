@@ -22,6 +22,7 @@ def test_dataset_transform(data):
     def transform(mode, input, target):
         return input * 2, target / 2
 
+    data.mode = "train"
     dataset = Dataset("train", data.get([0, 2, 3]), transform)
     index, input, target = dataset[0]
     assert index == 0
@@ -38,7 +39,7 @@ def test_dataloaders(dataloaders, data):
     assert val_loader.dataset.mode == "val"
 
     mode = data.mode
-    data.mode = 'mean'
+    data.mode = "mean"
     with pytest.raises(ValueError):
         dataloaders.init(data)
     data.mode = mode
@@ -57,4 +58,4 @@ def test_dataloader_repr(dataloaders, data, client, params):
     assert "dataset=example.Dataset(dummy=5)" in repr(dataloaders)
     params["run"]["dataloaders"]["dataset"].pop("dummy")
     dataloaders = create_instance(params, "run.dataloaders")
-    assert "dataset=example.Dataset(dummy=10)" in repr(dataloaders)
+    assert "dataset=example.Dataset()" in repr(dataloaders)

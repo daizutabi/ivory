@@ -17,9 +17,9 @@ class Base(Dict):
     def __repr__(self):
         args = []
         if self.id:
-            args.append(f"id='{self.id}'")
+            args.append(f"id={self.id!r}")
         if self.name:
-            args.append(f"name='{self.name}'")
+            args.append(f"name={self.name!r}")
         args.append(f"num_objects={len(self)}")
         args = ", ".join(args)
         return f"{self.__class__.__name__}({args})"

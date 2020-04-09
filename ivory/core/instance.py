@@ -44,12 +44,14 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
         parameters = signature.parameters
         for k, value in parameters.items():
             default = value.default
-            if k not in params and default not in [inspect.Parameter.empty, None]:
-                if isinstance(default, tuple):
-                    default = list(default)
+            if k in params and params[k] == "__default__":
                 params[k] = default
     args = {k: v for k, v in params.items() if k != key}
     args = parse_value(args, globals, "")
+    for k, value in args.items():
+        if isinstance(params[k], str) and params[k].startswith("$"):
+            if isinstance(value, (int, float, str, list, tuple, dict)):
+                params[k] = value
     if key != "def":
         return attr(**args, **kwargs)
     else:

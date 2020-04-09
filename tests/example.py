@@ -28,22 +28,10 @@ class Data(ivory.core.data.Data):
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=5)
 
-    def get(self, index=None):
-        if index is None:
-            return [self.index, self.input]
-        else:
-            return [self.index[index], self.input[index], self.target[index]]
-
 
 @dataclass(repr=False)
 class Dataset(ivory.torch.data.Dataset):
     dummy: int = 10
-
-    def __len__(self):
-        return len(self.data[0])
-
-    def get(self, index):
-        return [x[index] for x in self.data]
 
 
 class Model(nn.Module):
