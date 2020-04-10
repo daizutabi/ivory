@@ -56,6 +56,8 @@ class Results(Dict, State):
         return dict(index=index, output=output, target=target)
 
     def stack(self):
+        if "test" not in self:
+            return [self.val["index"], self.val["output"]]
         if self.val["index"].ndim == 1:
             index = np.hstack((self.val["index"], self.test["index"]))
         else:
