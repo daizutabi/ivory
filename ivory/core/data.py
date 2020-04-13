@@ -1,23 +1,18 @@
 import functools
-from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Callable, List, Optional
 
 import numpy as np
 
 import ivory.core.dict
+from ivory.core.exceptions import TestDataNotFoundError
 
 
 @dataclass
 class Data:
-    def __post_init__(self):
-        self.initialized = False
+    fold: Optional[List] = field(default=None, repr=False)
 
-    def initialize(self):
-        if not self.initialized:
-            self.init()
-            self.initialized = True
-
-    def init(self):
+    def init(self, dataloaders):
         """Initializes the data. For example, read a csv file as a DataFrame.
 
         Called from ivory.core.data.DataLoaders.
@@ -54,10 +49,15 @@ class Dataset:
         return len(self.data[0])
 
     def __getitem__(self, index):
+        if index >= len(self):
+            raise IndexError
         index, input, *target = self.get(index)
         if self.transform:
             input, *target = self.transform(self.mode, input, *target)
         return [index, input, *target]
+
+    def init(self, dataloaders):
+        pass
 
     def get(self, index):
         """Returns a tuple of (index, input, target) or (index, input)."""
@@ -106,22 +106,20 @@ class DataLoaders(ivory.core.dict.Dict):
         return f"{cls_name}(dataset={dataset}({kwargs}){args})"
 
     def init(self, mode: str, data: Data):
-        data.initialize()
-        self.preprocess(data)
+        data.init(self)
         if mode == "train":
             for mode in ["train", "val"]:
                 index = self.get_index(mode, data)
                 dataset = self.dataset(mode, data.get(mode, index))
+                dataset.init(self)
                 self[mode] = self.get_dataloader(mode, dataset)
         elif mode == "test":
             index = self.get_index("test", data)
             dataset = self.dataset("test", data.get(mode, index))
+            dataset.init(self)
             self["test"] = self.get_dataloader("test", dataset)
         else:
             raise ValueError(f"Unknown mode: {mode}")
-
-    def preprocess(self, data: Data):
-        pass
 
     def get_index(self, mode, data):
         if mode == "train":
@@ -131,7 +129,7 @@ class DataLoaders(ivory.core.dict.Dict):
         elif mode == "test" and -1 in data.fold:
             return data.fold == -1
         else:
-            return np.full(len(data.fold), True)
+            raise TestDataNotFoundError
 
     def get_dataloader(self, mode, dataset):
         return DataLoader(dataset, batch_size=self.batch_size)

@@ -7,3 +7,7 @@ class EarlyStopped(IvoryError):
 
     This error tells a trainer that the current `run` was early stopped.
     """
+
+
+class TestDataNotFoundError(IvoryError):
+    """Exception when test data not found."""

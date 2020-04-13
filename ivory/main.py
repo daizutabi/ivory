@@ -6,6 +6,7 @@ import logzero
 from logzero import logger
 
 import ivory
+from ivory.core.exceptions import TestDataNotFoundError
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -39,7 +40,10 @@ def run(path, args, repeat, notest, message):
         run.start(leave=False)
         if not notest:
             run = experiment.load_run(run.id, "best")
-            run.start("test")
+            try:
+                run.start("test")
+            except TestDataNotFoundError:
+                pass
 
 
 # @cli.command(help="Optimize hyper parameters.")

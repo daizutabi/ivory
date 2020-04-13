@@ -6,7 +6,7 @@ from ivory.core.instance import create_instance
 
 
 def test_dataset(data):
-    data.init()
+    data.init(dataloaders=None)
     assert data.input.shape == (1000, 2)
     assert data.fold.shape == (1000,)
     dataset = Dataset("train", data.get("train", [1, 2, 3]))
@@ -30,7 +30,7 @@ def test_dataset_transform(data):
 def test_dataloaders(dataloaders, data):
     dataloaders.init("train", data)
     train_loader, val_loader = dataloaders.train, dataloaders.val
-    assert len(train_loader) == 1000 * 4 // 5 // 10
+    assert len(train_loader) == 1000 * 3 // 5 // 10
     assert len(val_loader) == 1000 * 1 // 5 // 10
     assert train_loader.dataset.mode == "train"
     assert val_loader.dataset.mode == "val"
@@ -39,7 +39,7 @@ def test_dataloaders(dataloaders, data):
 def test_dataloaders_test(dataloaders, data):
     dataloaders.init("test", data)
     test_loader = dataloaders.test
-    assert len(test_loader) == 1000 // 10
+    assert len(test_loader) == 1000 * 1 // 5 // 10
     assert test_loader.dataset.mode == "test"
 
 
