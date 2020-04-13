@@ -112,6 +112,8 @@ class DataLoaders(ivory.core.dict.Dict):
                 index = self.get_index(mode, data)
                 dataset = self.dataset(mode, data.get(mode, index))
                 dataset.init(self)
+                if mode == "train" and hasattr(dataset.transform, "init"):
+                    dataset.transform.init(dataset)
                 self[mode] = self.get_dataloader(mode, dataset)
         elif mode == "test":
             index = self.get_index("test", data)
