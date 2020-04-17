@@ -60,18 +60,17 @@ def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
     return params, source_name
 
 
-def update_include(params, source_name, cache=None):
-    if cache is None:
-        cache = {}
-    for key in params:
-        if isinstance(params[key], dict):
-            if "include" in params[key]:
-                path = params[key]["include"]
-                if path not in cache:
-                    cache[path] = load_params(path, source_name)[0]
-                params[key] = cache[path][key]
-            else:
-                update_include(params[key], source_name, cache)
+def update_include(params, source_name, include=None):
+    if "include" in params:
+        path = params.pop("include")
+        include = load_params(path, source_name)[0]
+    elif include is None:
+        include = {}
+    for key, value in params.items():
+        if value is None and key in include:
+            params[key] = include[key]
+        elif isinstance(value, dict):
+            update_include(value, source_name, include)
 
 
 def literal_eval(x):
