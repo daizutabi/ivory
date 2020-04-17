@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from example import Dataset
-from ivory.core.instance import create_instance
 
 
 def test_dataset(data):
