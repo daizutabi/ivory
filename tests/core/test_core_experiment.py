@@ -10,9 +10,9 @@ def test_experiment_create_run(experiment, params):
     assert run.dataloaders.fold == 4
 
 
-def test_experiment_create_instance(experiment):
-    data = experiment.create_instance("experiment.data")
-    assert data.num_samples == 1000
+# def test_experiment_create_instance(experiment):
+#     data = experiment.create_instance("experiment.data")
+#     assert data.num_samples == 1000
 
 
 def test_experiment_run_str(experiment):

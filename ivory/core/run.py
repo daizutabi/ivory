@@ -8,13 +8,8 @@ class Run(CallbackCaller):
     def set_experiment(self, experiment):
         if experiment.source_name:
             self.source_name = experiment.source_name
-        if experiment.data:
-            self.set_data(experiment.data)
         if experiment.tracker:
             self.set_tracking(experiment.tracker, experiment.id)
-
-    def set_data(self, data):
-        self["data"] = data
 
     def set_tracking(self, tracker, experiment_id):
         if not self.id:
@@ -23,8 +18,9 @@ class Run(CallbackCaller):
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode="train"):
-        self.dataloaders.init(mode, self.data)
         self.create_callback()
+        self.mode = mode
+        self.on_init()
 
     def start(self, mode="train", leave=True):
         self.init(mode)

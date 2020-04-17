@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, Dict
 
 import numpy as np
 import torch.nn as nn
@@ -8,14 +9,18 @@ import ivory.core.data
 import ivory.torch.data
 from ivory.utils import kfold_split
 
+DATA: Dict[int, Any] = {}
+
 
 def create_data(num_samples=1000):
-    xy = 4 * np.random.rand(num_samples, 2) + 1
-    xy = xy.astype(np.float32)
-    dx = 0.1 * (np.random.rand(num_samples) - 0.5)
-    dy = 0.1 * (np.random.rand(num_samples) - 0.5)
-    z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
-    return xy, z
+    if num_samples not in DATA:
+        xy = 4 * np.random.rand(num_samples, 2) + 1
+        xy = xy.astype(np.float32)
+        dx = 0.1 * (np.random.rand(num_samples) - 0.5)
+        dy = 0.1 * (np.random.rand(num_samples) - 0.5)
+        z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
+        DATA[num_samples] = xy, z
+    return DATA[num_samples]
 
 
 @dataclass

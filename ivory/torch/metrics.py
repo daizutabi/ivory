@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 
 import ivory.callbacks.metrics
 
 
 @dataclass(repr=False)
 class Metrics(ivory.callbacks.metrics.Metrics):
-    criterion: Callable
+    criterion: Optional[Callable] = None
 
     def step(self, output, target):
         loss = self.criterion(output, target)

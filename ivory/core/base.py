@@ -27,6 +27,7 @@ class Base(Dict):
 
 class Callback:
     METHODS = [
+        "on_init",
         "on_fit_start",
         "on_epoch_start",
         "on_train_start",

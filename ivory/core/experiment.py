@@ -29,21 +29,24 @@ class Experiment(Base):
     def set_tuner(self, tuner):
         self["tuner"] = tuner
 
-    def create_params(self, params=None):
+    def create_params(self, params=None, **kwargs):
         if not params:
-            return copy.deepcopy(self.params)
-        if params["experiment"]["id"] == self.id:
+            params = copy.deepcopy(self.params)
+            if kwargs:
+                update = utils.create_update(params, **kwargs)
+                utils.update_dict(params, update)
+        if "id" not in params["experiment"] or params["experiment"]["id"] == self.id:
             return params
         raise ValueError("Experiment ids don't match.")
 
-    def create_run(self, params=None):
-        params = self.create_params(params)
+    def create_run(self, params=None, **kwargs):
+        params = self.create_params(params, **kwargs)
         run = create_base_instance(params, "run")
         run.set_experiment(self)
         return run
 
-    def create_instance(self, name, params=None):
-        params = self.create_params(params)
+    def create_instance(self, name, params=None, **kwargs):
+        params = self.create_params(params, **kwargs)
         if "." not in name:
             name = f"run.{name}"
         return create_instance(params, name)

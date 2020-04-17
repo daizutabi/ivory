@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from ivory.core.exceptions import TestDataNotFoundError
 
 @dataclass
 class Data:
-    fold: Optional[List] = field(default=None, repr=False)
+    fold: Optional[np.ndarray] = field(default=None, repr=False)
 
     def init(self, dataloaders):
         """Initializes the data. For example, read a csv file as a DataFrame.
@@ -83,41 +83,40 @@ class DataLoader:
 
 @dataclass
 class DataLoaders(ivory.core.dict.Dict):
-    dataset: Callable
     fold: int = 0
     batch_size: int = 1
 
-    def __repr__(self):
-        cls_name = self.__class__.__name__
-        if isinstance(self.dataset, functools.partial):
-            dataset = self.dataset.func.__module__
-            dataset += "." + self.dataset.func.__name__
-            items = self.dataset.keywords.items()
-            kwargs = [f"{key}={value!r}" for key, value in items]
-            kwargs = ", ".join(kwargs)
-        else:
-            dataset = self.dataset.__module__
-            dataset += "." + self.dataset.__name__
-            kwargs = ""
-        args = ""
-        for key in self.__dataclass_fields__:
-            if key != "dataset":
-                args += f", {key}={getattr(self, key)!r}"
-        return f"{cls_name}(dataset={dataset}({kwargs}){args})"
+    # def __repr__(self):
+    #     cls_name = self.__class__.__name__
+    #     if isinstance(self.dataset, functools.partial):
+    #         dataset = self.dataset.func.__module__
+    #         dataset += "." + self.dataset.func.__name__
+    #         items = self.dataset.keywords.items()
+    #         kwargs = [f"{key}={value!r}" for key, value in items]
+    #         kwargs = ", ".join(kwargs)
+    #     else:
+    #         dataset = self.dataset.__module__
+    #         dataset += "." + self.dataset.__name__
+    #         kwargs = ""
+    #     args = ""
+    #     for key in self.__dataclass_fields__:
+    #         if key != "dataset":
+    #             args += f", {key}={getattr(self, key)!r}"
+    #     return f"{cls_name}(dataset={dataset}({kwargs}){args})"
 
-    def init(self, mode: str, data: Data):
+    def init(self, mode: str, data: Data, create_dataset: Callable):
         data.init(self)
         if mode == "train":
             for mode in ["train", "val"]:
                 index = self.get_index(mode, data)
-                dataset = self.dataset(mode, data.get(mode, index))
+                dataset = create_dataset(mode, data.get(mode, index))
                 dataset.init(self)
                 if mode == "train" and hasattr(dataset.transform, "init"):
                     dataset.transform.init(dataset)
                 self[mode] = self.get_dataloader(mode, dataset)
         elif mode == "test":
             index = self.get_index("test", data)
-            dataset = self.dataset("test", data.get(mode, index))
+            dataset = create_dataset("test", data.get(mode, index))
             dataset.init(self)
             self["test"] = self.get_dataloader("test", dataset)
         else:
@@ -135,3 +134,6 @@ class DataLoaders(ivory.core.dict.Dict):
 
     def get_dataloader(self, mode, dataset):
         return DataLoader(dataset, batch_size=self.batch_size)
+
+    def on_init(self, run):
+        self.init(run.mode, run.data, run.dataset)

@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 
 
 def fold_array(splitter, x, y=None, groups=None):
@@ -9,9 +9,14 @@ def fold_array(splitter, x, y=None, groups=None):
     return fold
 
 
-def kfold_split(x, n_splits=5, random_state=0, shuffle=True):
-    splitter = KFold(n_splits, random_state=random_state, shuffle=shuffle)
+def kfold_split(x, n_splits=5, shuffle=True, random_state=0):
+    splitter = KFold(n_splits, shuffle=shuffle, random_state=random_state)
     return fold_array(splitter, x)
+
+
+def stratified_kfold_split(y, n_splits=5, shuffle=True, random_state=0):
+    splitter = StratifiedKFold(n_splits, shuffle=shuffle, random_state=random_state)
+    return fold_array(splitter, y, y)
 
 
 def multilabel_stratified_kfold_split(labels, n_splits, shuffle=True, random_state=0):

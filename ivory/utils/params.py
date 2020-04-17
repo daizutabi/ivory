@@ -151,6 +151,14 @@ def get_value(params, name):
         return dot_get(params, fullnames[0])
 
 
+def create_update(params, **kwargs):
+    update = {}
+    for name, value in kwargs.items():
+        for fullname in get_fullnames(params, name):
+            update[fullname] = value
+    return update
+
+
 def match(params, **query):
     """Returns if params match the query or not.
 
