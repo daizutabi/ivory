@@ -10,9 +10,9 @@ experiment:
 run:
   library: torch
   include: data
-  data:
-  dataset:
   dataloaders:
+    data:
+    dataset:
   model:
     class: example.Model
     hidden_sizes: [100, 100]

@@ -57,6 +57,7 @@ def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
     params = yaml.safe_load(params_yaml)
     params = literal_eval(params)
     update_include(params, source_name)
+    print(params)
     return params, source_name
 
 
@@ -67,9 +68,14 @@ def update_include(params, source_name, include=None):
     elif include is None:
         include = {}
     for key, value in params.items():
-        if value is None and key in include:
-            params[key] = include[key]
-        elif isinstance(value, dict):
+        if key in include:
+            if value is None:
+                params[key] = include[key]
+            elif isinstance(value, dict):
+                for k in include[key]:
+                    if k not in value:
+                        value[k] = include[key][k]
+        if isinstance(value, dict):
             update_include(value, source_name, include)
 
 

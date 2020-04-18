@@ -27,7 +27,6 @@ def test_dataset_transform(data):
 
 
 def test_dataloaders(dataloaders, data, dataset):
-    dataloaders.init("train", data, dataset)
     train_loader, val_loader = dataloaders.train, dataloaders.val
     assert len(train_loader) == 1000 * 3 // 5 // 10
     assert len(val_loader) == 1000 * 1 // 5 // 10
@@ -36,7 +35,6 @@ def test_dataloaders(dataloaders, data, dataset):
 
 
 def test_dataloaders_test(dataloaders, data, dataset):
-    dataloaders.init("test", data, dataset)
     test_loader = dataloaders.test
     assert len(test_loader) == 1000 * 1 // 5 // 10
     assert test_loader.dataset.mode == "test"

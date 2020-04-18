@@ -4,7 +4,6 @@ from typing import Any, Callable, Optional
 import numpy as np
 
 import ivory.core.dict
-from ivory.core.exceptions import TestDataNotFoundError
 
 
 @dataclass
@@ -32,6 +31,14 @@ class Data:
             return [self.index[index], self.input[index]]
         else:
             return [self.index[index], self.input[index], self.target[index]]
+
+    def get_index(self, mode: str, fold: int = -1):
+        if mode == "train":
+            return (self.fold != fold) & (self.fold != -1)
+        elif mode == "val":
+            return self.fold == fold
+        elif mode == "test":
+            return self.fold == -1
 
 
 @dataclass
@@ -82,57 +89,21 @@ class DataLoader:
 
 @dataclass
 class DataLoaders(ivory.core.dict.Dict):
+    data: Data
+    dataset: Callable
     fold: int = 0
     batch_size: int = 1
 
-    # def __repr__(self):
-    #     cls_name = self.__class__.__name__
-    #     if isinstance(self.dataset, functools.partial):
-    #         dataset = self.dataset.func.__module__
-    #         dataset += "." + self.dataset.func.__name__
-    #         items = self.dataset.keywords.items()
-    #         kwargs = [f"{key}={value!r}" for key, value in items]
-    #         kwargs = ", ".join(kwargs)
-    #     else:
-    #         dataset = self.dataset.__module__
-    #         dataset += "." + self.dataset.__name__
-    #         kwargs = ""
-    #     args = ""
-    #     for key in self.__dataclass_fields__:
-    #         if key != "dataset":
-    #             args += f", {key}={getattr(self, key)!r}"
-    #     return f"{cls_name}(dataset={dataset}({kwargs}){args})"
-
-    def init(self, mode: str, data: Data, create_dataset: Callable):
-        data.init(self)
-        if mode == "train":
-            for mode in ["train", "val"]:
-                index = self.get_index(mode, data)
-                dataset = create_dataset(mode, data.get(mode, index))
-                dataset.init(self)
-                if mode == "train" and hasattr(dataset.transform, "init"):
-                    dataset.transform.init(dataset)
-                self[mode] = self.get_dataloader(mode, dataset)
-        elif mode == "test":
-            index = self.get_index("test", data)
-            dataset = create_dataset("test", data.get(mode, index))
+    def __post_init__(self):
+        super().__post_init__()
+        self.data.init(self)
+        for mode in ["train", "val", "test"]:
+            index = self.data.get_index(mode, self.fold)
+            dataset = self.dataset(mode, self.data.get(mode, index))
             dataset.init(self)
-            self["test"] = self.get_dataloader("test", dataset)
-        else:
-            raise ValueError(f"Unknown mode: {mode}")
-
-    def get_index(self, mode, data):
-        if mode == "train":
-            return (data.fold != self.fold) & (data.fold != -1)
-        elif mode == "val":
-            return data.fold == self.fold
-        elif mode == "test" and -1 in data.fold:
-            return data.fold == -1
-        else:
-            raise TestDataNotFoundError
+            if mode == "train" and hasattr(dataset.transform, "init"):
+                dataset.transform.init(dataset)
+            self[mode] = self.get_dataloader(mode, dataset)
 
     def get_dataloader(self, mode, dataset):
         return DataLoader(dataset, batch_size=self.batch_size)
-
-    def on_init(self, run):
-        self.init(run.mode, run.data, run.dataset)
