@@ -62,10 +62,6 @@ class Client(Base):
             run_id, name, mode, experiment.create_run, experiment.create_instance
         )
 
-    def load_results(self, run_id):
-        results = self.load_instance(run_id, "results", mode="test")
-        return results.stack()
-
     def ui(self):
         ivory.core.ui.run(self.tracker.tracking_uri)
 

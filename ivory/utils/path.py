@@ -57,7 +57,6 @@ def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
     params = yaml.safe_load(params_yaml)
     params = literal_eval(params)
     update_include(params, source_name)
-    print(params)
     return params, source_name
 
 

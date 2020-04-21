@@ -34,7 +34,7 @@ class Objective:
                 trial.set_user_attr("run_id", run.id)
             if self.pruner:
                 run["pruning"] = Pruning(trial, run.monitor.metric)
-            run.start(leave=False)
+            run.start("train")
             score = run.monitor.best_score
             if np.isnan(score):
                 message = "Best score is nan"

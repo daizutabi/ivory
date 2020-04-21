@@ -37,7 +37,7 @@ def run(path, args, repeat, notest, message):
     client = ivory.create_client()
     experiment = client.create_experiment(path)
     for run in experiment.start(args, repeat=repeat, message=message):
-        run.start(leave=False)
+        run.start("train")
         if not notest:
             run = experiment.load_run(run.id, "best")
             try:

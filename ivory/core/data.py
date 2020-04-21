@@ -11,11 +11,7 @@ class Data:
     fold: Optional[np.ndarray] = field(default=None, repr=False)
 
     def init(self, dataloaders):
-        """Initializes the data. For example, read a csv file as a DataFrame.
-
-        Called from ivory.core.data.DataLoaders.
-        """
-        raise NotImplementedError
+        pass
 
     def get(self, mode, index):
         """Returns a subset of data according to `mode` and `index`.
@@ -65,9 +61,12 @@ class Dataset:
     def init(self, dataloaders):
         pass
 
-    def get(self, index):
+    def get(self, index=None):
         """Returns a tuple of (index, input, target) or (index, input)."""
-        return [x[index] for x in self.data]
+        if index is None:
+            return self.data
+        else:
+            return [x[index] for x in self.data]
 
 
 @dataclass
@@ -97,6 +96,9 @@ class DataLoaders(ivory.core.dict.Dict):
     def __post_init__(self):
         super().__post_init__()
         self.data.init(self)
+        self.init()
+
+    def init(self):
         for mode in ["train", "val", "test"]:
             index = self.data.get_index(mode, self.fold)
             dataset = self.dataset(mode, self.data.get(mode, index))

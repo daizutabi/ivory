@@ -10,6 +10,7 @@ from ivory.core.state import State
 class Metrics(Dict, State):
     def __post_init__(self):
         super().__post_init__()
+        self.epoch = 0
         self.history = {}
 
     def __str__(self):

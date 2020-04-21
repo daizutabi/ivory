@@ -11,29 +11,28 @@ class Run(CallbackCaller):
         if experiment.tracker:
             self.set_tracking(experiment.tracker, experiment.id)
 
-    def set_tracking(self, tracker, experiment_id):
+    def set_tracking(self, tracker, experiment_id: str):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             self.params["run"]["id"] = self.id
         self["tracking"] = tracker.create_tracking()
 
-    def init(self, mode="train"):
+    def init(self, mode: str = "train"):
         self.create_callback()
         self.mode = mode
         self.on_init()
 
-    def start(self, mode="train", leave=True):
+    def start(self, mode: str = "train"):
         self.init(mode)
-        if mode == "train":
-            self.trainer.fit(self, leave)
-        else:
-            self.trainer.test(self)
+        for obj in self.values():
+            if hasattr(obj, "start") and callable(obj.start):
+                obj.start(self)
 
     def state_dict(self):
         state_dict = {}
-        for name in self:
-            if hasattr(self[name], "state_dict") and callable(self[name].state_dict):
-                state_dict[name] = self[name].state_dict()
+        for name, obj in self.items():
+            if hasattr(obj, "state_dict") and callable(obj.state_dict):
+                state_dict[name] = obj.state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict):
