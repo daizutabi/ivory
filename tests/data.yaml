@@ -3,7 +3,7 @@ data:
   num_samples: 1000
 dataset:
   def: example.Dataset
-  dummy: 5
+  dummy: '5.0'
 dataloaders:
   batch_size: 10
   fold: 0

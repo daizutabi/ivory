@@ -9,7 +9,7 @@ experiment:
       class: optuna.pruners.MedianPruner
 run:
   library: torch
-  include: data
+  include: data.yaml
   dataloaders:
     data:
     dataset:
