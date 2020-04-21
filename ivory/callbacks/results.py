@@ -6,6 +6,9 @@ from ivory.core.state import State
 
 class Results(Dict, State):
     def reset(self):
+        self.index = None
+        self.output = None
+        self.target = None
         self.indexes = []
         self.outputs = []
         self.targets = []
@@ -17,16 +20,9 @@ class Results(Dict, State):
         self.reset()
 
     def step(self, index, output, target=None):
-        if isinstance(index, list):
-            index = np.array(index)
-        if isinstance(output, list):
-            output = np.array(output)
-        self.indexes.append(index)
-        self.outputs.append(output)
-        if target is not None:
-            if isinstance(target, list):
-                target = np.array(target)
-            self.targets.append(target)
+        self.index = index
+        self.output = output
+        self.target = target
 
     def on_train_end(self, run):
         self["train"] = self.result_dict()
@@ -41,11 +37,16 @@ class Results(Dict, State):
         self.reset()
 
     def result_dict(self):
-        if not self.indexes:
-            return None
-        index = np.vstack(self.indexes)
-        output = np.vstack(self.outputs)
-        if not self.targets:
-            return dict(index=index, output=output)
-        target = np.vstack(self.targets)
-        return dict(index=index, output=output, target=target)
+        self.stack()
+        if self.target is None:
+            return dict(index=self.index, output=self.output)
+        else:
+            return dict(index=self.index, output=self.output, target=self.target)
+
+    def stack(self):
+        if self.index is not None or not self.indexes:
+            return
+        self.index = np.vstack(self.indexes)
+        self.output = np.vstack(self.outputs)
+        if self.targets:
+            self.target = np.vstack(self.targets)

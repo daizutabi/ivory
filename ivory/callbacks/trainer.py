@@ -5,6 +5,7 @@ from termcolor import colored
 from tqdm import tqdm
 
 from ivory.core.exceptions import EarlyStopped
+from ivory.core.run import Run
 from ivory.core.state import State
 
 
@@ -15,7 +16,12 @@ class Trainer(State):
     global_step: int = 0
     verbose: int = 1
 
-    def start(self, run):
+    def start(self, run: Run):
+        """Starts a train or test loop.
+
+        Args:
+            run: a run instance.
+        """
         if run.mode == "train":
             self.train(run)
         else:
@@ -52,7 +58,7 @@ class Trainer(State):
                 pruned = e
             finally:
                 if self.verbose:
-                    msg = self.message(max_epoch, early_stopped, pruned, run=run)
+                    msg = self.message(max_epoch, early_stopped, pruned, run)
                     tqdm.write(msg)
         if pruned:
             raise pruned
@@ -86,13 +92,13 @@ class Trainer(State):
         run.on_test_end()
 
     def train_step(self, index, input, target, run):
-        pass
+        """Performs a single train step."""
 
     def val_step(self, index, input, target, run):
-        pass
+        """Performs a single validation step."""
 
     def test_step(self, index, input, run):
-        pass
+        """Performs a single test step."""
 
     def message(self, max_epoch, early_stopped, pruned, run):
         width = len(str(max_epoch))

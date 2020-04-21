@@ -34,7 +34,6 @@ class Metrics(Dict, State):
         self.losses = []
 
     def step(self, output, target):
-        """Adds float loss to ``self.loss`` and returns a loss object (ex. tensor)."""
         pass
 
     def on_train_end(self, run):
@@ -57,5 +56,5 @@ class Metrics(Dict, State):
                 self.history[metric][self.epoch] = value
 
     def metrics_dict(self, run):
-        """Returns an extra custom metrics dictionay."""
+        """Returns an extra custom metrics dictionary."""
         return {}
