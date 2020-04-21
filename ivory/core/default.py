@@ -8,10 +8,11 @@ DEFAULT_CLASS["core"] = {
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
     "dataset": "ivory.core.data.Dataset",
+    "dataloaders": "ivory.core.data.DataLoaders",
     "results": "ivory.callbacks.results.Results",
+    "metrics": "ivory.callbacks.metrics.Metrics",
     "monitor": "ivory.callbacks.monitor.Monitor",
     "early_stopping": "ivory.callbacks.early_stopping.EarlyStopping",
-    "evaluator": "ivory.callbacks.evaluator.Evaluator",
 }
 
 DEFAULT_CLASS["torch"] = {

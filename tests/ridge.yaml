@@ -1,0 +1,12 @@
+experiment:
+  name: ridge
+run:
+  include: data.yaml
+  dataloaders:
+    batch_size: 1
+    data:
+    dataset:
+  estimator:
+    class: example.Estimator
+  results:
+  metrics:

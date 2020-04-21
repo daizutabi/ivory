@@ -4,7 +4,9 @@ from typing import Any, Dict
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.linear_model import Ridge
 
+import ivory.callbacks.estimator
 import ivory.core.data
 import ivory.torch.data
 from ivory.utils import kfold_split
@@ -53,6 +55,18 @@ class Model(nn.Module):
         for layer in self.layers[:-1]:
             x = F.relu(layer(x))
         return self.layers[-1](x)
+
+
+@dataclass
+class Estimator(ivory.callbacks.estimator.Estimator):
+    def __post_init__(self):
+        self.estimator = Ridge()
+
+    def fit(self, input, target):
+        self.estimator.fit(input, target)
+
+    def transform(self, input):
+        return self.estimator.predict(input)
 
 
 def suggest_lr(trial):

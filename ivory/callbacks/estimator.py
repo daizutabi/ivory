@@ -34,8 +34,8 @@ class Estimator(State):
     def train_step(self, run):
         run.on_train_start()
         index, input, target = run.dataloaders.train.dataset.get()
-        run.model.fit(input, target)
-        output = run.model.transform(input)
+        self.fit(input, target)
+        output = self.transform(input)
         run.results.step(index, output, target)
         run.metrics.step(output, target)
         run.on_train_end()
@@ -43,7 +43,7 @@ class Estimator(State):
     def val_step(self, run):
         run.on_val_start()
         index, input, target = run.dataloaders.val.dataset.get()
-        output = run.model.transform(input)
+        output = self.transform(input)
         run.results.step(index, output, target)
         run.metrics.step(output, target)
         run.on_val_end()
@@ -52,6 +52,6 @@ class Estimator(State):
     def test_step(self, run):
         run.on_test_start()
         index, input = run.dataloaders.test.dataset.get()
-        output = run.model.transform(input)
+        output = self.transform(input)
         run.results.step(index, output)
         run.on_test_end()
