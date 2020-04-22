@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import optuna
 from termcolor import colored
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 from ivory.core.exceptions import EarlyStopped
 from ivory.core.run import Run
@@ -11,9 +11,9 @@ from ivory.core.state import State
 
 @dataclass
 class Trainer(State):
-    epoch: int = 0
+    epoch: int = -1
     max_epochs: int = 1000
-    global_step: int = 0
+    global_step: int = -1
     verbose: int = 1
 
     def start(self, run: Run):
@@ -107,7 +107,7 @@ class Trainer(State):
         else:
             msg = colored(msg, "yellow")
         if early_stopped:
-            msg += colored(" early stopped", "red")
+            msg += colored(" early stopped", "magenta")
         if pruned:
             msg += colored(" pruned", "red")
         return msg

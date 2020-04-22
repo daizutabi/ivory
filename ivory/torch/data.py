@@ -12,7 +12,7 @@ class Dataset(ivory.core.data.Dataset, torch.utils.data.Dataset):
 
 @dataclass(repr=False)
 class DataLoaders(ivory.core.data.DataLoaders):
-    def get_dataloader(self, mode, dataset):
+    def get_dataloader(self, dataset, mode):
         shuffle = True if mode == "train" else False
         return torch.utils.data.DataLoader(
             dataset, batch_size=self.batch_size, shuffle=shuffle

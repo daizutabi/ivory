@@ -56,7 +56,7 @@ class Callback:
 
 
 class CallbackCaller(Base):
-    def create_callback(self):
+    def create_callbacks(self):
         for method in Callback.METHODS:
             methods = {}
             for key in self:

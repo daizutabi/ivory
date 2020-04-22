@@ -18,7 +18,7 @@ class Run(CallbackCaller):
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode: str = "train"):
-        self.create_callback()
+        self.create_callbacks()
         self.mode = mode
         self.on_init()
 

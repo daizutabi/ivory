@@ -31,14 +31,15 @@ def cli():
 @click.argument("path")
 @click.argument("args", nargs=-1)
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
-@click.option("--notest", is_flag=True, help="Skip inference after training.")
+@click.option("--notest", is_flag=True, help="Skip test after training.")
+@click.option("--notrack", is_flag=True, help="No tracking mode.")
 @click.option("-m", "--message", default="", help="Message for tracking.")
-def run(path, args, repeat, notest, message):
-    client = ivory.create_client()
+def run(path, args, repeat, notest, notrack, message):
+    client = ivory.create_client(tracker=not notrack)
     experiment = client.create_experiment(path)
     for run in experiment.start(args, repeat=repeat, message=message):
         run.start("train")
-        if not notest:
+        if not notest and not notrack:
             run = experiment.load_run(run.id, "best")
             try:
                 run.start("test")

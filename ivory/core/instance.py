@@ -103,7 +103,7 @@ def parse_value(value, globals, key: str):
     return value
 
 
-def create_base_instance(params: Dict[str, Any], name: str, source_name=""):
+def create_base_instance(params: Dict[str, Any], name: str, source_name: str = ""):
     update_class(params)
     kwargs = dict(params=params, source_name=source_name)
     return instantiate(params[name], kwargs=kwargs)

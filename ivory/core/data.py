@@ -102,7 +102,7 @@ class DataLoaders(ivory.core.dict.Dict):
             dataset.init(self)
             if mode == "train" and hasattr(dataset.transform, "init"):
                 dataset.transform.init(dataset)
-            self[mode] = self.get_dataloader(mode, dataset)
+            self[mode] = self.get_dataloader(dataset, mode)
 
-    def get_dataloader(self, mode, dataset):
+    def get_dataloader(self, dataset, mode):
         return DataLoader(dataset, batch_size=self.batch_size)

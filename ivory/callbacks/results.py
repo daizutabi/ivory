@@ -38,10 +38,7 @@ class Results(Dict, State):
 
     def result_dict(self):
         self.stack()
-        if self.target is None:
-            return dict(index=self.index, output=self.output)
-        else:
-            return dict(index=self.index, output=self.output, target=self.target)
+        return dict(index=self.index, output=self.output, target=self.target)
 
     def stack(self):
         if self.index is not None or not self.indexes:
