@@ -17,41 +17,30 @@ class Estimator(State):
 
     def train(self, run):
         run.on_fit_start()
+        run.on_epoch_start()
+        run.on_train_start()
+        self.step(run, "train")
+        run.on_train_end()
+        run.on_val_start()
+        self.step(run, "val")
+        run.on_val_end()
         try:
-            self.step(run)
+            run.on_epoch_end()
         finally:
+            if self.verbose:
+                tqdm.write(f"[{run.name}] {run.metrics}")
             run.on_fit_end()
 
     def test(self, run):
-        self.test_step(run)
-
-    def step(self, run):
-        self.train_step(run)
-        self.val_step(run)
-        if self.verbose:
-            tqdm.write(f"[{run.name}] {run.metrics}")
-
-    def train_step(self, run):
-        run.on_train_start()
-        index, input, target = run.dataloaders.train.dataset.get()
-        self.fit(input, target)
-        output = self.transform(input)
-        run.results.step(index, output, target)
-        run.metrics.step(output, target)
-        run.on_train_end()
-
-    def val_step(self, run):
-        run.on_val_start()
-        index, input, target = run.dataloaders.val.dataset.get()
-        output = self.transform(input)
-        run.results.step(index, output, target)
-        run.metrics.step(output, target)
-        run.on_val_end()
-        run.on_epoch_end()
-
-    def test_step(self, run):
         run.on_test_start()
-        index, input = run.dataloaders.test.dataset.get()
-        output = self.transform(input)
-        run.results.step(index, output)
+        self.step(run, "test")
         run.on_test_end()
+
+    def step(self, run, mode):
+        index, input, *target = run.dataloaders[mode].dataset.get()
+        if mode == "train":
+            self.fit(input, *target)
+        output = self.transform(input)
+        run.results.step(index, output, *target)
+        if mode != "test":
+            run.metrics.step(output, *target)

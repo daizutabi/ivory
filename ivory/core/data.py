@@ -10,10 +10,10 @@ import ivory.core.dict
 class Data:
     fold: Optional[np.ndarray] = field(default=None, repr=False)
 
-    def init(self, dataloaders):
+    def init(self, dataloaders: "DataLoaders"):
         pass
 
-    def get(self, mode, index):
+    def get(self, mode: str, index: np.ndarray):
         """Returns a subset of data according to `mode` and `index`.
 
         Returned object can be any type but should be processed by Dataset's ``get()``.
@@ -23,10 +23,7 @@ class Data:
 
         Called from ivory.core.data.DataLoaders.
         """
-        if mode == "test":
-            return [self.index[index], self.input[index]]
-        else:
-            return [self.index[index], self.input[index], self.target[index]]
+        return [self.index[index], self.input[index], self.target[index]]  # type:ignore
 
     def get_index(self, mode: str, fold: int = -1):
         if mode == "train":

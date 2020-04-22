@@ -58,49 +58,47 @@ class Trainer(State):
                 pruned = e
             finally:
                 if self.verbose:
-                    msg = self.message(max_epoch, early_stopped, pruned, run)
+                    msg = self.message(run, max_epoch, early_stopped, pruned)
                     tqdm.write(msg)
         if pruned:
             raise pruned
 
+    def get_dataloader(self, run, mode):
+        dataloader = run.dataloaders[mode]
+        if self.verbose == 1:
+            mode = "%-5s" % (mode[0].upper() + mode[1:])
+            dataloader = tqdm(dataloader, desc=mode, leave=False)
+        return dataloader
+
     def train_loop(self, run):
         run.on_train_start()
-        dataloader = run.dataloaders.train
-        if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="Train", leave=False)
-        for index, input, target in dataloader:
+        for index, input, target in self.get_dataloader(run, "train"):
             self.global_step += 1
-            self.train_step(index, input, target, run)
+            self.train_step(run, index, input, target)
         run.on_train_end()
 
     def val_loop(self, run):
         run.on_val_start()
-        dataloader = run.dataloaders.val
-        if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="Val  ", leave=False)
-        for index, input, target in dataloader:
-            self.val_step(index, input, target, run)
+        for index, input, target in self.get_dataloader(run, "val"):
+            self.val_step(run, index, input, target)
         run.on_val_end()
 
     def test_loop(self, run):
         run.on_test_start()
-        dataloader = run.dataloaders.test
-        if self.verbose == 1:
-            dataloader = tqdm(dataloader, desc="Test ", leave=False)
-        for index, input in dataloader:
-            self.test_step(index, input, run)
+        for index, input, *target in self.get_dataloader(run, "test"):
+            self.test_step(run, index, input, *target)
         run.on_test_end()
 
-    def train_step(self, index, input, target, run):
+    def train_step(self, run, index, input, target):
         """Performs a single train step."""
 
-    def val_step(self, index, input, target, run):
+    def val_step(self, run, index, input, target):
         """Performs a single validation step."""
 
-    def test_step(self, index, input, run):
+    def test_step(self, run, index, input, *target):
         """Performs a single test step."""
 
-    def message(self, max_epoch, early_stopped, pruned, run):
+    def message(self, run, max_epoch, early_stopped, pruned):
         width = len(str(max_epoch))
         epoch = str(self.epoch).zfill(width)
         msg = f"[{run.name}] epoch={epoch} {run.metrics}"

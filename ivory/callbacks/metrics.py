@@ -25,7 +25,8 @@ class Metrics(Dict, State):
         return f"{class_name}({args})"
 
     def on_epoch_start(self, run):
-        self.epoch = run.trainer.epoch
+        if run.trainer:
+            self.epoch = run.trainer.epoch
 
     def on_train_start(self, run):
         self.losses = []

@@ -29,7 +29,7 @@ class Trainer(ivory.callbacks.trainer.Trainer):
     def on_train_start(self, run):
         run.model.train()
 
-    def train_step(self, index, input, target, run):
+    def train_step(self, run, index, input, target):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
@@ -49,7 +49,7 @@ class Trainer(ivory.callbacks.trainer.Trainer):
         run.model.eval()
 
     @torch.no_grad()
-    def val_step(self, index, input, target, run):
+    def val_step(self, run, index, input, target):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
@@ -69,8 +69,8 @@ class Trainer(ivory.callbacks.trainer.Trainer):
         run.model.eval()
 
     @torch.no_grad()
-    def test_step(self, index, input, run):
+    def test_step(self, run, index, input, *target):
         if self.gpu:
             input = utils.cuda(input)
         output = run.model(input)
-        run.results.step(index, output)
+        run.results.step(index, output, *target)

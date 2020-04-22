@@ -32,7 +32,7 @@ class Data(ivory.core.data.Data):
     def init(self, dataloaders):
         if self.fold is None:
             self.input, self.target = create_data(self.num_samples)
-            self.target = self.target.reshape((-1, 1))
+            self.target = self.target.reshape(-1, 1)
             self.index = np.arange(len(self.input))
             self.fold = kfold_split(self.input, n_splits=5)
             self.fold = np.where(self.fold == 4, -1, self.fold)
