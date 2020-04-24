@@ -33,8 +33,14 @@ class Tracker:
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
-    def create_run(self, experiment_id: str, name: str, source_name: str = ""):
-        tags = get_tags(name, source_name)
+    def create_run(
+        self,
+        experiment_id: str,
+        name: str,
+        source_name: str = "",
+        parent_run_id: str = "",
+    ):
+        tags = get_tags(name, source_name, parent_run_id)
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 

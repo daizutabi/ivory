@@ -96,8 +96,13 @@ def test_load_run(experiment, run):
 
 
 def test_load_instance(experiment, run):
-    results = experiment.load_instance(run.id, "results", "best")
+    results = experiment.load_instance(run.id, "results", "test")
     assert "train" in results
-    assert "test" not in results
+    assert "val" in results
+    assert "test" in results
     model = experiment.load_instance(run.id, "model", "test")
     assert isinstance(model, torch.nn.Module)
+
+
+# def test_update_params(experiment):
+#     experiment.update_params()

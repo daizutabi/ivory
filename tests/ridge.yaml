@@ -2,8 +2,8 @@ experiment:
   name: ridge
 run:
   include: data.yaml
-  dataloaders:
-    batch_size: 1
+  datasets:
+    fold: 0
     data:
     dataset:
   estimator:

@@ -37,7 +37,7 @@ class Estimator(State):
         run.on_test_end()
 
     def step(self, run, mode):
-        index, input, *target = run.dataloaders[mode].dataset.get()
+        index, input, *target = run.datasets[mode].get()
         if mode == "train":
             self.fit(input, *target)
         output = self.transform(input)

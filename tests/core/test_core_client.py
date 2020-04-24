@@ -21,7 +21,8 @@ def test_get_experiment(client):
 
 
 def test_search_runs(client, run):
-    run.start()
+    run.start("train")
+    run.start("test")
     run_ids = list(client.search_runs())
     assert len(run_ids)
 
@@ -46,7 +47,10 @@ def test_load(client):
     trainer = client.load_instance(run_id, "trainer")
     assert trainer.epoch > 0
 
+    output, target = client.load_results([run_id, run_id])
+    assert len(output) == 200 * 2 * 2
+
 
 def test_without_tracker():
     client = create_client(directory="tests", tracker=False)
-    assert 'tracker' not in client
+    assert "tracker" not in client

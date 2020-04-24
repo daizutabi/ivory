@@ -39,10 +39,10 @@ class Experiment(Base):
             return params
         raise ValueError("Experiment ids don't match.")
 
-    def create_run(self, params=None, **kwargs):
+    def create_run(self, params=None, parent_run_id: str = "", **kwargs):
         params = self.create_params(params, **kwargs)
         run = create_base_instance(params, "run")
-        run.set_experiment(self)
+        run.set_experiment(self, parent_run_id)
         return run
 
     def create_instance(self, name, params=None, **kwargs):
@@ -53,8 +53,12 @@ class Experiment(Base):
 
     def start(self, args=None, repeat=1, message: str = "", **kwargs):
         it = product(args, self.params, repeat=repeat, **kwargs)
+        parent_run_id = ""
         for update, _, mode, number, args, _, tags in it:
-            run = self._create_run(update, mode, number, args, tags, message)
+            run = self._create_run(
+                update, mode, number, args, tags, message, parent_run_id
+            )
+            parent_run_id = run.id
             yield run
 
     def optimize(self, name, args=None, message: str = "", **kwargs):
@@ -75,12 +79,12 @@ class Experiment(Base):
             study.set_user_attr("experiment_id", self.id)
         yield study
 
-    def _create_run(self, update, mode, number, args, tags, message):
+    def _create_run(self, update, mode, number, args, tags, message, parent_run_id=""):
         params = self.create_params()
         utils.update_dict(params, update)
         run_name = "single" if mode == "single" else f"{mode}#{number}"
         params["run"]["name"] = run_name
-        run = self.create_run(params)
+        run = self.create_run(params, parent_run_id=parent_run_id)
         if run.tracking:
             args = {arg: utils.get_value(params, arg) for arg in args}
             run.tracking.log_params(run.id, args)

@@ -8,6 +8,7 @@ DEFAULT_CLASS["core"] = {
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
     "dataset": "ivory.core.data.Dataset",
+    "datasets": "ivory.core.data.Datasets",
     "dataloaders": "ivory.core.data.DataLoaders",
     "results": "ivory.callbacks.results.Results",
     "metrics": "ivory.callbacks.metrics.Metrics",

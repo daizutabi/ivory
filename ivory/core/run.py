@@ -5,22 +5,25 @@ from ivory.core.base import CallbackCaller
 
 
 class Run(CallbackCaller):
-    def set_experiment(self, experiment):
+    def set_experiment(self, experiment, parent_run_id: str = ""):
         if experiment.source_name:
             self.source_name = experiment.source_name
         if experiment.tracker:
-            self.set_tracking(experiment.tracker, experiment.id)
+            self.set_tracking(experiment.tracker, experiment.id, parent_run_id)
 
-    def set_tracking(self, tracker, experiment_id: str):
+    def set_tracking(self, tracker, experiment_id: str, parent_run_id: str = ""):
         if not self.id:
-            self.id = tracker.create_run(experiment_id, self.name, self.source_name)
+            self.id = tracker.create_run(
+                experiment_id, self.name, self.source_name, parent_run_id
+            )
             self.params["run"]["id"] = self.id
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode: str = "train"):
         self.create_callbacks()
         self.mode = mode
-        self.on_init()
+        self.on_init_start()
+        self.on_init_end()
 
     def start(self, mode: str = "train"):
         self.init(mode)

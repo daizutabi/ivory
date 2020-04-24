@@ -1,10 +1,16 @@
+import warnings
 from typing import Dict
 
 import ivory.core.ui
+import ivory.utils.data
 from ivory import utils
+from ivory.core import instance
 from ivory.core.base import Base
 from ivory.core.experiment import Experiment
-from ivory.core.instance import create_base_instance
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from tqdm.autonotebook import tqdm
 
 
 class Client(Base):
@@ -21,7 +27,7 @@ class Client(Base):
         return self.create_experiment_from_params(params, source_name)
 
     def create_experiment_from_params(self, params, source_name=""):
-        experiment = create_base_instance(params, "experiment", source_name)
+        experiment = instance.create_base_instance(params, "experiment", source_name)
         experiment.set_client(self)
         return experiment
 
@@ -62,6 +68,12 @@ class Client(Base):
             run_id, name, mode, experiment.create_run, experiment.create_instance
         )
 
+    def load_results(self, run_ids, verbose=True):
+        if verbose:
+            run_ids = tqdm(list(run_ids))
+        it = (self.load_instance(run_id, "results", "test") for run_id in run_ids)
+        return ivory.utils.data.concat_results(it)
+
     def ui(self):
         ivory.core.ui.run(self.tracker.tracking_uri)
 
@@ -72,5 +84,5 @@ def create_client(path="client", directory=".", tracker=True) -> Client:
     if not tracker and "tracker" in params["client"]:
         params["client"].pop("tracker")
     with utils.chdir(source_name):
-        client = create_base_instance(params, "client", source_name)
+        client = instance.create_base_instance(params, "client", source_name)
     return client
