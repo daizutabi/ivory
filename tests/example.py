@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.linear_model import Ridge
 
-import ivory.callbacks.estimator
+import ivory.core.estimator
 import ivory.core.data
 import ivory.torch.data
 from ivory.utils import kfold_split
@@ -57,7 +57,7 @@ class Model(nn.Module):
 
 
 @dataclass
-class Estimator(ivory.callbacks.estimator.Estimator):
+class Estimator(ivory.core.estimator.Estimator):
     def __post_init__(self):
         self.estimator = Ridge()
 

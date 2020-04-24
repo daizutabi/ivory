@@ -17,7 +17,7 @@ def test_get_experiment(client):
     assert experiment.name == "example"
     for experiment in client.get_experiments():
         pass
-    assert experiment.name == "ridge"
+    assert experiment.name == "example"
 
 
 def test_search_runs(client, run):
