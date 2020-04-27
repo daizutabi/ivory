@@ -1,4 +1,4 @@
-import warnings
+import os
 from typing import Dict
 
 import ivory.core.ui
@@ -6,11 +6,9 @@ import ivory.utils.data
 from ivory import utils
 from ivory.core import instance
 from ivory.core.base import Base
+from ivory.core.default import DEFAULT_CLASS
 from ivory.core.experiment import Experiment
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from tqdm.autonotebook import tqdm
+from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
@@ -80,9 +78,15 @@ class Client(Base):
 
 def create_client(path="client", directory=".", tracker=True) -> Client:
     source_name = utils.normpath(path, directory)
-    params, _ = utils.load_params(source_name)
-    if not tracker and "tracker" in params["client"]:
-        params["client"].pop("tracker")
+    if os.path.exists(source_name):
+        params, _ = utils.load_params(source_name)
+        if not tracker and "tracker" in params["client"]:
+            params["client"].pop("tracker")
+    else:
+        params = {"client": {"class": DEFAULT_CLASS["core"]["client"]}}
+        if tracker:
+            tracker = {"tracker": {"class": DEFAULT_CLASS["core"]["tracker"]}}
+            params["client"].update(tracker)
     with utils.chdir(source_name):
         client = instance.create_base_instance(params, "client", source_name)
     return client

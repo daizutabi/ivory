@@ -8,7 +8,7 @@ import mlflow
 import ivory.core.state
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
-from ivory.utils.mlflow import get_source_name, get_tags
+from ivory.utils.mlflow import get_run_name, get_source_name, get_tags
 
 
 @dataclass
@@ -38,14 +38,20 @@ class Tracker:
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
-    def list_run_ids(self, experiment_id: str):
-        for run_info in self.client.list_run_infos(experiment_id):
+    def create_tracking(self):
+        return Tracking(self.tracking_uri)
+
+    def list_run_ids(self, experiment_id: str, run_view_type=1):
+        for run_info in self.client.list_run_infos(experiment_id, run_view_type):
             yield run_info.run_id
 
-    def get_source_name(self, run_id):
+    def get_run_name(self, run_id: str) -> str:
+        return get_run_name(self.client.get_run(run_id))
+
+    def get_source_name(self, run_id: str) -> str:
         return get_source_name(self.client.get_run(run_id))
 
-    def load_params(self, run_id):
+    def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
 
     def load_run(self, run_id, mode, create_run):
@@ -53,9 +59,6 @@ class Tracker:
 
     def load_instance(self, run_id, name, mode, create_run, create_instance):
         return load(self, run_id, name, mode, create_run, create_instance)
-
-    def create_tracking(self):
-        return Tracking(self.tracking_uri)
 
     def update_params(self, experiment_id, **default):
         runs = []

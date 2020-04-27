@@ -2,7 +2,7 @@ import os
 
 
 def test_create_run(run):
-    assert run.name == ""
+    assert run.name == "Run#001"
 
 
 def test_start(run):

@@ -2,11 +2,11 @@ from dataclasses import dataclass
 
 import optuna
 from termcolor import colored
-from tqdm.autonotebook import tqdm
 
 from ivory.core.exceptions import EarlyStopped
 from ivory.core.run import Run
 from ivory.core.state import State
+from ivory.utils.tqdm import tqdm
 
 
 @dataclass

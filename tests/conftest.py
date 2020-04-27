@@ -33,13 +33,23 @@ def tracker(experiment):
 
 
 @pytest.fixture(scope="session")
-def objective(experiment):
-    yield experiment.objective
+def run(experiment):
+    yield experiment.create_run()
 
 
 @pytest.fixture(scope="session")
-def run(experiment):
-    yield experiment.create_run()
+def task(experiment):
+    yield experiment.create_task()
+
+
+@pytest.fixture(scope="session")
+def study(experiment):
+    yield experiment.create_study()
+
+
+@pytest.fixture(scope="session")
+def objective(study):
+    yield study.objective
 
 
 @pytest.fixture(scope="session")
@@ -70,3 +80,8 @@ def metrics(run):
 @pytest.fixture(scope="session")
 def trainer(run):
     yield run.trainer
+
+
+@pytest.fixture(scope="session")
+def tuner(study):
+    yield study.tuner

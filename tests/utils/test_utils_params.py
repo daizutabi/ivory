@@ -1,6 +1,6 @@
 import pytest
 
-from ivory.utils import dot_to_list, literal_eval, update_dict
+from ivory.utils import colon_to_list, literal_eval, update_dict
 
 
 def test_literal_eval():
@@ -31,11 +31,11 @@ def test_update_dict():
 
 
 def test_dot_to_list():
-    x = {"a": 1, "b.c": 2, "c.0": 3, "c.1": 4, "d.x.0": 10, "d.x.1": 20}
-    y = dot_to_list(x)
+    x = {"a": 1, "b.c": 2, "c:0": 3, "c:1": 4, "d.x:0": 10, "d.x:1": 20}
+    y = colon_to_list(x)
     assert y == {"a": 1, "b.c": 2, "c": [3, 4], "d.x": [10, 20]}
 
     with pytest.raises(KeyError):
-        dot_to_list({"a.1": 3, "a.0": 5})
+        colon_to_list({"a:1": 3, "a:0": 5})
     with pytest.raises(KeyError):
-        dot_to_list({"a": 3, "a.0": 5})
+        colon_to_list({"a": 3, "a:0": 5})

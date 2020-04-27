@@ -10,9 +10,8 @@ htmlcov/
 .ropeproject/
 .pytest_cache/
 .mypy_cache/
-training_checkpoints/
 *.zip
-annotations/
 .pheasant_cache/
 *.pkl
 mlruns/
+notebooks/

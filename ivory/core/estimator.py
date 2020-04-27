@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from tqdm import tqdm
-
 from ivory.core.state import State
+from ivory.utils.tqdm import tqdm
 
 
 @dataclass

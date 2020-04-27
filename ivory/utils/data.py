@@ -1,4 +1,5 @@
 import pandas as pd
+import scipy.special
 
 
 def concat_results(iterable):
@@ -13,6 +14,11 @@ def concat_results(iterable):
     output.sort_index(inplace=True)
     target.sort_index(inplace=True)
     return output, target
+
+
+def softmax(df):
+    prob = scipy.special.softmax(df.to_numpy(), axis=1)
+    return pd.DataFrame(prob, index=df.index)
 
 
 def mean(df):
@@ -36,10 +42,3 @@ def mean_argmax(output, target, columns=None):
     pred = argmax(df)
     true = mean(target)
     return pd.DataFrame({columns[0]: pred, columns[1]: true})
-
-
-# import scipy.special
-#
-# signal = scipy.special.softmax(df.to_numpy(), axis=1)
-#
-# df = pd.DataFrame(signal, index=df.index)

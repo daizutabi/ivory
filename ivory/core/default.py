@@ -7,6 +7,8 @@ DEFAULT_CLASS["core"] = {
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
+    "task": "ivory.core.run.Task",
+    "study": "ivory.core.run.Study",
     "dataset": "ivory.core.data.Dataset",
     "datasets": "ivory.core.data.Datasets",
     "dataloaders": "ivory.core.data.DataLoaders",

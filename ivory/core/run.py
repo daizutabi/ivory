@@ -1,7 +1,10 @@
 import os
 
 import ivory.core.state
+from ivory import utils
+from ivory.core import parser
 from ivory.core.base import CallbackCaller
+from ivory.utils.tqdm import tqdm
 
 
 class Run(CallbackCaller):
@@ -10,11 +13,13 @@ class Run(CallbackCaller):
             self.source_name = experiment.source_name
         if experiment.tracker:
             self.set_tracking(experiment.tracker, experiment.id)
+        self["experiment"] = experiment
 
     def set_tracking(self, tracker, experiment_id: str):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
-            self.params["run"]["id"] = self.id
+            class_name = self.__class__.__name__.lower()
+            self.params[class_name]["id"] = self.id
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode: str = "train"):
@@ -63,3 +68,32 @@ class Run(CallbackCaller):
 
     def load_instance(self, path):
         raise NotImplementedError
+
+
+class Task(Run):
+    def create_run(self, args):
+        args = utils.colon_to_list(args)
+        run = self.experiment.create_run(args=args)
+        if self.tracking:
+            args = {arg: utils.get_value(run.params['run'], arg) for arg in args}
+            self.tracking.log_params(run.id, args)
+            self.tracking.set_parent_run_id(run.id, self.id)
+        return run
+
+    def product(self, args=None, repeat=1, **kwargs):
+        for args in tqdm(list(parser.product(args, **kwargs))):
+            run = self.create_run(args)
+            yield run
+
+
+class Study(Task):
+    def optimize(self, suggest_name: str, **kwargs):
+        study_name = ".".join([self.experiment.name, suggest_name, self.name])
+        mode = self.experiment.create_instance("run.monitor").mode
+        study = self.tuner.create_study(study_name, mode)
+        if self.experiment.id:
+            study.set_user_attr("experiment_id", self.experiment.id)
+        has_pruning = self.tuner.pruner is not None
+        objective = self.objective(suggest_name, self.create_run, has_pruning)
+        study.optimize(objective, **kwargs)
+        return study

@@ -1,21 +1,16 @@
 import copy
-import functools
-import itertools
-
-from tqdm import tqdm
+from typing import Iterator
 
 from ivory import utils
 from ivory.core.base import Base
+from ivory.core.default import DEFAULT_CLASS
 from ivory.core.instance import create_base_instance, create_instance
-from ivory.core.parser import Parser
 
 
 class Experiment(Base):
     def set_client(self, client):
         if client.tracker:
             self.set_tracker(client.tracker)
-        if client.tuner:
-            self.set_tuner(client.tuner)
 
     def set_tracker(self, tracker):
         self["tracker"] = tracker
@@ -26,75 +21,56 @@ class Experiment(Base):
             self.id = tracker.create_experiment(self.name)
             self.params["experiment"]["id"] = self.id
 
-    def set_tuner(self, tuner):
-        self["tuner"] = tuner
+    def get_run_name(self, class_name: str, run_number: int = 0):
+        if run_number == 0:
+            if self.tracker:
+                for run_id in self.search_runs(run_view_type=3):
+                    name = self.tracker.get_run_name(run_id)
+                    if name.startswith(class_name):
+                        run_number = max(run_number, int(name.split("#")[1]))
+            run_number += 1
+        return f"{class_name}#{run_number:03d}"
 
-    def create_params(self, params=None, **kwargs):
-        if not params:
+    def create_params(self, params=None, args=None, **kwargs):
+        if params is None:
             params = copy.deepcopy(self.params)
-            if kwargs:
-                update = utils.create_update(params, **kwargs)
-                utils.update_dict(params, update)
+        update = utils.create_update(params['run'], args, **kwargs)
+        utils.update_dict(params['run'], update)
         if "id" not in params["experiment"] or params["experiment"]["id"] == self.id:
             return params
         raise ValueError("Experiment ids don't match.")
 
-    def create_run(self, params=None, **kwargs):
-        params = self.create_params(params, **kwargs)
-        run = create_base_instance(params, "run")
+    def create_run(
+        self, params=None, class_name="Run", run_number=0, args=None, **kwargs
+    ):
+        params = self.create_params(params, args, **kwargs)
+        name = class_name.lower()
+        if name not in params:
+            params[name] = {"class": DEFAULT_CLASS["core"][name]}
+        params[name]["name"] = self.get_run_name(class_name, run_number)
+        run = create_base_instance(params, name)
         run.set_experiment(self)
         return run
 
-    def create_instance(self, name, params=None, **kwargs):
+    def create_task(self):
+        return self.create_run(class_name="Task")
+
+    def create_study(self, run_number: int = 0):
+        return self.create_run(class_name="Study", run_number=run_number)
+
+    def create_instance(self, name: str, params=None, **kwargs):
         params = self.create_params(params, **kwargs)
         if "." not in name:
             name = f"run.{name}"
         return create_instance(params, name)
 
-    def start(self, args=None, repeat=1, message: str = "", **kwargs):
-        it = product(args, self.params, repeat=repeat, **kwargs)
-        for update, _, mode, number, args, _, tags in it:
-            run = self._create_run(update, mode, number, args, tags, message)
-            yield run
-
-    def optimize(self, name, args=None, message: str = "", **kwargs):
-        params = self.params
-        it = product(args, params, repeat=1, desc="Study", **kwargs)
-        mode = self.create_instance("run.monitor").mode
-        tuner = self.tuner
-        optimize = self.objective.optimize
-        for update, options, _, _, args, values, tags in it:
-            names = sorted([f"{arg}={value}" for arg, value in zip(args, values)])
-            extra_name = ",".join(names)
-            study_name = ".".join([self.name, name, extra_name])
-            tags.update(suggest=name)
-            create_study = functools.partial(tuner.create_study, study_name, mode)
-            create_run = functools.partial(self._create_run, tags=tags, message=message)
-            study = optimize(name, update, params, options, create_run, create_study)
-        if self.id:
-            study.set_user_attr("experiment_id", self.id)
-        yield study
-
-    def _create_run(self, update, mode, number, args, tags, message):
-        params = self.create_params()
-        utils.update_dict(params, update)
-        run_name = "single" if mode == "single" else f"{mode}#{number}"
-        params["run"]["name"] = run_name
-        run = self.create_run(params)
-        if run.tracking:
-            args = {arg: utils.get_value(params, arg) for arg in args}
-            run.tracking.log_params(run.id, args)
-            tags = tags.copy()
-            tags["mode"] = mode
-            if message:
-                tags["message"] = message
-            run.tracking.set_tags(run.id, tags)
-        return run
-
-    def search_runs(self, **query):
-        for run_id in self.tracker.list_run_ids(self.id):
-            params = self.load_params(run_id)
-            if utils.match(params, **query):
+    def search_runs(self, run_view_type=1, **query) -> Iterator[str]:
+        for run_id in self.tracker.list_run_ids(self.id, run_view_type):
+            if query:
+                params = self.load_params(run_id)
+                if utils.match(params, **query):
+                    yield run_id
+            else:
                 yield run_id
 
     def load_params(self, run_id):
@@ -110,21 +86,3 @@ class Experiment(Base):
 
     def update_params(self, **default):
         self.tracker.update_params(self.id, **default)
-
-
-def product(args, params, repeat=1, desc="Run  ", **kwargs):
-    parser = Parser(params, args, **kwargs)
-    if repeat != 1 and parser.mode == "single":
-        parser.mode = "repeat"
-    args = parser.fullnames.keys()
-    tags = parser.args
-    options = parser.options
-    it = list(itertools.product(range(repeat), *parser.update.values()))
-    if len(it) > 1:
-        it = tqdm(it, desc=desc)
-    for number, (_, *values) in enumerate(it, 1):
-        update = {}
-        for fullnames, value in zip(parser.update, values):
-            for fullname in fullnames:
-                update[fullname] = value
-        yield update, options, parser.mode, number, args, values, tags

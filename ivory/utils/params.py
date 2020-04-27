@@ -6,11 +6,13 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
 
     Examples:
         >>> x = {"a": 1, "b": {"x": "abc", "y": 2, "z": [0, 1, 2]}}
-        >>> update_dict(x, {"b": {"z": [0]}, "b.x": "def"})
+        >>> update_dict(x, {"b": {"z": [0, 1]}, "b.x": "def"})
         >>> x
-        {'a': 1, 'b': {'x': 'def', 'y': 2, 'z': [0]}}
+        {'a': 1, 'b': {'x': 'def', 'y': 2, 'z': [0, 1]}}
+        >>> update_dict(x, {"b.z.1": 10, "b.x": "def"})
+        >>> x
+        {'a': 1, 'b': {'x': 'def', 'y': 2, 'z': [0, 10]}}
     """
-    update = dot_to_list(update)  # for optuna
     for key, value in update.items():
         x = org
         attrs = key.split(".")
@@ -18,6 +20,8 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
             x = x[attr]
         k = attrs[-1]
         if k not in x:
+            if "0" <= k[0] <= "9":
+                k = int(k)  # type:ignore
             x[k] = value
         elif isinstance(x[k], str) and x[k].startswith("$"):
             x[k] = value
@@ -30,29 +34,29 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
                 x[k] = value
 
 
-def dot_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
+def colon_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
     """Converts suffix integers into a list.
 
     Examples:
-        >>> x = {"a.0": 1, "a.1": 3, "b.x.0": 10, "b.x.1": 20}
-        >>> dot_to_list(x)
-        {'a': [1, 3], 'b.x': [10, 20]}
+        >>> x = {"a:0": 1, "a:1": 3, "b.x:0": 10, "b.x:1": 20, "c": 100}
+        >>> colon_to_list(x)
+        {'a': [1, 3], 'b.x': [10, 20], 'c': 100}
     """
     update: Dict[str, Any] = {}
     for key, value in x.items():
-        head, _, tail = key.rpartition(".")
-        if "0" <= tail <= "9":
-            index = int(tail)
-            if index == 0:
-                if head in update:
-                    raise KeyError(key)
-                update[head] = [value]
-            elif head not in update or len(update[head]) != index:
-                raise KeyError(key)
-            else:
-                update[head].append(value)
-        else:
+        if ':' not in key:
             update[key] = value
+            continue
+        key, digit = key.split(":")
+        index = int(digit)
+        if index == 0:
+            if key in update:
+                raise KeyError(key)
+            update[key] = [value]
+        elif key not in update or len(update[key]) != index:
+            raise KeyError(key)
+        else:
+            update[key].append(value)
     return update
 
 
@@ -133,6 +137,18 @@ def get_fullnames(params, name, prefix="", dict_allowed=False):
             yield from get_fullnames(params[key], name, prefix_, dict_allowed)
 
 
+def create_update(params, args=None, **kwargs):
+    if args is None:
+        args = {}
+    args.update(kwargs)
+    args = colon_to_list(args)
+    update = {}
+    for name, value in args.items():
+        for fullname in get_fullnames(params, name):
+            update[fullname] = value
+    return update
+
+
 def get_value(params, name):
     """
     Examples:
@@ -149,14 +165,6 @@ def get_value(params, name):
     fullnames = list(get_fullnames(params, name))
     if fullnames:
         return dot_get(params, fullnames[0])
-
-
-def create_update(params, **kwargs):
-    update = {}
-    for name, value in kwargs.items():
-        for fullname in get_fullnames(params, name):
-            update[fullname] = value
-    return update
 
 
 def match(params, **query):

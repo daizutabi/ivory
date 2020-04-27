@@ -1,8 +1,7 @@
 import pytest
 
 
-def test_tuner(experiment):
-    tuner = experiment.tuner
+def test_tuner(tuner):
     study = tuner.create_study("abc", mode="min")
     assert "MINIMIZE" in str(study.direction)
     study = tuner.create_study("abc", mode="max")

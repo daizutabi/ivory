@@ -57,8 +57,7 @@ class Tracking:
     def log_params(self, run_id, params):
         params_list = []
         for key, value in params.items():
-            value = str(value)[:250]
-            params_list.append(Param(key, value))
+            params_list.append(Param(key, to_str(value)))
         self.client.log_batch(run_id, metrics=[], params=params_list, tags=[])
 
     def log_metrics(self, run_id, metrics, step=0):
@@ -77,3 +76,12 @@ class Tracking:
         from ivory.core.tracker import Tracker
 
         return Tracker(self.tracking_uri)
+
+
+def to_str(value):
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(to_str(x) for x in value) + "]"
+    elif isinstance(value, float):
+        return f"{value:.4g}"
+    else:
+        return str(value)

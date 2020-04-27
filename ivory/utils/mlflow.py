@@ -20,5 +20,9 @@ def get_tags(name: str, source_name: str = ""):
     return tags
 
 
+def get_run_name(run):
+    return run.data.tags[MLFLOW_RUN_NAME]
+
+
 def get_source_name(run):
     return run.data.tags[MLFLOW_SOURCE_NAME]

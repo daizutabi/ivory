@@ -1,12 +1,14 @@
 experiment:
   name: example
-  objective:
-    suggest_lr: example.suggest_lr
-    suggest_hidden_sizes:
-      def: example.suggest_hidden_sizes
-      max_num_layers: 3
+study:
+  tuner:
     pruner:
       class: optuna.pruners.MedianPruner
+  objective:
+    lr: example.suggest_lr
+    hidden_sizes:
+      def: example.suggest_hidden_sizes
+      max_num_layers: 3
 run:
   library: torch
   include: data.yaml
