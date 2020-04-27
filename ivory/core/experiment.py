@@ -34,22 +34,25 @@ class Experiment(Base):
     def create_params(self, params=None, args=None, **kwargs):
         if params is None:
             params = copy.deepcopy(self.params)
-        update = utils.create_update(params['run'], args, **kwargs)
-        utils.update_dict(params['run'], update)
+        update, args = utils.create_update(params["run"], args, **kwargs)
+        utils.update_dict(params["run"], update)
         if "id" not in params["experiment"] or params["experiment"]["id"] == self.id:
-            return params
+            return params, args
         raise ValueError("Experiment ids don't match.")
 
     def create_run(
         self, params=None, class_name="Run", run_number=0, args=None, **kwargs
     ):
-        params = self.create_params(params, args, **kwargs)
+        params, args = self.create_params(params, args, **kwargs)
         name = class_name.lower()
         if name not in params:
             params[name] = {"class": DEFAULT_CLASS["core"][name]}
         params[name]["name"] = self.get_run_name(class_name, run_number)
         run = create_base_instance(params, name)
         run.set_experiment(self)
+        if run.tracking:
+            args = {arg: utils.get_value(run.params["run"], arg) for arg in args}
+            run.tracking.log_params(run.id, args)
         return run
 
     def create_task(self):
@@ -58,8 +61,8 @@ class Experiment(Base):
     def create_study(self, run_number: int = 0):
         return self.create_run(class_name="Study", run_number=run_number)
 
-    def create_instance(self, name: str, params=None, **kwargs):
-        params = self.create_params(params, **kwargs)
+    def create_instance(self, name: str, params=None, args=None, **kwargs):
+        params, _ = self.create_params(params, args, **kwargs)
         if "." not in name:
             name = f"run.{name}"
         return create_instance(params, name)

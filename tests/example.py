@@ -30,6 +30,7 @@ class Data(ivory.core.data.Data):
     num_samples: int = 1000
 
     def __post_init__(self):
+        super().__post_init__()
         self.input, self.target = create_data(self.num_samples)
         self.target = self.target.reshape(-1, 1)
         self.index = np.arange(len(self.input))

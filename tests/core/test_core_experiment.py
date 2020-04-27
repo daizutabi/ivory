@@ -23,3 +23,13 @@ def test_load_instance(experiment, run):
     assert "test" in results
     model = experiment.load_instance(run.id, "model", "test")
     assert isinstance(model, torch.nn.Module)
+
+
+def test_update_params(experiment):
+    run = experiment.create_run(fold=0)
+    run.start()
+    run = experiment.create_run(args={"hidden_sizes.0": 10})
+    run.start()
+    assert 'fold' not in run.tracking.client.get_run(run.id).data.params
+    experiment.update_params()
+    assert 'fold' in run.tracking.client.get_run(run.id).data.params

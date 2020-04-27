@@ -10,6 +10,7 @@ def test_dataset(data):
     assert data.fold.shape == (1000,)
     dataset = Dataset(data, "train", 0)
     assert len(dataset) == 600
+    assert len(list(iter(dataset))) == 600
     assert "num_samples=600" in repr(dataset)
     with pytest.raises(IndexError):
         dataset[800]

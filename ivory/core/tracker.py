@@ -71,7 +71,10 @@ class Tracker:
         tracking = self.create_tracking()
         for run in runs:
             run_id = run.info.run_id
-            params = self.load_params(run_id)
+            try:
+                params = self.load_params(run_id)
+            except FileNotFoundError:
+                continue
             update = {}
             for arg in args:
                 value = utils.get_value(params["run"], arg)

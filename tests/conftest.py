@@ -24,7 +24,7 @@ def experiment(client):
 
 @pytest.fixture(scope="function")
 def params(experiment):
-    yield experiment.create_params()
+    yield experiment.create_params()[0]
 
 
 @pytest.fixture(scope="session")

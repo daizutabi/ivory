@@ -1,7 +1,6 @@
 import os
 
 import ivory.core.state
-from ivory import utils
 from ivory.core import parser
 from ivory.core.base import CallbackCaller
 from ivory.utils.tqdm import tqdm
@@ -72,27 +71,25 @@ class Run(CallbackCaller):
 
 class Task(Run):
     def create_run(self, args):
-        args = utils.colon_to_list(args)
         run = self.experiment.create_run(args=args)
         if self.tracking:
-            args = {arg: utils.get_value(run.params['run'], arg) for arg in args}
-            self.tracking.log_params(run.id, args)
             self.tracking.set_parent_run_id(run.id, self.id)
         return run
 
     def product(self, args=None, repeat=1, **kwargs):
         for args in tqdm(list(parser.product(args, **kwargs))):
-            run = self.create_run(args)
+            run = self.experiment.create_run(args=args)
             yield run
 
 
 class Study(Task):
     def optimize(self, suggest_name: str, **kwargs):
-        study_name = ".".join([self.experiment.name, suggest_name, self.name])
-        mode = self.experiment.create_instance("run.monitor").mode
+        experiment = self.experiment
+        study_name = ".".join([experiment.name, suggest_name, self.name])
+        mode = experiment.create_instance("run.monitor").mode
         study = self.tuner.create_study(study_name, mode)
-        if self.experiment.id:
-            study.set_user_attr("experiment_id", self.experiment.id)
+        if experiment.id:
+            study.set_user_attr("experiment_id", experiment.id)
         has_pruning = self.tuner.pruner is not None
         objective = self.objective(suggest_name, self.create_run, has_pruning)
         study.optimize(objective, **kwargs)
