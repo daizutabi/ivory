@@ -1,5 +1,3 @@
-experiment:
-  name: ridge
 run:
   include: data.yaml
   datasets:

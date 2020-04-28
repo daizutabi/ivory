@@ -1,5 +1,3 @@
-experiment:
-  name: example
 study:
   tuner:
     pruner:

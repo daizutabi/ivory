@@ -20,17 +20,13 @@ def test_get_valid_mode(tracker, run):
 
 
 def test_load_run(tracker, run, experiment):
-    run = tracker.load_run(run.id, "test", experiment.create_run)
+    run = tracker.load_run(run.id, "test")
     assert run.trainer.epoch != -1
 
 
-def test_load_instance(tracker, run, experiment):
-    results = tracker.load_instance(
-        run.id, "results", "test", experiment.create_run, experiment.create_instance
-    )
+def test_load_instance(tracker, run):
+    results = tracker.load_instance(run.id, "results", "test")
     assert "test" in results
 
-    model = tracker.load_instance(
-        run.id, "model", "test", experiment.create_run, experiment.create_instance
-    )
+    model = tracker.load_instance(run.id, "model", "test")
     assert isinstance(model, torch.nn.Module)

@@ -1,10 +1,8 @@
 import copy
-from typing import Iterator
 
 from ivory import utils
+from ivory.core import instance
 from ivory.core.base import Base
-from ivory.core.default import DEFAULT_CLASS
-from ivory.core.instance import create_base_instance, create_instance
 
 
 class Experiment(Base):
@@ -21,14 +19,10 @@ class Experiment(Base):
             self.id = tracker.create_experiment(self.name)
             self.params["experiment"]["id"] = self.id
 
-    def get_run_name(self, class_name: str, run_number: int = 0):
-        if run_number == 0:
-            if self.tracker:
-                for run_id in self.search_runs(run_view_type=3):
-                    name = self.tracker.get_run_name(run_id)
-                    if name.startswith(class_name):
-                        run_number = max(run_number, int(name.split("#")[1]))
-            run_number += 1
+    def create_run_name(self, class_name: str, run_number: int = 0):
+        run_number == 0
+        if self.tracker:
+            run_number = self.tracker.get_run_number(self.id, class_name)
         return f"{class_name}#{run_number:03d}"
 
     def create_params(self, params=None, args=None, **kwargs):
@@ -46,9 +40,9 @@ class Experiment(Base):
         params, args = self.create_params(params, args, **kwargs)
         name = class_name.lower()
         if name not in params:
-            params[name] = {"class": DEFAULT_CLASS["core"][name]}
-        params[name]["name"] = self.get_run_name(class_name, run_number)
-        run = create_base_instance(params, name)
+            params[name] = {}
+        params[name]["name"] = self.create_run_name(class_name, run_number)
+        run = instance.create_base_instance(params, name)
         run.set_experiment(self)
         if run.tracking:
             args = {arg: utils.get_value(run.params["run"], arg) for arg in args}
@@ -65,27 +59,7 @@ class Experiment(Base):
         params, _ = self.create_params(params, args, **kwargs)
         if "." not in name:
             name = f"run.{name}"
-        return create_instance(params, name)
-
-    def search_runs(self, run_view_type=1, **query) -> Iterator[str]:
-        for run_id in self.tracker.list_run_ids(self.id, run_view_type):
-            if query:
-                params = self.load_params(run_id)
-                if utils.match(params, **query):
-                    yield run_id
-            else:
-                yield run_id
-
-    def load_params(self, run_id):
-        return self.tracker.load_params(run_id)
-
-    def load_run(self, run_id, mode="test"):
-        return self.tracker.load_run(run_id, mode, self.create_run)
-
-    def load_instance(self, run_id, name, mode="test"):
-        return self.tracker.load_instance(
-            run_id, name, mode, self.create_run, self.create_instance
-        )
+        return instance.create_instance(params, name)
 
     def update_params(self, **default):
         self.tracker.update_params(self.id, **default)

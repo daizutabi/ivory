@@ -8,6 +8,7 @@ import mlflow
 import ivory.core.state
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
+from ivory.core import instance
 from ivory.utils.mlflow import get_run_name, get_source_name, get_tags
 
 
@@ -41,9 +42,29 @@ class Tracker:
     def create_tracking(self):
         return Tracking(self.tracking_uri)
 
+    def list_experiments(self, view_type=None):
+        return self.client.list_experiments(view_type)
+
     def list_run_ids(self, experiment_id: str, run_view_type=1):
         for run_info in self.client.list_run_infos(experiment_id, run_view_type):
             yield run_info.run_id
+
+    def search_run_ids(self, experiment_id: str, run_view_type=1, **query):
+        for run_id in self.list_run_ids(experiment_id, run_view_type):
+            if query:
+                params = self.load_params(run_id)
+                if utils.match(params, **query):
+                    yield run_id
+            else:
+                yield run_id
+
+    def get_run_number(self, experiment_id: str, prefix: str, sep="#"):
+        run_number = 0
+        for run_id in self.search_run_ids(experiment_id, run_view_type=3):
+            name = self.get_run_name(run_id)
+            if name.startswith(prefix):
+                run_number = max(run_number, int(name.split(sep)[1]))
+        return run_number + 1
 
     def get_run_name(self, run_id: str) -> str:
         return get_run_name(self.client.get_run(run_id))
@@ -54,11 +75,11 @@ class Tracker:
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
 
-    def load_run(self, run_id, mode, create_run):
-        return load(self, run_id, "run", mode, create_run)
+    def load_run(self, run_id, mode):
+        return load(self, run_id, "run", mode)
 
-    def load_instance(self, run_id, name, mode, create_run, create_instance):
-        return load(self, run_id, name, mode, create_run, create_instance)
+    def load_instance(self, run_id, name, mode):
+        return load(self, run_id, name, mode)
 
     def update_params(self, experiment_id, **default):
         runs = []
@@ -88,7 +109,7 @@ class Tracker:
 params_cache: Dict[str, Dict[str, Any]] = {}
 
 
-def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None):
+def load(tracker, run_id, name, mode=None):
     if name == "params" and run_id in params_cache:
         return params_cache[run_id]
     source_name = tracker.get_source_name(run_id)
@@ -112,7 +133,7 @@ def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None
             os.mkdir(os.path.join(tmpdir, mode))
             path = os.path.join(mode, name)
             state_dict_path = client.download_artifacts(run_id, path, tmpdir)
-            instance = create_instance(name, params)
+            instance = create_instance(params, name)
             if isinstance(instance, ivory.core.state.State):
                 state_dict = ivory.core.state.load(state_dict_path)
             else:
@@ -120,6 +141,17 @@ def load(tracker, run_id, name, mode=None, create_run=None, create_instance=None
                 state_dict = run.load_instance(state_dict_path)
             instance.load_state_dict(state_dict)
             return instance
+
+
+def create_run(params):
+    run = instance.create_base_instance(params, "run")
+    return run
+
+
+def create_instance(params, name: str):
+    if "." not in name:
+        name = f"run.{name}"
+    return instance.create_instance(params, name)
 
 
 def get_valid_mode(client, run_id, mode):

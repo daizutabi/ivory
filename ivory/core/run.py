@@ -11,10 +11,10 @@ class Run(CallbackCaller):
         if experiment.source_name:
             self.source_name = experiment.source_name
         if experiment.tracker:
-            self.set_tracking(experiment.tracker, experiment.id)
+            self.set_tracker(experiment.tracker, experiment.id)
         self["experiment"] = experiment
 
-    def set_tracking(self, tracker, experiment_id: str):
+    def set_tracker(self, tracker, experiment_id: str = ""):
         if not self.id:
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             class_name = self.__class__.__name__.lower()

@@ -1,10 +1,9 @@
 import ast
 import contextlib
 import os
-import re
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Iterator, Tuple
+from typing import Any, Dict, Tuple
 
 import yaml
 
@@ -51,7 +50,6 @@ def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
         source_name = normpath(path, directory)
     else:
         source_name = path
-
     with open(source_name, "r") as file:
         params_yaml = file.read()
     params = yaml.safe_load(params_yaml)
@@ -95,16 +93,3 @@ def literal_eval(x):
         return v
     else:
         return x
-
-
-def params_iter(source_name: str, pattern: str = "") -> Iterator[Tuple[Params, str]]:
-    with chdir(source_name):
-        for file in os.listdir():
-            path, ext = os.path.splitext(file)
-            if ext not in [".yaml", ".yml"]:
-                continue
-            if pattern and not re.match(pattern, path):
-                continue
-            params, source_name_ = load_params(path, source_name)
-            if "experiment" in params and "name" in params["experiment"]:
-                yield params, source_name_
