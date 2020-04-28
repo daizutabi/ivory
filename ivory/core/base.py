@@ -1,7 +1,7 @@
 import copy
 
 from ivory import utils
-from ivory.core import instance
+from ivory.core import default, instance
 from ivory.core.dict import Dict
 
 
@@ -38,30 +38,29 @@ class Creator(Base):
     def experiment_name(self):
         return self.params["experiment"]["name"]
 
-    def create_params(self, args=None, **kwargs):
+    def create_params(self, args=None, name="run", **kwargs):
         params = copy.deepcopy(self.params)
-        update, args = utils.create_update(params["run"], args, **kwargs)
-        utils.update_dict(params["run"], update)
+        if name not in params:
+            params.update(default.get(name))
+        update, args = utils.create_update(params[name], args, **kwargs)
+        utils.update_dict(params[name], update)
         return params, args
 
-    def create_run(self, args=None, class_name="Run", **kwargs):
-        params, args = self.create_params(args, **kwargs)
-        name = class_name.lower()
-        if name not in params:
-            params[name] = {}
+    def create_run(self, args=None, name="run", **kwargs):
+        params, args = self.create_params(args, name, **kwargs)
         if self.tracker:
-            run_name = self.tracker.create_run_name(self.experiment_id, class_name)
+            run_name = self.tracker.create_run_name(self.experiment_id, name)
             params[name]["name"] = run_name
         run = instance.create_base_instance(params, name, self.source_name)
         if self.tracker:
             run.set_tracker(self.tracker)
-            args = {arg: utils.get_value(run.params["run"], arg) for arg in args}
+            args = {arg: utils.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
         return run
 
-    def create_instance(self, name: str, args=None, **kwargs):
-        params, _ = self.create_params(args, **kwargs)
-        return instance.create_instance(params["run"], name)
+    def create_instance(self, instance_name: str, args=None, name="run", **kwargs):
+        params, _ = self.create_params(args, name, **kwargs)
+        return instance.create_instance(params[name], instance_name)
 
 
 class Callback:

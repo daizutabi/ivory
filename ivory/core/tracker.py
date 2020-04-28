@@ -45,14 +45,40 @@ class Tracker:
     def list_experiments(self, view_type=None):
         return self.client.list_experiments(view_type)
 
-    def list_run_ids(self, experiment_id: str):
-        for run_info in self.client.list_run_infos(experiment_id):
-            yield run_info.run_id
+    def list_run_ids(self, experiment_id: str, parent_run_id: str = ""):
+        if parent_run_id:
+            yield from self.list_nested_run_ids(experiment_id, parent_run_id)
+        else:
+            for run_info in self.client.list_run_infos(experiment_id):
+                yield run_info.run_id
 
-    def search_run_ids(self, experiment_id: str, **query):
-        for run_id in self.list_run_ids(experiment_id):
+    def list_nested_run_ids(self, experiment_id: str, parent_run_id: str):
+        filter_string = f"tags.mlflow.parentRunId={parent_run_id!r}"
+        for run in self.client.search_runs(experiment_id, filter_string):
+            yield run.info.run_id
+
+    def list_parent_run_ids(self, experiment_id: str):
+        for run in self.client.search_runs(experiment_id):
+            if "mlflow.parentRunId" not in run.data.tags:
+                yield run.info.run_id
+
+    def search_run_ids(
+        self,
+        experiment_id: str,
+        parent_run_id: str = "",
+        parent_only: bool = False,
+        **query,
+    ):
+        if parent_only:
+            run_ids = self.list_parent_run_ids(experiment_id)
+        else:
+            run_ids = self.list_run_ids(experiment_id, parent_run_id)
+        for run_id in run_ids:
             if query:
-                params = self.load_params(run_id)
+                try:
+                    params = self.load_params(run_id)
+                except FileNotFoundError:
+                    continue
                 if utils.match(params, **query):
                     yield run_id
             else:
@@ -67,6 +93,7 @@ class Tracker:
         return run_number
 
     def create_run_name(self, experiment_id: str, prefix: str):
+        prefix = prefix[0].upper() + prefix[1:]
         run_number = self.get_run_number(experiment_id, prefix)
         return f"{prefix}#{run_number + 1:03d}"
 

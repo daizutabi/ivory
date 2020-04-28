@@ -51,10 +51,9 @@ def literal_eval(value):
         return value
 
 
-def product(args=None, **kwargs):
-    params = parse_args(args, **kwargs)
+def product(params):
     for values in itertools.product(*params.values()):
-        update = {}
+        args = {}
         for name, value in zip(params.keys(), values):
-            update[name] = value
-        yield update
+            args[name] = value
+        yield args

@@ -1,4 +1,18 @@
-DEFAULT_CLASS = {}
+import copy
+from typing import Any, Dict
+
+DEFAULTS: Dict[str, Any] = {}
+
+DEFAULTS["client"] = {"client": {"tracker": {}}}
+DEFAULTS["experiment"] = {"experiment": {}}
+DEFAULTS["task"] = {"task": {}}
+
+
+def get(name: str):
+    return copy.deepcopy(DEFAULTS[name])
+
+
+DEFAULT_CLASS: Dict[str, Any] = {}
 
 DEFAULT_CLASS["core"] = {
     "client": "ivory.core.client.Client",
@@ -43,6 +57,4 @@ def update_class(params, library="core"):
                 params[key][kind] = DEFAULT_CLASS[library][key]
             elif key in DEFAULT_CLASS["core"]:
                 params[key][kind] = DEFAULT_CLASS["core"][key]
-            else:
-                raise ValueError(f"Can't find class for {key}.")
         update_class(value, library)

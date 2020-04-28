@@ -25,10 +25,10 @@ def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
             x[k] = value
         elif isinstance(x[k], str) and x[k].startswith("$"):
             x[k] = value
-        elif type(x[k]) is not type(value):
+        elif type(x[k]) is not type(value) and x[k] is not None:
             raise ValueError(f"different type: {type(x[k])} != {type(value)}")
         else:
-            if isinstance(value, dict):
+            if isinstance(x[k], dict):
                 x[k].update(value)
             else:
                 x[k] = value
@@ -142,11 +142,13 @@ def create_update(params, args=None, **kwargs):
         args = {}
     args.update(kwargs)
     args = colon_to_list(args)
+    args_ = {}
     update = {}
     for name, value in args.items():
         for fullname in get_fullnames(params, name):
             update[fullname] = value
-    return update, args
+            args_[name] = value
+    return update, args_
 
 
 def get_value(params, name):

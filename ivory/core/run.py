@@ -72,9 +72,9 @@ class Task(Run):
         return run
 
     def product(self, args=None, repeat=1, **kwargs):
-        for args in tqdm(list(parser.product(args, **kwargs))):
-            run = self.create_run(args)
-            yield run
+        params = parser.parse_args(args, **kwargs)
+        for args in tqdm(list(parser.product(params))):
+            yield self.create_run(args)
 
 
 class Study(Task):

@@ -33,37 +33,30 @@ def cli():
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
 @click.option("--notest", is_flag=True, help="Skip test after training.")
 @click.option("--notrack", is_flag=True, help="No tracking mode.")
-@click.option("-m", "--message", default="", help="Message for tracking.")
-def run(path, args, repeat, notest, notrack, message):
+def run(path, args, repeat, notest, notrack):
     client = ivory.create_client(tracker=not notrack)
     experiment = client.create_experiment(path)
-    for run in experiment.start(args, repeat=repeat, message=message):
+    task = experiment.create_task()
+    for run in task.product(args, repeat=repeat):
         run.start("train")
         if not notest and not notrack:
-            run = experiment.load_run(run.id, "best")
+            run = client.load_run(run.id, "best")
             try:
                 run.start("test")
             except TestDataNotFoundError:
                 pass
 
 
-# @cli.command(help="Optimize hyper parameters.")
-# @click.argument("path", callback=normpath)
-# @click.argument("name")
-# @click.argument("args", nargs=-1)
-# @click.option("-m", "--message", default="", help="Message for tracking.")
-# def optimize(path, name, args, message):
-#     client = create_client(path)
-#     client.optimize(name, args, message=message)
-#
-#
-# @cli.command(help="Search runs.")
-# @click.argument("path", callback=normpath)
-# @click.argument("args", nargs=-1)
-# @click.option("-m", "--message", default="", help="Message for tracking.")
-# def search(path, args, message):
-#     pass
-#
+@cli.command(help="Optimize hyper parameters.")
+@click.argument("path")
+@click.argument("name")
+# @click.argument("n_trials", nargs=-1)
+@click.option("--notrack", is_flag=True, help="No tracking mode.")
+def optimize(path, name, notrack):
+    client = ivory.create_client(tracker=not notrack)
+    experiment = client.create_experiment(path)
+    study = experiment.create_study()
+    study.optimize(name, n_trials=3)
 
 
 @cli.command(help="Start tracking UI.")

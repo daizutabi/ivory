@@ -67,15 +67,10 @@ class Tracking:
 
     def set_tags(self, run_id, tags):
         for key, value in tags.items():
-            self.client.set_tag(run_id, key, value)
+            self.client.set_tag(run_id, key, to_str(value))
 
     def set_parent_run_id(self, run_id, parent_run_id):
         self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)
-
-    def create_tracker(self):
-        from ivory.core.tracker import Tracker
-
-        return Tracker(self.tracking_uri)
 
 
 def to_str(value):
