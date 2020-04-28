@@ -2,9 +2,6 @@ def test_experiment_create_run(experiment, params):
     run = experiment.create_run()
     assert run.id
     assert run.dataloaders.fold == 0
-    params["run"]["dataloaders"]["fold"] = 4
-    run = experiment.create_run(params)
-    assert run.dataloaders.fold == 4
 
 
 def test_update_params(experiment):

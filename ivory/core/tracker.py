@@ -6,10 +6,10 @@ from typing import Any, Dict, Optional
 import mlflow
 
 import ivory.core.state
+import ivory.utils.mlflow
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
 from ivory.core import instance
-from ivory.utils.mlflow import get_run_name, get_source_name, get_tags
 
 
 @dataclass
@@ -35,7 +35,7 @@ class Tracker:
         return experiment_id
 
     def create_run(self, experiment_id: str, name: str, source_name: str = ""):
-        tags = get_tags(name, source_name)
+        tags = ivory.utils.mlflow.create_tags(name, source_name)
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
@@ -45,12 +45,12 @@ class Tracker:
     def list_experiments(self, view_type=None):
         return self.client.list_experiments(view_type)
 
-    def list_run_ids(self, experiment_id: str, run_view_type=1):
-        for run_info in self.client.list_run_infos(experiment_id, run_view_type):
+    def list_run_ids(self, experiment_id: str):
+        for run_info in self.client.list_run_infos(experiment_id):
             yield run_info.run_id
 
-    def search_run_ids(self, experiment_id: str, run_view_type=1, **query):
-        for run_id in self.list_run_ids(experiment_id, run_view_type):
+    def search_run_ids(self, experiment_id: str, **query):
+        for run_id in self.list_run_ids(experiment_id):
             if query:
                 params = self.load_params(run_id)
                 if utils.match(params, **query):
@@ -58,19 +58,23 @@ class Tracker:
             else:
                 yield run_id
 
-    def get_run_number(self, experiment_id: str, prefix: str, sep="#"):
+    def get_run_number(self, experiment_id: str, prefix: str):
         run_number = 0
-        for run_id in self.search_run_ids(experiment_id, run_view_type=3):
-            name = self.get_run_name(run_id)
+        for run in self.client.search_runs(experiment_id, run_view_type=3):
+            name = ivory.utils.mlflow.get_run_name(run)
             if name.startswith(prefix):
-                run_number = max(run_number, int(name.split(sep)[1]))
-        return run_number + 1
+                run_number += 1
+        return run_number
+
+    def create_run_name(self, experiment_id: str, prefix: str):
+        run_number = self.get_run_number(experiment_id, prefix)
+        return f"{prefix}#{run_number + 1:03d}"
 
     def get_run_name(self, run_id: str) -> str:
-        return get_run_name(self.client.get_run(run_id))
+        return ivory.utils.mlflow.get_run_name(self.client.get_run(run_id))
 
     def get_source_name(self, run_id: str) -> str:
-        return get_source_name(self.client.get_run(run_id))
+        return ivory.utils.mlflow.get_source_name(self.client.get_run(run_id))
 
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
@@ -144,14 +148,13 @@ def load(tracker, run_id, name, mode=None):
 
 
 def create_run(params):
-    run = instance.create_base_instance(params, "run")
-    return run
+    return instance.create_base_instance(params, "run")
 
 
 def create_instance(params, name: str):
-    if "." not in name:
-        name = f"run.{name}"
-    return instance.create_instance(params, name)
+    # if "." not in name:
+    #     name = f"run.{name}"
+    return instance.create_instance(params["run"], name)
 
 
 def get_valid_mode(client, run_id, mode):

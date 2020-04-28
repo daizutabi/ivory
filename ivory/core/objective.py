@@ -24,8 +24,8 @@ class Objective:
             suggest(trial)
             run = create_run(trial.params)
             if run.tracking:
+                run.tracking.set_tags(run.id, {"trial_number": trial.number})
                 trial.set_user_attr("run_id", run.id)
-                run.tracking.log_params(run.id, {"trial_number": trial.number})
             if has_pruning:
                 run["pruning"] = Pruning(trial, run.monitor.metric)
             run.start("train")

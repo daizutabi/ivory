@@ -7,18 +7,13 @@ from ivory.utils.tqdm import tqdm
 
 
 class Run(CallbackCaller):
-    def set_experiment(self, experiment):
-        if experiment.source_name:
-            self.source_name = experiment.source_name
-        if experiment.tracker:
-            self.set_tracker(experiment.tracker, experiment.id)
-        self["experiment"] = experiment
-
-    def set_tracker(self, tracker, experiment_id: str = ""):
+    def set_tracker(self, tracker):
         if not self.id:
+            experiment_id = self.experiment_id
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             class_name = self.__class__.__name__.lower()
             self.params[class_name]["id"] = self.id
+        self["tracker"] = tracker
         self["tracking"] = tracker.create_tracking()
 
     def init(self, mode: str = "train"):
@@ -71,25 +66,27 @@ class Run(CallbackCaller):
 
 class Task(Run):
     def create_run(self, args):
-        run = self.experiment.create_run(args=args)
+        run = super().create_run(args)
         if self.tracking:
             self.tracking.set_parent_run_id(run.id, self.id)
         return run
 
     def product(self, args=None, repeat=1, **kwargs):
         for args in tqdm(list(parser.product(args, **kwargs))):
-            run = self.experiment.create_run(args=args)
+            run = self.create_run(args)
             yield run
 
 
 class Study(Task):
-    def optimize(self, suggest_name: str, **kwargs):
-        experiment = self.experiment
-        study_name = ".".join([experiment.name, suggest_name, self.name])
-        mode = experiment.create_instance("run.monitor").mode
+    def optimize(self, suggest_name: str, study_name: str = "", **kwargs):
+        if not study_name:
+            study_name = self.name
+        study_name = ".".join([self.experiment_name, suggest_name, study_name])
+        mode = self.create_instance("monitor").mode
         study = self.tuner.create_study(study_name, mode)
-        if experiment.id:
-            study.set_user_attr("experiment_id", experiment.id)
+        if self.tracking:
+            self.tracking.set_tags(self.id, {"study_name": study_name})
+            study.set_user_attr("run_id", self.id)
         has_pruning = self.tuner.pruner is not None
         objective = self.objective(suggest_name, self.create_run, has_pruning)
         study.optimize(objective, **kwargs)

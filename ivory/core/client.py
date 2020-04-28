@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-from typing import Dict
+from typing import Iterator
 
 import ivory.utils.data
 from ivory import utils
@@ -12,11 +12,6 @@ from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
-    def __init__(self, *args, **kwargs):
-        super(Client, self).__init__(*args, **kwargs)
-        self.experiments: Dict[str, str] = {}  # name -> id
-        self.run_id_experiment: Dict[str, Experiment] = {}
-
     def create_experiment(self, path: str, name: str = "") -> Experiment:
         params, source_name = utils.load_params(path, self.source_name)
         if "experiment" not in params:
@@ -26,10 +21,11 @@ class Client(Base):
                 path = ".".join([path, name])
             params["experiment"]["name"] = path
         experiment = instance.create_base_instance(params, "experiment", source_name)
-        experiment.set_client(self)
+        if self.tracker:
+            experiment.set_tracker(self.tracker)
         return experiment
 
-    def search_run_ids(self, name="", **query):
+    def search_run_ids(self, name: str = "", **query) -> Iterator[str]:
         for experiment in self.tracker.list_experiments():
             if name and not re.match(name, experiment.name):
                 continue
@@ -69,8 +65,7 @@ def create_client(path="client", directory=".", tracker=True) -> Client:
     else:
         params = {"client": {}}
         if tracker:
-            tracker = {"tracker": {}}
-            params["client"].update(tracker)
+            params["client"]["tracker"] = {}
     with utils.chdir(source_name):
         client = instance.create_base_instance(params, "client", source_name)
     return client

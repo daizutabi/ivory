@@ -8,7 +8,7 @@ from mlflow.utils.mlflow_tags import (MLFLOW_GIT_COMMIT, MLFLOW_RUN_NAME,
 cache: Dict[str, str] = {}
 
 
-def get_tags(name: str, source_name: str = ""):
+def create_tags(name: str, source_name: str = ""):
     tags = {MLFLOW_RUN_NAME: name}
     if source_name:
         tags[MLFLOW_SOURCE_NAME] = source_name
