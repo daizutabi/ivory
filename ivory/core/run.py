@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Any, Dict
 
 import ivory.core.collections
 import ivory.core.state
@@ -37,11 +38,11 @@ class Run(CallbackCaller):
                 state_dict[name] = obj.state_dict()
         return state_dict
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: Dict[str, Any]):
         for name in state_dict:
             self[name].load_state_dict(state_dict[name])
 
-    def save(self, directory):
+    def save(self, directory: str):
         for name, state_dict in self.state_dict().items():
             path = os.path.join(directory, name)
             if isinstance(self[name], ivory.core.state.State):
@@ -49,10 +50,10 @@ class Run(CallbackCaller):
             else:
                 self.save_instance(state_dict, path)
 
-    def save_instance(self, state_dict, path):
+    def save_instance(self, state_dict: Dict[str, Any], path: str):
         raise NotImplementedError
 
-    def load(self, directory):
+    def load(self, directory: str) -> Dict[str, Any]:
         state_dict = {}
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
@@ -81,22 +82,24 @@ class Task(Run):
         if self.tracking:
             self.tracking.set_parent_run_id(run.id, self.id)
             self.runs.append(run.id)
+            self.tracking.log_params_artifact(self)
+            self.tracking.save_run(self, "current")
         return run
 
     def terminate(self):
         if self.tracking:
             self.tracking.set_terminated(self.id)
-            self.tracking.log_params_artifact(self)
-            self.tracking.save_run(self, "current")
 
-    def product(self, args=None, repeat=1, **kwargs):
+    def product(self, args=None, repeat: int = 1, **kwargs):
         params = parser.parse_args(args, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
         params = list(parser.product(params)) * repeat
-        for args in tqdm(params, desc="Run  "):
-            yield self.create_run(args)
-        self.terminate()
+        try:
+            for args in tqdm(params, desc="Run  "):
+                yield self.create_run(args)
+        finally:
+            self.terminate()
 
 
 class Study(Task):
@@ -111,6 +114,8 @@ class Study(Task):
             study.set_user_attr("run_id", self.id)
         has_pruning = self.tuner.pruner is not None
         objective = self.objective(suggest_name, self.create_run, has_pruning)
-        study.optimize(objective, **kwargs)
-        self.terminate()
+        try:
+            study.optimize(objective, **kwargs)
+        finally:
+            self.terminate()
         return study

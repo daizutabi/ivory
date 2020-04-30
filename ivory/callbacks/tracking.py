@@ -2,6 +2,7 @@ import os
 import tempfile
 import time
 from dataclasses import dataclass
+from typing import Any, Dict
 
 import mlflow
 import yaml
@@ -9,6 +10,7 @@ from mlflow.entities import Metric, Param
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
 from ivory import utils
+from ivory.core.run import Run
 
 
 @dataclass
@@ -18,7 +20,7 @@ class Tracking:
     def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
 
-    def on_epoch_end(self, run):
+    def on_epoch_end(self, run: Run):
         metrics = run.metrics.copy()
         monitor = run.monitor
         if monitor:
@@ -26,17 +28,17 @@ class Tracking:
         self.log_metrics(run.id, metrics, run.metrics.epoch)
         self.save_run(run, "current")
 
-    def on_fit_end(self, run):
+    def on_fit_end(self, run: Run):
         self.set_terminated(run.id)
 
-    def on_test_end(self, run):
+    def on_test_end(self, run: Run):
         self.save_run(run, "test")
         self.set_terminated(run.id)
 
-    def set_terminated(self, run_id):
+    def set_terminated(self, run_id: str):
         self.client.set_terminated(run_id)
 
-    def save_run(self, run, mode):
+    def save_run(self, run: Run, mode: str):
         with tempfile.TemporaryDirectory() as tmpdir:
             directory = os.path.join(tmpdir, mode)
             os.mkdir(directory)
@@ -49,7 +51,7 @@ class Tracking:
                     os.rename(directory, directory.replace("current", "best"))
                     self.client.log_artifacts(run.id, tmpdir)
 
-    def log_params_artifact(self, run):
+    def log_params_artifact(self, run: Run):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "params.yaml")
             with open(path, "w") as file:
@@ -57,22 +59,22 @@ class Tracking:
             with utils.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
 
-    def log_params(self, run_id, params):
+    def log_params(self, run_id: str, params: Dict[str, Any]):
         params_list = []
         for key, value in params.items():
             params_list.append(Param(key, to_str(value)))
         self.client.log_batch(run_id, metrics=[], params=params_list, tags=[])
 
-    def log_metrics(self, run_id, metrics, step=0):
+    def log_metrics(self, run_id: str, metrics: Dict[str, float], step: int = 0):
         ts = int(time.time() * 1000)  # timestamp in milliseconds.
-        metrics = [Metric(key, value, ts, step) for key, value in metrics.items()]
-        self.client.log_batch(run_id, metrics=metrics, params=[], tags=[])
+        metrics_ = [Metric(key, value, ts, step) for key, value in metrics.items()]
+        self.client.log_batch(run_id, metrics=metrics_, params=[], tags=[])
 
-    def set_tags(self, run_id, tags):
+    def set_tags(self, run_id: str, tags: Dict[str, Any]):
         for key, value in tags.items():
             self.client.set_tag(run_id, key, to_str(value))
 
-    def set_parent_run_id(self, run_id, parent_run_id):
+    def set_parent_run_id(self, run_id: str, parent_run_id: str):
         self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)
 
 

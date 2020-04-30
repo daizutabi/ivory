@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from ivory.core.exceptions import EarlyStopped
+from ivory.core.run import Run
 from ivory.core.state import State
 
 
@@ -9,8 +10,8 @@ class EarlyStopping(State):
     """Early stops a training loop when a metric has stopped improving.
 
     Args:
-        patience (int): number of epochs with no improvement
-            after which training will be stopped. Default: `0`.
+        patience: number of epochs with no improvement after which training will be
+            stopped.
     """
 
     patience: int = 0
@@ -18,7 +19,7 @@ class EarlyStopping(State):
     def __post_init__(self):
         self.wait = 0
 
-    def on_epoch_end(self, run):
+    def on_epoch_end(self, run: Run):
         if run.monitor.is_best:
             self.wait = 0
         else:

@@ -8,7 +8,7 @@ DEFAULTS["experiment"] = {"experiment": {}}
 DEFAULTS["task"] = {"task": {"runs": {}}}
 
 
-def get(name: str):
+def get(name: str) -> Dict[str, Any]:
     return copy.deepcopy(DEFAULTS[name])
 
 
@@ -43,7 +43,7 @@ DEFAULT_CLASS["torch"] = {
 }
 
 
-def update_class(params, library="core"):
+def update_class(params: Dict[str, Any], library: str = "core"):
     for key, value in params.items():
         if value is None:
             value = {}

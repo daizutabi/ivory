@@ -1,7 +1,7 @@
 import os
 import tempfile
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 import mlflow
 from mlflow.tracking.client import MlflowClient
@@ -33,26 +33,26 @@ class Tracker:
         if experiment:
             return experiment.experiment_id
 
-    def create_experiment(self, name: str):
+    def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
-    def create_run(self, experiment_id: str, name: str, source_name: str = ""):
+    def create_run(self, experiment_id: str, name: str, source_name: str = "") -> str:
         tags = create_tags(name, source_name)
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
-    def create_tracking(self):
-        return Tracking(self.tracking_uri)
+    def create_tracking(self) -> Tracking:
+        return Tracking(self.tracking_uri)  # type:ignore
 
-    def list_experiments(self, view_type=None):
+    def list_experiments(self, view_type=None) -> List:
         return self.client.list_experiments(view_type)
 
     def list_run_ids(
         self, experiment_id: str, parent_run_id: str = "", exclude_parent: bool = False
-    ):
+    ) -> Iterator[str]:
         if parent_run_id:
             yield from self.list_nested_run_ids(experiment_id, parent_run_id)
         else:
@@ -63,7 +63,9 @@ class Tracker:
                 if not exclude_parent or run_id not in parent_run_ids:
                     yield run_id
 
-    def list_nested_run_ids(self, experiment_id: str, parent_run_id: str = ""):
+    def list_nested_run_ids(
+        self, experiment_id: str, parent_run_id: str = ""
+    ) -> Iterator[str]:
         filter_string = ""
         if parent_run_id:
             filter_string = f"tags.{MLFLOW_PARENT_RUN_ID}={parent_run_id!r}"
@@ -71,7 +73,7 @@ class Tracker:
             if MLFLOW_PARENT_RUN_ID in run.data.tags:
                 yield run.info.run_id
 
-    def list_parent_run_ids(self, experiment_id: str):
+    def list_parent_run_ids(self, experiment_id: str) -> Iterator[str]:
         parent_run_ids: List[str] = []
         for run in self.client.search_runs(experiment_id):
             if MLFLOW_PARENT_RUN_ID in run.data.tags:
@@ -88,7 +90,7 @@ class Tracker:
         nested_only: bool = False,
         exclude_parent: bool = False,
         **query,
-    ):
+    ) -> Iterator[str]:
         if parent_only:
             run_ids = self.list_parent_run_ids(experiment_id)
         elif nested_only:
@@ -103,7 +105,7 @@ class Tracker:
             else:
                 yield run_id
 
-    def get_run_number(self, experiment_id: str, prefix: str):
+    def get_run_number(self, experiment_id: str, prefix: str) -> int:
         run_number = 0
         for run in self.client.search_runs(experiment_id, run_view_type=3):
             name = get_run_name(run)
@@ -111,7 +113,7 @@ class Tracker:
                 run_number += 1
         return run_number
 
-    def create_run_name(self, experiment_id: str, prefix: str):
+    def create_run_name(self, experiment_id: str, prefix: str) -> str:
         prefix = prefix[0].upper() + prefix[1:]
         run_number = self.get_run_number(experiment_id, prefix)
         return f"{prefix}#{run_number + 1:03d}"
@@ -132,15 +134,15 @@ class Tracker:
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
 
-    def load_run(self, run_id, mode) -> Run:
+    def load_run(self, run_id: str, mode: str) -> Run:
         name = self.get_run_name_without_number(run_id)
         return load(self, run_id, name, mode=mode)
 
-    def load_instance(self, run_id, instance_name, mode) -> Any:
+    def load_instance(self, run_id: str, instance_name: str, mode: str) -> Any:
         name = self.get_run_name_without_number(run_id)
         return load(self, run_id, name, instance_name, mode=mode)
 
-    def update_params(self, experiment_id, **default):
+    def update_params(self, experiment_id: str, **default):
         runs = []
         for run_id in self.list_run_ids(experiment_id, exclude_parent=True):
             runs.append(self.client.get_run(run_id))
@@ -204,11 +206,11 @@ def load(
             return instance
 
 
-def create_run(params, name: str) -> Run:
+def create_run(params: Dict[str, Any], name: str) -> Run:
     return instance.create_base_instance(params, name)
 
 
-def create_instance(params, name: str, instance_name: str) -> Any:
+def create_instance(params: Dict[str, Any], name: str, instance_name: str) -> Any:
     return instance.create_instance(params[name], instance_name)
 
 
@@ -229,7 +231,7 @@ def get_valid_mode(client: MlflowClient, run_id: str, mode: str) -> str:
 git_cache: Dict[str, str] = {}
 
 
-def create_tags(name: str, source_name: str = ""):
+def create_tags(name: str, source_name: str = "") -> Dict[str, str]:
     tags = {MLFLOW_RUN_NAME: name}
     if source_name:
         tags[MLFLOW_SOURCE_NAME] = source_name
@@ -241,13 +243,13 @@ def create_tags(name: str, source_name: str = ""):
     return tags
 
 
-def get_run_name(run):
+def get_run_name(run) -> str:
     return run.data.tags[MLFLOW_RUN_NAME]
 
 
-def get_source_name(run):
+def get_source_name(run) -> str:
     return run.data.tags[MLFLOW_SOURCE_NAME]
 
 
-def get_parent_run_id(run):
+def get_parent_run_id(run) -> str:
     return run.data.tags[MLFLOW_PARENT_RUN_ID]

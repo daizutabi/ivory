@@ -9,18 +9,18 @@ from optuna.samplers import BaseSampler
 @dataclass
 class Tuner:
     storage: str = "sqlite://"
-    load_if_exists: bool = True
     sampler: Optional[BaseSampler] = None
     pruner: Optional[BasePruner] = None
+    load_if_exists: bool = True
 
     def create_study(self, study_name: str, mode: str):
-        """Creates and returns a Optuna Study object."""
+        """Creates and returns an Optuna `Study` object."""
         if mode == "min":
             direction = "minimize"
         elif mode == "max":
             direction = "maximize"
         else:
-            raise ValueError("monitor's mode must be 'min' or 'max'.")
+            raise ValueError("Mode must be 'min' or 'max'.")
         study = optuna.create_study(
             storage=self.storage,
             sampler=self.sampler,

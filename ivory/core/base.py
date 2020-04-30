@@ -1,11 +1,12 @@
 import copy
+from typing import Callable, Dict
 
+import ivory.core.collections
 from ivory import utils
 from ivory.core import default, instance
-from ivory.core.collections import Dict
 
 
-class Base(Dict):
+class Base(ivory.core.collections.Dict):
     def __init__(self, params, **objects):
         super().__init__()
         self.params = params
@@ -38,7 +39,7 @@ class Creator(Base):
     def experiment_name(self):
         return self.params["experiment"]["name"]
 
-    def create_params(self, args=None, name="run", **kwargs):
+    def create_params(self, args=None, name: str = "run", **kwargs):
         params = copy.deepcopy(self.params)
         if name not in params:
             params.update(default.get(name))
@@ -46,7 +47,7 @@ class Creator(Base):
         utils.update_dict(params[name], update)
         return params, args
 
-    def create_run(self, args=None, name="run", **kwargs):
+    def create_run(self, args=None, name: str = "run", **kwargs):
         params, args = self.create_params(args, name, **kwargs)
         if self.tracker:
             run_name = self.tracker.create_run_name(self.experiment_id, name)
@@ -80,7 +81,7 @@ class Callback:
         "on_test_end",
     ]
 
-    def __init__(self, caller, methods):
+    def __init__(self, caller: "CallbackCaller", methods: Dict[str, Callable]):
         self.caller = caller
         self.methods = methods
 

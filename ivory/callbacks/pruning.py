@@ -4,6 +4,8 @@ import numpy as np
 import optuna
 from optuna.trial import Trial
 
+from ivory.core.run import Run
+
 
 @dataclass
 class Pruning:
@@ -20,7 +22,7 @@ class Pruning:
     trial: Trial
     metric: str
 
-    def on_epoch_end(self, run):
+    def on_epoch_end(self, run: Run):
         score = run.metrics[self.metric]
         if np.isnan(score):
             return

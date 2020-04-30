@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from typing import List
 
 import numpy as np
 
 from ivory.core.collections import Dict
+from ivory.core.run import Run
 from ivory.core.state import State
 
 
@@ -23,30 +25,30 @@ class Metrics(Dict, State):
         args = str(self).replace(" ", ", ")
         return f"{class_name}({args})"
 
-    def on_epoch_start(self, run):
+    def on_epoch_start(self, run: Run):
         if run.trainer:
             self.epoch = run.trainer.epoch
         else:
             self.epoch = 0
 
-    def on_train_start(self, run):
-        self.losses = []
+    def on_train_start(self, run: Run):
+        self.losses: List[float] = []
 
-    def on_val_start(self, run):
+    def on_val_start(self, run: Run):
         self.losses = []
 
     def step(self, output, target):
         pass
 
-    def on_train_end(self, run):
+    def on_train_end(self, run: Run):
         if self.losses:
             self["loss"] = np.mean(self.losses)
 
-    def on_val_end(self, run):
+    def on_val_end(self, run: Run):
         if self.losses:
             self["val_loss"] = np.mean(self.losses)
 
-    def on_epoch_end(self, run):
+    def on_epoch_end(self, run: Run):
         self.update(self.metrics_dict(run))
         self.update_history()
 
@@ -57,6 +59,6 @@ class Metrics(Dict, State):
             else:
                 self.history[metric][self.epoch] = value
 
-    def metrics_dict(self, run):
+    def metrics_dict(self, run: Run):
         """Returns an extra custom metrics dictionary."""
         return {}

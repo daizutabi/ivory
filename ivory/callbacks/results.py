@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from ivory.core.collections import Dict
+from ivory.core.run import Run
 from ivory.core.state import State
 
 
@@ -14,10 +15,10 @@ class Results(Dict, State):
         self.outputs = []
         self.targets = []
 
-    def on_train_start(self, run):
+    def on_train_start(self, run: Run):
         self.reset()
 
-    def on_test_start(self, run):
+    def on_test_start(self, run: Run):
         self.reset()
 
     def step(self, index, output, target=None):
@@ -25,15 +26,15 @@ class Results(Dict, State):
         self.output = output
         self.target = target
 
-    def on_train_end(self, run):
+    def on_train_end(self, run: Run):
         self["train"] = self.result_dict()
         self.reset()
 
-    def on_val_end(self, run):
+    def on_val_end(self, run: Run):
         self["val"] = self.result_dict()
         self.reset()
 
-    def on_test_end(self, run):
+    def on_test_end(self, run: Run):
         self["test"] = self.result_dict()
         self.reset()
 

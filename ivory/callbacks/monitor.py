@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ivory.core.run import Run
 from ivory.core.state import State
 
 
@@ -27,7 +28,7 @@ class Monitor(State):
             s += f", best_score={self.best_score:.3g}, best_epoch={self.best_epoch}"
         return f"{class_name}({s})"
 
-    def on_epoch_end(self, run):
+    def on_epoch_end(self, run: Run):
         if self.metric not in run.metrics:
             msg = f"Metric {self.metric!r} not found. Available metrics: {run.metrics}"
             raise ValueError(msg)

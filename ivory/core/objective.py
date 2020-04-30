@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 import optuna
 from optuna.trial import Trial
@@ -17,7 +19,9 @@ class Objective:
         class_name = self.__class__.__name__
         return f"{class_name}(suggests={list(self.suggests.keys())})"
 
-    def __call__(self, suggest_name, create_run, has_pruning):
+    def __call__(
+        self, suggest_name: str, create_run: Callable, has_pruning: bool
+    ) -> Callable:
         suggest = self.suggests[suggest_name]
 
         def objective(trial: Trial):
