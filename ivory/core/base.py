@@ -2,7 +2,7 @@ import copy
 
 from ivory import utils
 from ivory.core import default, instance
-from ivory.core.dict import Dict
+from ivory.core.collections import Dict
 
 
 class Base(Dict):

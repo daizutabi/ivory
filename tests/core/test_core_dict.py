@@ -1,6 +1,6 @@
 import pytest
 
-from ivory.core.dict import Dict, Missing
+from ivory.core.collections import Dict, Missing
 
 
 def test_dict():

@@ -55,6 +55,34 @@ class Dict:
         return self.dict.copy()
 
 
+@dataclass(repr=False)
+class List:
+    def __post_init__(self):
+        self.list = []
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, key):
+        return self.list[key]
+
+    def __contains__(self, value):
+        return value in self.list
+
+    def __iter__(self):
+        return iter(self.list)
+
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return f"{class_name}({self.list})"
+
+    def append(self, value):
+        self.list.append(value)
+
+    def copy(self):
+        return self.dict.copy()
+
+
 class Missing:
     def __init__(self, obj, key):
         self.obj = obj

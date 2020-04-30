@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ivory.core.dict import Dict
+from ivory.core.collections import Dict
 from ivory.core.state import State
 
 

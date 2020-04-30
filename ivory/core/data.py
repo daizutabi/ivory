@@ -3,7 +3,7 @@ from typing import Callable, List, Optional, Union
 
 import numpy as np
 
-import ivory.core.dict
+import ivory.core.collections
 
 
 @dataclass
@@ -92,7 +92,7 @@ class Dataset:
 
 
 @dataclass
-class Datasets(ivory.core.dict.Dict):
+class Datasets(ivory.core.collections.Dict):
     data: Data
     dataset: Callable
     fold: int

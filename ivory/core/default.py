@@ -5,7 +5,7 @@ DEFAULTS: Dict[str, Any] = {}
 
 DEFAULTS["client"] = {"client": {"tracker": {}}}
 DEFAULTS["experiment"] = {"experiment": {}}
-DEFAULTS["task"] = {"task": {}}
+DEFAULTS["task"] = {"task": {"runs": {}}}
 
 
 def get(name: str):
@@ -21,6 +21,7 @@ DEFAULT_CLASS["core"] = {
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
+    "runs": "ivory.core.run.Runs",
     "task": "ivory.core.run.Task",
     "study": "ivory.core.run.Study",
     "dataset": "ivory.core.data.Dataset",
@@ -49,12 +50,26 @@ def update_class(params, library="core"):
             params[key] = value
         if not isinstance(value, dict):
             continue
-        if "library" in params[key]:
-            library = params[key].pop("library")
-        if "class" not in value and "def" not in value and "call" not in value:
+        if "library" in value:
+            library = value.pop("library")
+        for kind in ["class", "def", "call"]:
+            if kind in value:
+                attr = value[kind]
+                break
+        else:
             kind = "class" if key != "dataset" else "def"
             if key in DEFAULT_CLASS[library]:
-                params[key][kind] = DEFAULT_CLASS[library][key]
+                attr = DEFAULT_CLASS[library][key]
             elif key in DEFAULT_CLASS["core"]:
-                params[key][kind] = DEFAULT_CLASS["core"][key]
+                attr = DEFAULT_CLASS["core"][key]
+            value[kind] = attr
+
+        from ivory.core import instance
+
+        attr = instance.get_attr(attr)
+        if "__requires__" in dir(attr):
+            requires = getattr(attr, "__requires__")
+            for r in requires:
+                if r not in value:
+                    value[r] = {}
         update_class(value, library)

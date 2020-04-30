@@ -1,5 +1,7 @@
 import os
+from dataclasses import dataclass
 
+import ivory.core.collections
 import ivory.core.state
 from ivory.core import parser
 from ivory.core.base import CallbackCaller
@@ -13,8 +15,8 @@ class Run(CallbackCaller):
             self.id = tracker.create_run(experiment_id, self.name, self.source_name)
             class_name = self.__class__.__name__.lower()
             self.params[class_name]["id"] = self.id
-        self["tracker"] = tracker
-        self["tracking"] = tracker.create_tracking()
+        self.set(tracker=tracker)
+        self.set(tracking=tracker.create_tracking())
 
     def init(self, mode: str = "train"):
         self.create_callbacks()
@@ -64,16 +66,27 @@ class Run(CallbackCaller):
         raise NotImplementedError
 
 
+@dataclass
+class Runs(ivory.core.collections.List, ivory.core.state.State):
+    pass
+
+
 class Task(Run):
+    __requires__ = ['runs']
+
     def create_run(self, args):
         run = super().create_run(args)
         if self.tracking:
             self.tracking.set_parent_run_id(run.id, self.id)
+            self.runs.append(run.id)
         return run
 
     def product(self, args=None, repeat=1, **kwargs):
         params = parser.parse_args(args, **kwargs)
-        for args in tqdm(list(parser.product(params)), desc="Run  "):
+        if self.tracking:
+            self.tracking.set_tags(self.id, params)
+        params = list(parser.product(params)) * repeat
+        for args in tqdm(params, desc="Run  "):
             yield self.create_run(args)
         if self.tracking:
             self.tracking.set_terminated(self.id)
