@@ -32,6 +32,7 @@ class Client(Base):
         parent_run_id: str = "",
         parent_only: bool = False,
         nested_only: bool = False,
+        exclude_parent: bool = False,
         **query,
     ) -> Iterator[str]:
         for experiment in self.tracker.list_experiments():
@@ -42,14 +43,18 @@ class Client(Base):
                 parent_run_id,
                 parent_only,
                 nested_only,
+                exclude_parent,
                 **query,
             )
 
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        return self.search_run_ids(name, parent_only=True)
+        return self.search_run_ids(name, parent_only=True, **query)
 
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        return self.search_run_ids(name, nested_only=True)
+        return self.search_run_ids(name, nested_only=True, **query)
+
+    def get_parent_run_id(self, run_id: str) -> str:
+        return self.tracker.get_parent_run_id(run_id)
 
     def update_params(self, name: str = "", **default):
         for experiment in self.tracker.list_experiments():

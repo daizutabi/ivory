@@ -68,11 +68,13 @@ class Run(CallbackCaller):
 
 @dataclass
 class Runs(ivory.core.collections.List, ivory.core.state.State):
-    pass
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return f"{class_name}(num_runs={len(self)})"
 
 
 class Task(Run):
-    __requires__ = ['runs']
+    __requires__ = ["runs"]
 
     def create_run(self, args):
         run = super().create_run(args)
@@ -81,6 +83,12 @@ class Task(Run):
             self.runs.append(run.id)
         return run
 
+    def terminate(self):
+        if self.tracking:
+            self.tracking.set_terminated(self.id)
+            self.tracking.log_params_artifact(self)
+            self.tracking.save_run(self, "current")
+
     def product(self, args=None, repeat=1, **kwargs):
         params = parser.parse_args(args, **kwargs)
         if self.tracking:
@@ -88,8 +96,7 @@ class Task(Run):
         params = list(parser.product(params)) * repeat
         for args in tqdm(params, desc="Run  "):
             yield self.create_run(args)
-        if self.tracking:
-            self.tracking.set_terminated(self.id)
+        self.terminate()
 
 
 class Study(Task):
@@ -105,6 +112,5 @@ class Study(Task):
         has_pruning = self.tuner.pruner is not None
         objective = self.objective(suggest_name, self.create_run, has_pruning)
         study.optimize(objective, **kwargs)
-        if self.tracking:
-            self.tracking.set_terminated(self.id)
+        self.terminate()
         return study

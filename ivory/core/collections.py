@@ -76,6 +76,9 @@ class List:
         class_name = self.__class__.__name__
         return f"{class_name}({self.list})"
 
+    def set(self, values):
+        self.list = list(values)
+
     def append(self, value):
         self.list.append(value)
 

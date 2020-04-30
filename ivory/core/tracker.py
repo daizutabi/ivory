@@ -5,10 +5,12 @@ from typing import Any, Dict, List, Optional
 
 import mlflow
 from mlflow.tracking.client import MlflowClient
-from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
+from mlflow.tracking.context import registry as context_registry
+from mlflow.tracking.context.git_context import _get_git_commit
+from mlflow.utils.mlflow_tags import (MLFLOW_GIT_COMMIT, MLFLOW_PARENT_RUN_ID,
+                                      MLFLOW_RUN_NAME, MLFLOW_SOURCE_NAME)
 
 import ivory.core.state
-import ivory.utils.mlflow
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
 from ivory.core import instance
@@ -38,7 +40,7 @@ class Tracker:
         return experiment_id
 
     def create_run(self, experiment_id: str, name: str, source_name: str = ""):
-        tags = ivory.utils.mlflow.create_tags(name, source_name)
+        tags = create_tags(name, source_name)
         run = self.client.create_run(experiment_id, tags=tags)
         return run.info.run_id
 
@@ -48,12 +50,18 @@ class Tracker:
     def list_experiments(self, view_type=None):
         return self.client.list_experiments(view_type)
 
-    def list_run_ids(self, experiment_id: str, parent_run_id: str = ""):
+    def list_run_ids(
+        self, experiment_id: str, parent_run_id: str = "", exclude_parent: bool = False
+    ):
         if parent_run_id:
             yield from self.list_nested_run_ids(experiment_id, parent_run_id)
         else:
+            if exclude_parent:
+                parent_run_ids = list(self.list_parent_run_ids(experiment_id))
             for run_info in self.client.list_run_infos(experiment_id):
-                yield run_info.run_id
+                run_id = run_info.run_id
+                if not exclude_parent or run_id not in parent_run_ids:
+                    yield run_id
 
     def list_nested_run_ids(self, experiment_id: str, parent_run_id: str = ""):
         filter_string = ""
@@ -78,6 +86,7 @@ class Tracker:
         parent_run_id: str = "",
         parent_only: bool = False,
         nested_only: bool = False,
+        exclude_parent: bool = False,
         **query,
     ):
         if parent_only:
@@ -85,7 +94,7 @@ class Tracker:
         elif nested_only:
             run_ids = self.list_nested_run_ids(experiment_id)
         else:
-            run_ids = self.list_run_ids(experiment_id, parent_run_id)
+            run_ids = self.list_run_ids(experiment_id, parent_run_id, exclude_parent)
         for run_id in run_ids:
             if query:
                 params = self.load_params(run_id)
@@ -97,7 +106,7 @@ class Tracker:
     def get_run_number(self, experiment_id: str, prefix: str):
         run_number = 0
         for run in self.client.search_runs(experiment_id, run_view_type=3):
-            name = ivory.utils.mlflow.get_run_name(run)
+            name = get_run_name(run)
             if name.startswith(prefix):
                 run_number += 1
         return run_number
@@ -108,14 +117,17 @@ class Tracker:
         return f"{prefix}#{run_number + 1:03d}"
 
     def get_run_name(self, run_id: str) -> str:
-        return ivory.utils.mlflow.get_run_name(self.client.get_run(run_id))
+        return get_run_name(self.client.get_run(run_id))
 
     def get_run_name_without_number(self, run_id: str) -> str:
         run_name = self.get_run_name(run_id)
         return run_name.split("#")[0].lower()
 
     def get_source_name(self, run_id: str) -> str:
-        return ivory.utils.mlflow.get_source_name(self.client.get_run(run_id))
+        return get_source_name(self.client.get_run(run_id))
+
+    def get_parent_run_id(self, run_id: str) -> str:
+        return get_parent_run_id(self.client.get_run(run_id))
 
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
@@ -130,10 +142,8 @@ class Tracker:
 
     def update_params(self, experiment_id, **default):
         runs = []
-        parent_run_ids = list(self.list_parent_run_ids(experiment_id))
-        for run_id in self.list_run_ids(experiment_id):
-            if run_id not in parent_run_ids:
-                runs.append(self.client.get_run(run_id))
+        for run_id in self.list_run_ids(experiment_id, exclude_parent=True):
+            runs.append(self.client.get_run(run_id))
         args = []
         for run in runs:
             args.extend(list(run.data.params.keys()))
@@ -214,3 +224,30 @@ def get_valid_mode(client: MlflowClient, run_id: str, mode: str) -> str:
     if mode == "current" and mode not in modes:
         mode = ""
     return mode
+
+
+git_cache: Dict[str, str] = {}
+
+
+def create_tags(name: str, source_name: str = ""):
+    tags = {MLFLOW_RUN_NAME: name}
+    if source_name:
+        tags[MLFLOW_SOURCE_NAME] = source_name
+        if source_name not in git_cache:
+            git_cache[source_name] = _get_git_commit(source_name)
+        if git_cache[source_name]:
+            tags[MLFLOW_GIT_COMMIT] = git_cache[source_name]
+    tags = context_registry.resolve_tags(tags)
+    return tags
+
+
+def get_run_name(run):
+    return run.data.tags[MLFLOW_RUN_NAME]
+
+
+def get_source_name(run):
+    return run.data.tags[MLFLOW_SOURCE_NAME]
+
+
+def get_parent_run_id(run):
+    return run.data.tags[MLFLOW_PARENT_RUN_ID]
