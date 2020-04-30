@@ -18,14 +18,6 @@ class Tracking:
     def __post_init__(self):
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
 
-    def on_fit_start(self, run):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, "params.yaml")
-            with open(path, "w") as file:
-                yaml.dump(run.params, file, sort_keys=False)
-            with utils.chdir(run.source_name):
-                self.client.log_artifacts(run.id, tmpdir)
-
     def on_epoch_end(self, run):
         metrics = run.metrics.copy()
         monitor = run.monitor
@@ -35,11 +27,14 @@ class Tracking:
         self.save_run(run, "current")
 
     def on_fit_end(self, run):
-        self.client.set_terminated(run.id)
+        self.set_terminated(run.id)
 
     def on_test_end(self, run):
         self.save_run(run, "test")
-        self.client.set_terminated(run.id)
+        self.set_terminated(run.id)
+
+    def set_terminated(self, run_id):
+        self.client.set_terminated(run_id)
 
     def save_run(self, run, mode):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -53,6 +48,14 @@ class Tracking:
                 if run.monitor and run.monitor.is_best:
                     os.rename(directory, directory.replace("current", "best"))
                     self.client.log_artifacts(run.id, tmpdir)
+
+    def log_params_artifact(self, run):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "params.yaml")
+            with open(path, "w") as file:
+                yaml.dump(run.params, file, sort_keys=False)
+            with utils.chdir(run.source_name):
+                self.client.log_artifacts(run.id, tmpdir)
 
     def log_params(self, run_id, params):
         params_list = []

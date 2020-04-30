@@ -1,15 +1,18 @@
 import os
 import tempfile
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import mlflow
+from mlflow.tracking.client import MlflowClient
+from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
 import ivory.core.state
 import ivory.utils.mlflow
 from ivory import utils
 from ivory.callbacks.tracking import Tracking
 from ivory.core import instance
+from ivory.core.run import Run
 
 
 @dataclass
@@ -52,33 +55,40 @@ class Tracker:
             for run_info in self.client.list_run_infos(experiment_id):
                 yield run_info.run_id
 
-    def list_nested_run_ids(self, experiment_id: str, parent_run_id: str):
-        filter_string = f"tags.mlflow.parentRunId={parent_run_id!r}"
+    def list_nested_run_ids(self, experiment_id: str, parent_run_id: str = ""):
+        filter_string = ""
+        if parent_run_id:
+            filter_string = f"tags.{MLFLOW_PARENT_RUN_ID}={parent_run_id!r}"
         for run in self.client.search_runs(experiment_id, filter_string):
-            yield run.info.run_id
+            if MLFLOW_PARENT_RUN_ID in run.data.tags:
+                yield run.info.run_id
 
     def list_parent_run_ids(self, experiment_id: str):
+        parent_run_ids: List[str] = []
         for run in self.client.search_runs(experiment_id):
-            if "mlflow.parentRunId" not in run.data.tags:
-                yield run.info.run_id
+            if MLFLOW_PARENT_RUN_ID in run.data.tags:
+                parent_run_id = run.data.tags[MLFLOW_PARENT_RUN_ID]
+                if parent_run_id not in parent_run_ids:
+                    yield parent_run_id
+                    parent_run_ids.append(parent_run_id)
 
     def search_run_ids(
         self,
         experiment_id: str,
         parent_run_id: str = "",
         parent_only: bool = False,
+        nested_only: bool = False,
         **query,
     ):
         if parent_only:
             run_ids = self.list_parent_run_ids(experiment_id)
+        elif nested_only:
+            run_ids = self.list_nested_run_ids(experiment_id)
         else:
             run_ids = self.list_run_ids(experiment_id, parent_run_id)
         for run_id in run_ids:
             if query:
-                try:
-                    params = self.load_params(run_id)
-                except FileNotFoundError:
-                    continue
+                params = self.load_params(run_id)
                 if utils.match(params, **query):
                     yield run_id
             else:
@@ -100,22 +110,30 @@ class Tracker:
     def get_run_name(self, run_id: str) -> str:
         return ivory.utils.mlflow.get_run_name(self.client.get_run(run_id))
 
+    def get_run_name_without_number(self, run_id: str) -> str:
+        run_name = self.get_run_name(run_id)
+        return run_name.split("#")[0].lower()
+
     def get_source_name(self, run_id: str) -> str:
         return ivory.utils.mlflow.get_source_name(self.client.get_run(run_id))
 
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
 
-    def load_run(self, run_id, mode):
-        return load(self, run_id, "run", mode)
+    def load_run(self, run_id, mode) -> Run:
+        name = self.get_run_name_without_number(run_id)
+        return load(self, run_id, name, mode=mode)
 
-    def load_instance(self, run_id, name, mode):
-        return load(self, run_id, name, mode)
+    def load_instance(self, run_id, instance_name, mode) -> Any:
+        name = self.get_run_name_without_number(run_id)
+        return load(self, run_id, name, instance_name, mode=mode)
 
     def update_params(self, experiment_id, **default):
         runs = []
+        parent_run_ids = list(self.list_parent_run_ids(experiment_id))
         for run_id in self.list_run_ids(experiment_id):
-            runs.append(self.client.get_run(run_id))
+            if run_id not in parent_run_ids:
+                runs.append(self.client.get_run(run_id))
         args = []
         for run in runs:
             args.extend(list(run.data.params.keys()))
@@ -123,10 +141,7 @@ class Tracker:
         tracking = self.create_tracking()
         for run in runs:
             run_id = run.info.run_id
-            try:
-                params = self.load_params(run_id)
-            except FileNotFoundError:
-                continue
+            params = self.load_params(run_id)
             update = {}
             for arg in args:
                 value = utils.get_value(params["run"], arg)
@@ -140,7 +155,9 @@ class Tracker:
 params_cache: Dict[str, Dict[str, Any]] = {}
 
 
-def load(tracker, run_id, name, mode=None):
+def load(
+    tracker: Tracker, run_id: str, name: str, instance_name: str = "", mode: str = ""
+):
     if name == "params" and run_id in params_cache:
         return params_cache[run_id]
     source_name = tracker.get_source_name(run_id)
@@ -155,36 +172,37 @@ def load(tracker, run_id, name, mode=None):
                     return params
             params = params_cache[run_id]
             mode = get_valid_mode(client, run_id, mode)
-            if name == "run":
-                state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
-                run = create_run(params)
-                state_dict = run.load(state_dict_path)
-                run.load_state_dict(state_dict)
+            if not instance_name:
+                run = create_run(params, name)
+                if mode:
+                    state_dict_path = client.download_artifacts(run_id, mode, tmpdir)
+                    state_dict = run.load(state_dict_path)
+                    run.load_state_dict(state_dict)
                 return run
+            instance = create_instance(params, name, instance_name)
+            if not mode:
+                return instance
             os.mkdir(os.path.join(tmpdir, mode))
-            path = os.path.join(mode, name)
+            path = os.path.join(mode, instance_name)
             state_dict_path = client.download_artifacts(run_id, path, tmpdir)
-            instance = create_instance(params, name)
             if isinstance(instance, ivory.core.state.State):
                 state_dict = ivory.core.state.load(state_dict_path)
             else:
-                run = create_run(params)
+                run = create_run(params, name)
                 state_dict = run.load_instance(state_dict_path)
             instance.load_state_dict(state_dict)
             return instance
 
 
-def create_run(params):
-    return instance.create_base_instance(params, "run")
+def create_run(params, name: str) -> Run:
+    return instance.create_base_instance(params, name)
 
 
-def create_instance(params, name: str):
-    # if "." not in name:
-    #     name = f"run.{name}"
-    return instance.create_instance(params["run"], name)
+def create_instance(params, name: str, instance_name: str) -> Any:
+    return instance.create_instance(params[name], instance_name)
 
 
-def get_valid_mode(client, run_id, mode):
+def get_valid_mode(client: MlflowClient, run_id: str, mode: str) -> str:
     modes = []
     for artifact in client.list_artifacts(run_id):
         if artifact.is_dir:
@@ -194,5 +212,5 @@ def get_valid_mode(client, run_id, mode):
     if mode == "best" and mode not in modes:
         mode = "current"
     if mode == "current" and mode not in modes:
-        raise ValueError(f"'{mode}' artifacts not found.")
+        mode = ""
     return mode

@@ -54,6 +54,7 @@ class Creator(Base):
         run = instance.create_base_instance(params, name, self.source_name)
         if self.tracker:
             run.set_tracker(self.tracker)
+            run.tracking.log_params_artifact(run)
             args = {arg: utils.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
         return run

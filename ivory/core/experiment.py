@@ -14,6 +14,3 @@ class Experiment(Creator):
 
     def create_study(self):
         return self.create_run(name="study")
-
-    def update_params(self, **default):
-        self.tracker.update_params(self.id, **default)

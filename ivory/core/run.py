@@ -73,8 +73,10 @@ class Task(Run):
 
     def product(self, args=None, repeat=1, **kwargs):
         params = parser.parse_args(args, **kwargs)
-        for args in tqdm(list(parser.product(params))):
+        for args in tqdm(list(parser.product(params)), desc="Run  "):
             yield self.create_run(args)
+        if self.tracking:
+            self.tracking.set_terminated(self.id)
 
 
 class Study(Task):
@@ -90,4 +92,6 @@ class Study(Task):
         has_pruning = self.tuner.pruner is not None
         objective = self.objective(suggest_name, self.create_run, has_pruning)
         study.optimize(objective, **kwargs)
+        if self.tracking:
+            self.tracking.set_terminated(self.id)
         return study

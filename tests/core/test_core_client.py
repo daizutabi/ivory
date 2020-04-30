@@ -41,3 +41,11 @@ def test_load_instance(client, run):
 def test_without_tracker():
     client = create_client(directory="tests", tracker=False)
     assert "tracker" not in client
+
+
+def test_update_params(client, experiment):
+    run = experiment.create_run(fold=0)
+    run = experiment.create_run(args={"hidden_sizes.0": 10})
+    assert "fold" not in run.tracking.client.get_run(run.id).data.params
+    client.update_params(experiment.name)
+    assert "fold" in run.tracking.client.get_run(run.id).data.params

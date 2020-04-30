@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Union
 
 import numpy as np
 
@@ -8,6 +8,8 @@ import ivory.core.dict
 
 @dataclass
 class Data:
+    """Base class to provide data to `Dataset`. """
+
     def __post_init__(self):
         self.fold = None
         self.index = None
@@ -16,9 +18,18 @@ class Data:
         self.init()
 
     def init(self):
-        pass
+        """Initializes `fold`, `index`, `input`, `target`."""
 
-    def get_index(self, mode: str, fold: int):
+    def get_index(self, mode: str, fold: int) -> np.ndarray:
+        """Returns index according to the mode and fold for `Dataset`.
+
+        Args:
+            mode: `train`, `val`, or `test`.
+            fold: fold number
+
+        Returns:
+            data index array.
+        """
         index = np.arange(len(self.fold))
         if mode == "train":
             return index[(self.fold != fold) & (self.fold != -1)]
@@ -27,12 +38,21 @@ class Data:
         else:
             return index[self.fold == -1]
 
-    def get(self, index):
+    def get(self, index: Union[int, np.ndarray]) -> List[np.ndarray]:
+        """Returns a tuple of (index, input, target) according to the index."""
         return [self.index[index], self.input[index], self.target[index]]
 
 
 @dataclass
 class Dataset:
+    """Dataset class which implements `__len__()`, `__getitem__()`, `__iter__()`.
+
+    Args:
+        data: data from which to load the data.
+        mode: `train`, `val`, or `test`.
+        fold: fold number.
+        transform: callable to transform the data.
+    """
     data: Data
     mode: str
     fold: int

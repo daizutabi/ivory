@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterator, Tuple
+from typing import Any, Dict, Iterable, Iterator, Tuple
 
 import ivory.utils.data
 from ivory import utils
@@ -31,14 +31,35 @@ class Client(Base):
         name: str = "",
         parent_run_id: str = "",
         parent_only: bool = False,
-        **query
+        nested_only: bool = False,
+        **query,
     ) -> Iterator[str]:
         for experiment in self.tracker.list_experiments():
             if name and not re.match(name, experiment.name):
                 continue
             yield from self.tracker.search_run_ids(
-                experiment.experiment_id, parent_run_id, parent_only, **query
+                experiment.experiment_id,
+                parent_run_id,
+                parent_only,
+                nested_only,
+                **query,
             )
+
+    def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
+        return self.search_run_ids(name, parent_only=True)
+
+    def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
+        return self.search_run_ids(name, nested_only=True)
+
+    def update_params(self, name: str = "", **default):
+        for experiment in self.tracker.list_experiments():
+            if name and not re.match(name, experiment.name):
+                continue
+            self.tracker.update_params(experiment.experiment_id, **default)
+
+    def set_terminated(self, name: str = ""):
+        for run_id in self.search_run_ids(name):
+            self.tracker.client.set_terminated(run_id)
 
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return self.tracker.load_params(run_id)
@@ -48,12 +69,12 @@ class Client(Base):
         run.set_tracker(self.tracker)
         return run
 
-    def load_instance(self, run_id: str, name: str, mode: str = "test") -> Any:
-        return self.tracker.load_instance(run_id, name, mode)
+    def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
+        return self.tracker.load_instance(run_id, instance_name, mode)
 
-    def load_results(self, run_ids: str, verbose: bool = True) -> Tuple:
+    def load_results(self, run_ids: Iterable[str], verbose: bool = True) -> Tuple:
         if verbose:
-            run_ids = tqdm(list(run_ids))
+            run_ids = tqdm(list(run_ids), leave=False)
         it = (self.load_instance(run_id, "results", "test") for run_id in run_ids)
         return ivory.utils.data.concat_results(it)
 

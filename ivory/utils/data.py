@@ -35,10 +35,12 @@ def argmax(df):
     return pd.Series(pred, index=df.index)
 
 
-def mean_argmax(output, target, columns=None):
-    if columns is None:
-        columns = ["pred", "true"]
+def mean_argmax(output, target=None, columns=None):
     df = mean(output)
     pred = argmax(df)
+    if target is None:
+        return pred
+    if columns is None:
+        columns = ["pred", "true"]
     true = mean(target)
     return pd.DataFrame({columns[0]: pred, columns[1]: true})
