@@ -1,3 +1,4 @@
+"""Pruning class to prune unpromising trials."""
 from dataclasses import dataclass
 
 import numpy as np
@@ -13,7 +14,7 @@ class Pruning:
 
     Args:
         trial:
-            `optuna.trial.Trial` corresponding to the current evaluation of the
+            A `Trial` corresponding to the current evaluation of the
             objective function.
         metric:
             An evaluation metric for pruning, e.g., `val_loss`

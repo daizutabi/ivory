@@ -1,3 +1,4 @@
+"""A container to store training, validation and test results. """
 import numpy as np
 import pandas as pd
 

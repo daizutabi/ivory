@@ -17,6 +17,7 @@ class Trainer(ivory.core.trainer.Trainer):
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
+    scheduler_step_mode: str = "epoch"
 
     def on_fit_start(self, run):
         if self.gpu:
@@ -44,6 +45,8 @@ class Trainer(ivory.core.trainer.Trainer):
         else:
             loss.backward()
         optimizer.step()
+        if run.sheduler and self.scheduler_step_mode == "batch":
+            run.scheduler.step()
 
     def on_val_start(self, run):
         run.model.eval()
@@ -58,7 +61,7 @@ class Trainer(ivory.core.trainer.Trainer):
         run.metrics.step(output, target)
 
     def on_epoch_end(self, run):
-        if run.scheduler:
+        if run.scheduler and self.scheduler_step_mode == "epoch":
             if isinstance(run.scheduler, ReduceLROnPlateau):
                 run.scheduler.step(run.monitor.score)
             else:

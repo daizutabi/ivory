@@ -13,7 +13,21 @@ from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
+    """The Ivory client class."""
+
     def create_experiment(self, path: str, name: str = "") -> Experiment:
+        """Creates an `Experiment` according to the YAML file specified by `path`.
+
+        By default, the experiment name is equal to the `path`, but if `name` is given,
+        the name is obtained by "`path`.`name`".
+
+        Args:
+            path: file path without extension.
+            name: suffix name for the experiment.
+
+        Returns:
+            an experiment instance.
+        """
         params, source_name = utils.load_params(path, self.source_name)
         if "experiment" not in params:
             params.update(default.get("experiment"))
@@ -35,6 +49,19 @@ class Client(Base):
         exclude_parent: bool = False,
         **query,
     ) -> Iterator[str]:
+        """Yields matching run ids.
+
+        Args:
+            name: experiment name pattern for filtering.
+            parent_run_id: if specified, search from runs which have the parent id.
+            parent_only: if True, search from parent runs.
+            nested_only: if True, search from nested runs.
+            exclude_parent: if True, skip parent runs.
+            **query: key-value pairs for filtering.
+
+        Yields:
+            run_id
+        """
         for experiment in self.tracker.list_experiments():
             if name and not re.match(name, experiment.name):
                 continue

@@ -1,4 +1,5 @@
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict
 
@@ -35,12 +36,16 @@ class Run(CallbackCaller):
         state_dict = {}
         for name, obj in self.items():
             if hasattr(obj, "state_dict") and callable(obj.state_dict):
-                state_dict[name] = obj.state_dict()
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    state_dict[name] = obj.state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
         for name in state_dict:
-            self[name].load_state_dict(state_dict[name])
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self[name].load_state_dict(state_dict[name])
 
     def save(self, directory: str):
         for name, state_dict in self.state_dict().items():

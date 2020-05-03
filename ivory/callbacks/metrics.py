@@ -1,15 +1,18 @@
+"""Metrics to record scores while training."""
 from dataclasses import dataclass
-from typing import List
+from typing import Any, Dict, List
 
 import numpy as np
 
-from ivory.core.collections import Dict
+import ivory.core.collections
 from ivory.core.run import Run
 from ivory.core.state import State
 
 
 @dataclass
-class Metrics(Dict, State):
+class Metrics(ivory.core.collections.Dict, State):
+    """Metrics object."""
+
     def __post_init__(self):
         super().__post_init__()
         self.history = {}
@@ -59,6 +62,6 @@ class Metrics(Dict, State):
             else:
                 self.history[metric][self.epoch] = value
 
-    def metrics_dict(self, run: Run):
+    def metrics_dict(self, run: Run) -> Dict[str, Any]:
         """Returns an extra custom metrics dictionary."""
         return {}

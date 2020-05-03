@@ -1,3 +1,4 @@
+"""The base module contains base classes for the Ivory system."""
 import copy
 from typing import Callable, Dict
 
@@ -7,6 +8,8 @@ from ivory.core import default, instance
 
 
 class Base(ivory.core.collections.Dict):
+    """Base class for Ivory entity such as `client`, `experiment`, and `run`. """
+
     def __init__(self, params, **objects):
         super().__init__()
         self.params = params
@@ -31,6 +34,8 @@ class Base(ivory.core.collections.Dict):
 
 
 class Creator(Base):
+    """Creator class to create `run` objects."""
+
     @property
     def experiment_id(self):
         return self.params["experiment"]["id"]
@@ -66,6 +71,8 @@ class Creator(Base):
 
 
 class Callback:
+    """Callback class for the Ivory callback system."""
+
     METHODS = [
         "on_init_start",
         "on_init_end",
@@ -97,7 +104,10 @@ class Callback:
 
 
 class CallbackCaller(Creator):
+    """Callback caller class."""
+
     def create_callbacks(self):
+        """Creates callback functions and store them in the dict-object."""
         for method in Callback.METHODS:
             methods = {}
             for key in self:
