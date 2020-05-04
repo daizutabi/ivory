@@ -74,6 +74,22 @@ class Client(Base):
                 **query,
             )
 
+    def remove_deleted_runs(self, name: str = "") -> int:
+        """Remove deleted runs from local file system.
+
+        Args:
+            name: experiment name pattern for filtering.
+
+        Returns:
+            number of removed runs.
+        """
+        num_runs = 0
+        for experiment in self.tracker.list_experiments():
+            if name and not re.match(name, experiment.name):
+                continue
+            num_runs += self.tracker.remove_deleted_runs(experiment.experiment_id)
+        return num_runs
+
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
         return self.search_run_ids(name, parent_only=True, **query)
 
