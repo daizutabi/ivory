@@ -1,9 +1,12 @@
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import numpy as np
 
 import ivory.core.collections
+
+Index = Union[int, np.ndarray]
+Value = Union[np.ndarray, Dict[str, np.ndarray]]
 
 
 @dataclass
@@ -38,9 +41,15 @@ class Data:
         else:
             return index[self.fold == -1]
 
-    def get(self, index: Union[int, np.ndarray]) -> List[np.ndarray]:
+    def get_input(self, index: Index) -> Value:
+        return self.input[index]
+
+    def get_target(self, index: Index) -> Value:
+        return self.target[index]
+
+    def get(self, index: Union[int, np.ndarray]) -> List[Value]:
         """Returns a tuple of (index, input, target) according to the index."""
-        return [self.index[index], self.input[index], self.target[index]]
+        return [self.index[index], self.get_input(index), self.get_target(index)]
 
 
 @dataclass
@@ -53,6 +62,7 @@ class Dataset:
         fold: fold number.
         transform: callable to transform the data.
     """
+
     data: Data
     mode: str
     fold: int

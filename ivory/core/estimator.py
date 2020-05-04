@@ -49,4 +49,4 @@ class Estimator(State):
         output = self.transform(input)
         run.results.step(index, output, *target)
         if mode != "test":
-            run.metrics.step(output, *target)
+            run.metrics.step(input, output, *target)

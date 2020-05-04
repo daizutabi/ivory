@@ -21,6 +21,15 @@ def to_uri(path: str) -> str:
     return urllib.parse.urlunparse(("file", "", url, "", "", ""))
 
 
+def local_file_uri_to_path(uri):
+    """
+    Convert URI to local filesystem path.
+    No-op if the uri does not have the expected scheme.
+    """
+    path = urllib.parse.urlparse(uri).path if uri.startswith("file:") else uri
+    return urllib.request.url2pathname(path)
+
+
 @contextlib.contextmanager
 def chdir(source_name: str):
     curdir = os.getcwd()

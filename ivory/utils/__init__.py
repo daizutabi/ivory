@@ -1,7 +1,8 @@
 from ivory.utils.fold import kfold_split, multilabel_stratified_kfold_split
 from ivory.utils.params import (colon_to_list, create_update, dot_flatten, dot_get,
                                 get_fullnames, get_value, match, update_dict)
-from ivory.utils.path import chdir, literal_eval, load_params, normpath, to_uri
+from ivory.utils.path import (chdir, literal_eval, load_params, local_file_uri_to_path,
+                              normpath, to_uri)
 
 __all__ = [
     "kfold_split",
@@ -19,4 +20,5 @@ __all__ = [
     "load_params",
     "normpath",
     "to_uri",
+    "local_file_uri_to_path",
 ]

@@ -34,9 +34,9 @@ class Trainer(ivory.core.trainer.Trainer):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
-        output = run.model(input)
+        output = self.forward(run.model, input)
         run.results.step(index, output, target)
-        loss = run.metrics.step(output, target)
+        loss = run.metrics.step(input, output, target)
         optimizer = run.optimizer
         optimizer.zero_grad()
         if self.gpu and self.precision == 16:
@@ -56,9 +56,9 @@ class Trainer(ivory.core.trainer.Trainer):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
-        output = run.model(input)
+        output = self.forward(run.model, input)
         run.results.step(index, output, target)
-        run.metrics.step(output, target)
+        run.metrics.step(input, output, target)
 
     def on_epoch_end(self, run):
         if run.scheduler and self.scheduler_step_mode == "epoch":
@@ -75,5 +75,8 @@ class Trainer(ivory.core.trainer.Trainer):
     def test_step(self, run, index, input, *target):
         if self.gpu:
             input = utils.cuda(input)
-        output = run.model(input)
+        output = self.forward(run.model, input)
         run.results.step(index, output, *target)
+
+    def forward(self, model, input):
+        return model(input)

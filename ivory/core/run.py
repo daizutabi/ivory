@@ -36,21 +36,25 @@ class Run(CallbackCaller):
         state_dict = {}
         for name, obj in self.items():
             if hasattr(obj, "state_dict") and callable(obj.state_dict):
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    state_dict[name] = obj.state_dict()
+                # with warnings.catch_warnings():
+                #     warnings.simplefilter("ignore")
+                #     state_dict[name] = obj.state_dict()
+                state_dict[name] = obj.state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
         for name in state_dict:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                self[name].load_state_dict(state_dict[name])
+            # with warnings.catch_warnings():
+            #     warnings.simplefilter("ignore")
+            #     self[name].load_state_dict(state_dict[name])
+            self[name].load_state_dict(state_dict[name])
 
     def save(self, directory: str):
         for name, state_dict in self.state_dict().items():
             path = os.path.join(directory, name)
-            if isinstance(self[name], ivory.core.state.State):
+            if hasattr(self[name], "save") and callable(self[name].save):
+                self[name].save(state_dict, path)
+            elif isinstance(self[name], ivory.core.state.State):
                 ivory.core.state.save(state_dict, path)
             else:
                 self.save_instance(state_dict, path)
@@ -62,7 +66,9 @@ class Run(CallbackCaller):
         state_dict = {}
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
-            if isinstance(self[name], ivory.core.state.State):
+            if hasattr(self[name], "load") and callable(self[name].load):
+                state_dict[name] = self[name].load(path)
+            elif isinstance(self[name], ivory.core.state.State):
                 state_dict[name] = ivory.core.state.load(path)
             else:
                 state_dict[name] = self.load_instance(path)

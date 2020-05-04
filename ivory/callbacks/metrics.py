@@ -40,7 +40,7 @@ class Metrics(ivory.core.collections.Dict, State):
     def on_val_start(self, run: Run):
         self.losses = []
 
-    def step(self, output, target):
+    def step(self, input, output, target):
         pass
 
     def on_train_end(self, run: Run):

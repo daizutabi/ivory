@@ -4,7 +4,7 @@ import torch
 
 def step(func, target, x):
     for i in range(3):
-        func(x * target, target)
+        func(None, x * target, target)
 
 
 def test_metrics(metrics, dataloaders, data, dataset, run):
@@ -13,7 +13,7 @@ def test_metrics(metrics, dataloaders, data, dataset, run):
     train_loader = dataloaders.train
     it = iter(train_loader)
     index, input, target = next(it)
-    loss = metrics.step(1.02 * target, target)
+    loss = metrics.step(input, 1.02 * target, target)
     assert np.allclose(loss.item(), torch.mean((0.02 * target) ** 2).item())
     assert metrics.losses[0] == loss.item()
     step(metrics.step, target, 1.02)
@@ -24,7 +24,7 @@ def test_metrics(metrics, dataloaders, data, dataset, run):
     train_loader = dataloaders.train
     it = iter(train_loader)
     index, input, target = next(it)
-    loss = metrics.step(1.02 * target, target)
+    loss = metrics.step(input, 1.02 * target, target)
     metrics.on_val_end(run)
     metrics.on_epoch_end(run)
     history = metrics.history

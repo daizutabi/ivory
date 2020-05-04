@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional
@@ -82,6 +83,21 @@ class Tracker:
                     yield parent_run_id
                     parent_run_ids.append(parent_run_id)
 
+    def remove_deleted_runs(self, experiment_id: str) -> int:
+        experiment = self.client.get_experiment(experiment_id)
+        uri = experiment.artifact_location
+        if not uri.startswith("file"):
+            raise NotImplementedError
+        path = utils.local_file_uri_to_path(uri)
+        num_runs = 0
+        for run_info in self.client.list_run_infos(experiment_id, run_view_type=2):
+            run_id = run_info.run_id
+            directory = os.path.normpath(os.path.join(path, run_id))
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+                num_runs += 1
+        return num_runs
+
     def search_run_ids(
         self,
         experiment_id: str,
@@ -110,7 +126,7 @@ class Tracker:
         for run in self.client.search_runs(experiment_id, run_view_type=3):
             name = get_run_name(run)
             if name.startswith(prefix):
-                run_number += 1
+                run_number = max(run_number, int(name.split("#")[1]))
         return run_number
 
     def create_run_name(self, experiment_id: str, prefix: str) -> str:
