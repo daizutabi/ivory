@@ -35,22 +35,6 @@ class Tracking:
         self.save_run(run, "test")
         self.set_terminated(run.id)
 
-    def set_terminated(self, run_id: str):
-        self.client.set_terminated(run_id)
-
-    def save_run(self, run: Run, mode: str):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            directory = os.path.join(tmpdir, mode)
-            os.mkdir(directory)
-            run.save(directory)
-            with utils.chdir(run.source_name):
-                self.client.log_artifacts(run.id, tmpdir)
-                if mode != "current":
-                    return
-                if run.monitor and run.monitor.is_best:
-                    os.rename(directory, directory.replace("current", "best"))
-                    self.client.log_artifacts(run.id, tmpdir)
-
     def log_params_artifact(self, run: Run):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "params.yaml")
@@ -69,6 +53,22 @@ class Tracking:
         ts = int(time.time() * 1000)  # timestamp in milliseconds.
         metrics_ = [Metric(key, value, ts, step) for key, value in metrics.items()]
         self.client.log_batch(run_id, metrics=metrics_, params=[], tags=[])
+
+    def save_run(self, run: Run, mode: str):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            directory = os.path.join(tmpdir, mode)
+            os.mkdir(directory)
+            run.save(directory)
+            with utils.chdir(run.source_name):
+                self.client.log_artifacts(run.id, tmpdir)
+                if mode != "current":
+                    return
+                if run.monitor and run.monitor.is_best:
+                    os.rename(directory, directory.replace("current", "best"))
+                    self.client.log_artifacts(run.id, tmpdir)
+
+    def set_terminated(self, run_id: str):
+        self.client.set_terminated(run_id)
 
     def set_tags(self, run_id: str, tags: Dict[str, Any]):
         for key, value in tags.items():

@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import mlflow
 from mlflow.tracking.client import MlflowClient
@@ -34,16 +34,35 @@ class Tracker:
         if experiment:
             return experiment.experiment_id
 
+    def get_run_id(self, experiment_id: str, name: str, number: int):
+        run_name = create_run_name(name, number)
+        for run in self.client.search_runs(experiment_id):
+            if get_run_name(run) == run_name:
+                return run.info.run_id
+
     def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
-    def create_run(self, experiment_id: str, name: str, source_name: str = "") -> str:
-        tags = create_tags(name, source_name)
+    def get_run_number(self, experiment_id: str, name: str) -> int:
+        name = create_run_name(name)
+        number = 0
+        for run in self.client.search_runs(experiment_id, run_view_type=3):
+            run_name = get_run_name(run)
+            if run_name.startswith(name):
+                number = max(number, int(run_name.split("#")[1]))
+        return number
+
+    def create_run(
+        self, experiment_id: str, name: str, source_name: str = ""
+    ) -> Tuple[str, str]:
+        number = self.get_run_number(experiment_id, name) + 1
+        run_name = create_run_name(name, number)
+        tags = create_tags(run_name, source_name)
         run = self.client.create_run(experiment_id, tags=tags)
-        return run.info.run_id
+        return run_name, run.info.run_id
 
     def create_tracking(self) -> Tracking:
         return Tracking(self.tracking_uri)  # type:ignore
@@ -121,25 +140,12 @@ class Tracker:
             else:
                 yield run_id
 
-    def get_run_number(self, experiment_id: str, prefix: str) -> int:
-        run_number = 0
-        for run in self.client.search_runs(experiment_id, run_view_type=3):
-            name = get_run_name(run)
-            if name.startswith(prefix):
-                run_number = max(run_number, int(name.split("#")[1]))
-        return run_number
-
-    def create_run_name(self, experiment_id: str, prefix: str) -> str:
-        prefix = prefix[0].upper() + prefix[1:]
-        run_number = self.get_run_number(experiment_id, prefix)
-        return f"{prefix}#{run_number + 1:03d}"
-
     def get_run_name(self, run_id: str) -> str:
         return get_run_name(self.client.get_run(run_id))
 
     def get_run_name_without_number(self, run_id: str) -> str:
         run_name = self.get_run_name(run_id)
-        return run_name.split("#")[0].lower()
+        return split_run_name(run_name)[0]
 
     def get_source_name(self, run_id: str) -> str:
         return get_source_name(self.client.get_run(run_id))
@@ -152,7 +158,9 @@ class Tracker:
 
     def load_run(self, run_id: str, mode: str) -> Run:
         name = self.get_run_name_without_number(run_id)
-        return load(self, run_id, name, mode=mode)
+        run = load(self, run_id, name, mode=mode)
+        run.set_tracker(self, name)
+        return run
 
     def load_instance(self, run_id: str, instance_name: str, mode: str) -> Any:
         name = self.get_run_name_without_number(run_id)
@@ -178,6 +186,9 @@ class Tracker:
                 elif arg in default:
                     update[arg] = default[arg]
             tracking.log_params(run_id, update)
+
+    def set_parent_run_id(self, run_id: str, parent_run_id: str):
+        self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)
 
 
 params_cache: Dict[str, Dict[str, Any]] = {}
@@ -247,8 +258,20 @@ def get_valid_mode(client: MlflowClient, run_id: str, mode: str) -> str:
 git_cache: Dict[str, str] = {}
 
 
-def create_tags(name: str, source_name: str = "") -> Dict[str, str]:
-    tags = {MLFLOW_RUN_NAME: name}
+def create_run_name(name: str, number: int = 0) -> str:
+    name = name[0].upper() + name[1:]
+    if not number:
+        return name
+    return f"{name}#{number:03d}"
+
+
+def split_run_name(run_name: str) -> Tuple[str, int]:
+    name, number = run_name.split("#")
+    return name.lower(), int(number)
+
+
+def create_tags(run_name: str, source_name: str = "") -> Dict[str, str]:
+    tags = {MLFLOW_RUN_NAME: run_name}
     if source_name:
         tags[MLFLOW_SOURCE_NAME] = source_name
         if source_name not in git_cache:

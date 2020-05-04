@@ -33,7 +33,7 @@ class Estimator(State):
         try:
             run.on_epoch_end()
         finally:
-            if self.verbose:
+            if self.verbose and run.metrics:
                 tqdm.write(f"[{run.name}] {run.metrics}")
             run.on_fit_end()
 
@@ -48,5 +48,5 @@ class Estimator(State):
             self.fit(input, *target)
         output = self.transform(input)
         run.results.step(index, output, *target)
-        if mode != "test":
+        if mode != "test" and run.metrics:
             run.metrics.step(input, output, *target)

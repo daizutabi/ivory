@@ -5,7 +5,7 @@ DEFAULTS: Dict[str, Any] = {}
 
 DEFAULTS["client"] = {"client": {"tracker": {}}}
 DEFAULTS["experiment"] = {"experiment": {}}
-DEFAULTS["task"] = {"task": {"runs": {}}}
+DEFAULTS["task"] = {"task": {}}
 
 
 def get(name: str) -> Dict[str, Any]:
@@ -21,7 +21,6 @@ DEFAULT_CLASS["core"] = {
     "experiment": "ivory.core.experiment.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
-    "runs": "ivory.core.run.Runs",
     "task": "ivory.core.run.Task",
     "study": "ivory.core.run.Study",
     "dataset": "ivory.core.data.Dataset",

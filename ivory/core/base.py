@@ -54,12 +54,9 @@ class Creator(Base):
 
     def create_run(self, args=None, name: str = "run", **kwargs):
         params, args = self.create_params(args, name, **kwargs)
-        if self.tracker:
-            run_name = self.tracker.create_run_name(self.experiment_id, name)
-            params[name]["name"] = run_name
         run = instance.create_base_instance(params, name, self.source_name)
         if self.tracker:
-            run.set_tracker(self.tracker)
+            run.set_tracker(self.tracker, name)
             run.tracking.log_params_artifact(run)
             args = {arg: utils.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)

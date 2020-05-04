@@ -42,9 +42,9 @@ def chdir(source_name: str):
         os.chdir(curdir)
 
 
-def normpath(path: str, directory: str = ".") -> str:
+def normpath(name: str, directory: str = ".") -> str:
     """Returns the absolute path with the extension."""
-    path = os.path.abspath(os.path.join(directory, path))
+    path = os.path.abspath(os.path.join(directory, name))
     if os.path.exists(path + ".yaml"):
         return path + ".yaml"
     if os.path.exists(path + ".yml"):
@@ -53,12 +53,12 @@ def normpath(path: str, directory: str = ".") -> str:
         return path
 
 
-def load_params(path: str, source_name: str = "") -> Tuple[Params, str]:
+def load_params(name: str, source_name: str = "") -> Tuple[Params, str]:
     if source_name:
         directory = os.path.dirname(source_name)
-        source_name = normpath(path, directory)
+        source_name = normpath(name, directory)
     else:
-        source_name = path
+        source_name = name
     with open(source_name, "r") as file:
         params_yaml = file.read()
     params = yaml.safe_load(params_yaml)

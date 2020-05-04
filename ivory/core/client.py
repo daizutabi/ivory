@@ -15,26 +15,20 @@ from ivory.utils.tqdm import tqdm
 class Client(Base):
     """The Ivory client class."""
 
-    def create_experiment(self, path: str, name: str = "") -> Experiment:
-        """Creates an `Experiment` according to the YAML file specified by `path`.
-
-        By default, the experiment name is equal to the `path`, but if `name` is given,
-        the name is obtained by "`path`.`name`".
+    def create_experiment(self, name: str = "") -> Experiment:
+        """Creates an `Experiment` according to the YAML file specified by `name`.
 
         Args:
-            path: file path without extension.
-            name: suffix name for the experiment.
+            path: experiment name.
 
         Returns:
             an experiment instance.
         """
-        params, source_name = utils.load_params(path, self.source_name)
+        params, source_name = utils.load_params(name.split(".")[0], self.source_name)
         if "experiment" not in params:
             params.update(default.get("experiment"))
         if "name" not in params["experiment"]:
-            if name:
-                path = ".".join([path, name])
-            params["experiment"]["name"] = path
+            params["experiment"]["name"] = name
         experiment = instance.create_base_instance(params, "experiment", source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)
@@ -74,36 +68,21 @@ class Client(Base):
                 **query,
             )
 
-    def remove_deleted_runs(self, name: str = "") -> int:
-        """Remove deleted runs from local file system.
-
-        Args:
-            name: experiment name pattern for filtering.
-
-        Returns:
-            number of removed runs.
-        """
-        num_runs = 0
-        for experiment in self.tracker.list_experiments():
-            if name and not re.match(name, experiment.name):
-                continue
-            num_runs += self.tracker.remove_deleted_runs(experiment.experiment_id)
-        return num_runs
-
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
         return self.search_run_ids(name, parent_only=True, **query)
 
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
         return self.search_run_ids(name, nested_only=True, **query)
 
+    def get_run_id(self, name: str, run_name: str, number: int) -> str:
+        experiment_id = self.tracker.get_experiment_id(name)
+        return self.tracker.get_run_id(experiment_id, run_name, number)
+
+    def set_parent_run_id(self, run_id: str, parent_run_id: str):
+        self.tracker.set_parent_run_id(run_id, parent_run_id)
+
     def get_parent_run_id(self, run_id: str) -> str:
         return self.tracker.get_parent_run_id(run_id)
-
-    def update_params(self, name: str = "", **default):
-        for experiment in self.tracker.list_experiments():
-            if name and not re.match(name, experiment.name):
-                continue
-            self.tracker.update_params(experiment.experiment_id, **default)
 
     def set_terminated(self, name: str = ""):
         for run_id in self.search_run_ids(name):
@@ -114,7 +93,6 @@ class Client(Base):
 
     def load_run(self, run_id: str, mode: str = "test") -> Run:
         run = self.tracker.load_run(run_id, mode)
-        run.set_tracker(self.tracker)
         return run
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
@@ -132,6 +110,28 @@ class Client(Base):
             subprocess.run(["mlflow", "ui", "--backend-store-uri", tracking_uri])
         except KeyboardInterrupt:
             pass
+
+    def update_params(self, name: str = "", **default):
+        for experiment in self.tracker.list_experiments():
+            if name and not re.match(name, experiment.name):
+                continue
+            self.tracker.update_params(experiment.experiment_id, **default)
+
+    def remove_deleted_runs(self, name: str = "") -> int:
+        """Remove deleted runs from local file system.
+
+        Args:
+            name: experiment name pattern for filtering.
+
+        Returns:
+            number of removed runs.
+        """
+        num_runs = 0
+        for experiment in self.tracker.list_experiments():
+            if name and not re.match(name, experiment.name):
+                continue
+            num_runs += self.tracker.remove_deleted_runs(experiment.experiment_id)
+        return num_runs
 
 
 def create_client(path="client", directory=".", tracker=True) -> Client:

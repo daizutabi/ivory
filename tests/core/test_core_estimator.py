@@ -1,5 +1,5 @@
 def test_estimator(client):
-    experiment = client.create_experiment("ridge", name="ridge")
+    experiment = client.create_experiment("ridge.ridge")
     assert experiment.name == "ridge.ridge"
 
     run = experiment.create_run()
