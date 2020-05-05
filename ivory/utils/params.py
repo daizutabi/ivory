@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -44,7 +44,7 @@ def colon_to_list(x: Dict[str, Any]) -> Dict[str, Any]:
     """
     update: Dict[str, Any] = {}
     for key, value in x.items():
-        if ':' not in key:
+        if ":" not in key:
             update[key] = value
             continue
         key, digit = key.split(":")
@@ -137,7 +137,7 @@ def get_fullnames(params, name, prefix="", dict_allowed=False):
             yield from get_fullnames(params[key], name, prefix_, dict_allowed)
 
 
-def create_update(params, args=None, **kwargs):
+def create_update(params, args: Optional[Dict[str, Any]] = None, **kwargs):
     if args is None:
         args = {}
     args.update(kwargs)

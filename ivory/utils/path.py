@@ -64,13 +64,14 @@ def load_params(name: str, source_name: str = "") -> Tuple[Params, str]:
     params = yaml.safe_load(params_yaml)
     params = literal_eval(params)
     update_include(params, source_name)
+    params = inherit(params, source_name)
     return params, source_name
 
 
 def update_include(params, source_name, include=None):
     if "include" in params:
-        path = params.pop("include")
-        include = load_params(path, source_name)[0]
+        name = params.pop("include")
+        include = load_params(name, source_name)[0]
     elif include is None:
         include = {}
     for key, value in params.items():
@@ -83,6 +84,29 @@ def update_include(params, source_name, include=None):
                         value[k] = include[key][k]
         if isinstance(value, dict):
             update_include(value, source_name, include)
+
+
+def inherit(params, source_name):
+    if "inherit" in params:
+        return _inherit(params, source_name)
+    for key, value in params.items():
+        if isinstance(value, dict):
+            params[key] = inherit(value, source_name)
+    return params
+
+
+def _inherit(params, source_name):
+    name = params.pop("inherit")
+    base = load_params(name, source_name)[0]
+    for key, value in base.items():
+        if key in params:
+            if value is None:
+                base[key] = params[key]
+            elif isinstance(value, dict):
+                for k in params[key]:
+                    if k not in value:
+                        value[k] = params[key][k]
+    return base
 
 
 def literal_eval(x):

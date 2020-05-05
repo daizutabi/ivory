@@ -100,6 +100,13 @@ class Dataset:
         else:
             return self.data.get(self.index[index])
 
+    def sample(self, n: int = 0, frac: float = 0.0):
+        index, input, *target = self.get()
+        if frac:
+            n = int(len(index) * frac)
+        idx = np.random.permutation(len(index))[:n]
+        return [x[idx] for x in [index, input, *target]]
+
 
 @dataclass
 class Datasets(ivory.core.collections.Dict):

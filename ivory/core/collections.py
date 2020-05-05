@@ -6,6 +6,9 @@ class Dict:
     def __post_init__(self):
         self.dict = {}
 
+    def __bool__(self):
+        return True
+
     def __len__(self):
         return len(self.dict)
 
@@ -59,6 +62,9 @@ class Dict:
 class List:
     def __post_init__(self):
         self.list = []
+
+    def __bool__(self):
+        return True
 
     def __len__(self):
         return len(self.list)

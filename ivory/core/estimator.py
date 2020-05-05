@@ -19,6 +19,18 @@ class Estimator(State):
             else:
                 self.params[key] = value
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        kwargs = ", ".join(f"{key}={value!r}" for key, value in self.kwargs.items())
+        if self.params and self.kwargs:
+            return f"{class_name}(params={self.params}, {kwargs})"
+        elif self.params:
+            return f"{class_name}(params={self.params})"
+        elif self.kwargs:
+            return f"{class_name}({kwargs})"
+        else:
+            return f"{class_name}()"
+
     def fit(self, input, target):
         self.estimator.fit(input, target)
 
@@ -57,6 +69,7 @@ class Estimator(State):
         if mode == "train":
             self.fit(input, *target)
         output = self.predict(input)
-        run.results.step(index, output, *target)
+        if run.results:
+            run.results.step(index, output, *target)
         if mode != "test" and run.metrics:
             run.metrics.step(input, output, *target)

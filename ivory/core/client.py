@@ -24,6 +24,8 @@ class Client(Base):
             an experiment instance.
         """
         params, source_name = utils.load_params(name.split(".")[0], self.source_name)
+        if "run" not in params:
+            params = {"run": params}
         if "experiment" not in params:
             params.update(default.get("experiment"))
         if "name" not in params["experiment"]:

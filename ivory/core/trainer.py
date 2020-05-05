@@ -58,7 +58,8 @@ class Trainer(State):
             finally:
                 if self.verbose:
                     msg = self.message(run, max_epoch, early_stopped, pruned)
-                    tqdm.write(msg)
+                    if msg:
+                        tqdm.write(msg)
         if pruned:
             raise pruned
 
@@ -100,7 +101,11 @@ class Trainer(State):
     def message(self, run: Run, max_epoch: int, early_stopped, pruned) -> str:
         width = len(str(max_epoch))
         epoch = str(self.epoch).zfill(width)
+        if not run.metrics:
+            return ""
         msg = f"[{run.name}] epoch={epoch} {run.metrics}"
+        if not run.monitor:
+            return msg
         if run.monitor.is_best:
             msg = colored(msg, "green")
         else:
