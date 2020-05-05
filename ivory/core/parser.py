@@ -20,6 +20,8 @@ def parse_value(value):
     if not isinstance(value, (list, str)):
         value = [value]
     elif isinstance(value, str):
+        if not value:
+            return [""]
         if "," in value:
             values = []
             for v in value.split(","):

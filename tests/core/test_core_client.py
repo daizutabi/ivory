@@ -25,9 +25,6 @@ def test_load(client):
     trainer = client.load_instance(run_id, "trainer")
     assert trainer.epoch > 0
 
-    output, target = client.load_results([run_id, run_id])
-    assert len(output) == 200 * 2 * 2
-
 
 def test_load_instance(client, run):
     results = client.load_instance(run.id, "results", "test")

@@ -5,6 +5,6 @@ run:
     data:
     dataset:
   estimator:
-    class: example.Estimator
+    class: ivory.sklearn.estimator.Ridge
   results:
   metrics:

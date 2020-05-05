@@ -1,15 +1,14 @@
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterable, Iterator, Tuple
+from typing import Any, Dict, Iterator
 
-import ivory.utils.data
 from ivory import utils
 from ivory.core import default, instance
 from ivory.core.base import Base
+from ivory.core.evaluator import Evaluator
 from ivory.core.experiment import Experiment
 from ivory.core.run import Run
-from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
@@ -33,6 +32,9 @@ class Client(Base):
         if self.tracker:
             experiment.set_tracker(self.tracker)
         return experiment
+
+    def create_evaluator(self) -> Evaluator:
+        return Evaluator(self)
 
     def search_run_ids(
         self,
@@ -97,12 +99,6 @@ class Client(Base):
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)
-
-    def load_results(self, run_ids: Iterable[str], verbose: bool = True) -> Tuple:
-        if verbose:
-            run_ids = tqdm(list(run_ids), leave=False)
-        it = (self.load_instance(run_id, "results", "test") for run_id in run_ids)
-        return ivory.utils.data.concat_results(it)
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri

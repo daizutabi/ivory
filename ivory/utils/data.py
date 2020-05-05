@@ -24,6 +24,7 @@ def softmax(df):
 def mean(df):
     is_series = isinstance(df, pd.Series)
     df = df.reset_index().groupby("index").mean()
+    df.sort_index(inplace=True)
     df.index.name = None
     if is_series:
         df = df[0]
@@ -33,14 +34,3 @@ def mean(df):
 def argmax(df):
     pred = df.to_numpy().argmax(axis=1)
     return pd.Series(pred, index=df.index)
-
-
-def mean_argmax(output, target=None, columns=None):
-    df = mean(output)
-    pred = argmax(df)
-    if target is None:
-        return pred
-    if columns is None:
-        columns = ["pred", "true"]
-    true = mean(target)
-    return pd.DataFrame({columns[0]: pred, columns[1]: true})

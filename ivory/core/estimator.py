@@ -1,19 +1,29 @@
-from dataclasses import dataclass
+import inspect
 
 from ivory.core.run import Run
 from ivory.core.state import State
 from ivory.utils.tqdm import tqdm
 
 
-@dataclass
 class Estimator(State):
-    verbose: int = 1
+    __estimator__ = None
 
-    def fit(self, input, *target):
-        raise NotImplementedError
+    def __init__(self, **kwargs):
+        self.estimator = None
+        self.params = {}
+        self.kwargs = {}
+        keys = inspect.signature(self.__estimator__).parameters.keys()
+        for key, value in kwargs.items():
+            if key in keys:
+                self.kwargs[key] = value
+            else:
+                self.params[key] = value
 
-    def transform(self, input):
-        raise NotImplementedError
+    def fit(self, input, target):
+        self.estimator.fit(input, target)
+
+    def predict(self, input):
+        return self.estimator.predict(input)
 
     def start(self, run: Run):
         if run.mode == "train":
@@ -33,7 +43,7 @@ class Estimator(State):
         try:
             run.on_epoch_end()
         finally:
-            if self.verbose and run.metrics:
+            if run.metrics:
                 tqdm.write(f"[{run.name}] {run.metrics}")
             run.on_fit_end()
 
@@ -46,7 +56,7 @@ class Estimator(State):
         index, input, *target = run.datasets[mode].get()
         if mode == "train":
             self.fit(input, *target)
-        output = self.transform(input)
+        output = self.predict(input)
         run.results.step(index, output, *target)
         if mode != "test" and run.metrics:
             run.metrics.step(input, output, *target)

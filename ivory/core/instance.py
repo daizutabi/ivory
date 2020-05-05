@@ -2,7 +2,7 @@ import importlib
 import inspect
 import re
 from functools import partial
-from typing import Any, Dict
+from typing import Any, Dict, Iterable, Iterator
 
 from ivory.core.default import update_class
 
@@ -109,9 +109,20 @@ def create_base_instance(params: Dict[str, Any], name: str, source_name: str = "
     return instantiate(params[name], kwargs=kwargs)
 
 
-def create_instance(params: Dict[str, Any], name: str):
+def create_instance(params: Dict[str, Any], name: str, globals=None, **kwargs) -> Any:
+    if globals is None:
+        globals = {}
+    globals.update(**kwargs)
     update_class(params)
     names = name.split(".")
     for name in names:
         params = params[name]
-    return instantiate(params)
+    return instantiate(params, globals)
+
+
+def create_instances(params: Dict[str, Any], names: Iterable[str]) -> Iterator[Any]:
+    globals: Dict[str, Any] = {}
+    for name in names:
+        instance = create_instance(params, name, globals)
+        yield instance
+        globals[name] = instance
