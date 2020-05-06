@@ -23,3 +23,14 @@ def test_monitor_repr():
     monitor.best_score = 0.1
     monitor.best_epoch = 10
     assert "best_score=0.1, best_epoch=10" in repr(monitor)
+
+
+def test_mode(run):
+    run.start()
+    monitor = run.monitor
+    mode = monitor.mode
+    monitor.mode = "max"
+    monitor.best_score = -1e10
+    monitor.on_epoch_end(run)
+    assert monitor.is_best
+    monitor.mode = mode

@@ -4,7 +4,7 @@ def test_estimator(client):
 
     run = experiment.create_run()
     run.start("train")
-    assert run.results.train["output"].shape == (600, 1)
-    assert run.results.val["output"].shape == (200, 1)
+    assert run.results.train["output"].shape == (600,)
+    assert run.results.val["output"].shape == (200,)
     run.start("test")
-    assert run.results.test["output"].shape == (200, 1)
+    assert run.results.test["output"].shape == (200,)

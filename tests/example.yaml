@@ -8,31 +8,10 @@ study:
       def: example.suggest_hidden_sizes
       max_num_layers: 3
 run:
-  library: torch
-  include: data.yaml
+  base: base
   dataloaders:
     data:
-    dataset:
+      class: example.TorchData
   model:
     class: example.Model
     hidden_sizes: [100, 100]
-  optimizer:
-    class: torch.optim.SGD
-    params: $.model.parameters()
-    lr: 1e-3
-  scheduler:
-    class: torch.optim.lr_scheduler.ReduceLROnPlateau
-    optimizer: $
-    factor: 0.5
-    patience: 4
-  results:
-  metrics:
-    criterion:
-      def: torch.nn.functional.mse_loss
-  monitor:
-    metric: val_loss
-  early_stopping:
-    patience: 8
-  trainer:
-    max_epochs: 10
-    verbose: 2

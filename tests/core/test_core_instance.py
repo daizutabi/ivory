@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ivory.core.instance import create_instance, instantiate
+from ivory.core.instance import create_instance, create_instances, instantiate
 
 
 def test_instantiate_extra():
@@ -38,3 +38,7 @@ def test_instantiate_global():
     a = {"class": "numpy.array", "object": [1, 2, 3]}
     a = instantiate(a, {"c": 0})
     assert a[0] == 1
+
+
+def test_create_instances(params):
+    model, optimizer = create_instances(params["run"], ["model", "optimizer"])

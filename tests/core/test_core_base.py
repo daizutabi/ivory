@@ -31,3 +31,8 @@ def test_callback_caller():
     assert not caller.called
     caller.on_fit_start()
     assert caller.called
+
+
+def test_repr(run):
+    run.create_callbacks()
+    assert repr(run.on_fit_start) == "Callback(['trainer'])"

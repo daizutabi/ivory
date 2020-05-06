@@ -27,3 +27,10 @@ class Ridge(Estimator):
 class RandomForestClassifier(Estimator):
     def __init__(self, **kwargs):
         super().__init__(sklearn.ensemble.RandomForestClassifier, **kwargs)
+
+
+class RandomForestRegressor(Estimator):
+    def __init__(self, **kwargs):
+        super().__init__(
+            sklearn.ensemble.RandomForestRegressor, return_probability=False, **kwargs
+        )

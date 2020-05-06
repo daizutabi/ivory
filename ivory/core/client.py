@@ -13,7 +13,7 @@ from ivory.core.run import Run
 class Client(Base):
     """The Ivory client class."""
 
-    def create_experiment(self, name: str = "") -> Experiment:
+    def create_experiment(self, name: str) -> Experiment:
         """Creates an `Experiment` according to the YAML file specified by `name`.
 
         Args:
@@ -33,6 +33,10 @@ class Client(Base):
         if self.tracker:
             experiment.set_tracker(self.tracker)
         return experiment
+
+    def create_run(self, name: str, args=None, run_name: str = "run", **kwargs):
+        experiment = self.create_experiment(name)
+        return experiment.create_run(args, run_name, **kwargs)
 
     def create_evaluator(self) -> Evaluator:
         return Evaluator(self)

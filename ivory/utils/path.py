@@ -87,7 +87,7 @@ def update_include(params, source_name, include=None):
 
 
 def inherit(params, source_name):
-    if "inherit" in params:
+    if "base" in params:
         return _inherit(params, source_name)
     for key, value in params.items():
         if isinstance(value, dict):
@@ -96,7 +96,7 @@ def inherit(params, source_name):
 
 
 def _inherit(params, source_name):
-    name = params.pop("inherit")
+    name = params.pop("base")
     base = load_params(name, source_name)[0]
     for key, value in base.items():
         if key in params:
@@ -104,8 +104,7 @@ def _inherit(params, source_name):
                 base[key] = params[key]
             elif isinstance(value, dict):
                 for k in params[key]:
-                    if k not in value:
-                        value[k] = params[key][k]
+                    value[k] = params[key][k]
     return base
 
 

@@ -89,7 +89,7 @@ class List:
         self.list.append(value)
 
     def copy(self):
-        return self.dict.copy()
+        return self.list.copy()
 
 
 class Missing:

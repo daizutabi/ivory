@@ -26,15 +26,23 @@ def create_data(num_samples=1000):
 
 @dataclass
 class Data(ivory.core.data.Data):
+    results: Any
     num_samples: int = 1000
+    __requires__ = ["results"]
 
     def __post_init__(self):
         super().__post_init__()
         self.input, self.target = create_data(self.num_samples)
-        self.target = self.target.reshape(-1, 1)
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=5)
         self.fold = np.where(self.fold == 4, -1, self.fold)
+
+
+@dataclass
+class TorchData(Data):
+    def __post_init__(self):
+        super().__post_init__()
+        self.target = self.target.reshape(-1, 1)
 
 
 @dataclass(repr=False)
