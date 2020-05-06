@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import ivory.core.data
 import ivory.core.estimator
 import ivory.torch.data
-from ivory.utils import kfold_split
+from ivory.utils.fold import kfold_split
 
 DATA: Dict[int, Any] = {}
 

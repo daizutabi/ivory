@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 import ivory.core.collections
 import ivory.core.state
-from ivory.core import parser
+from ivory import utils
 from ivory.core.base import CallbackCaller
 from ivory.utils.tqdm import tqdm
 
@@ -88,11 +88,10 @@ class Task(Run):
         if self.tracking:
             self.tracking.set_terminated(self.id)
 
-    def product(self, args=None, repeat: int = 1, **kwargs):
-        params = parser.parse_args(args, **kwargs)
+    def product(self, params, repeat: int = 1):
         if self.tracking:
             self.tracking.set_tags(self.id, params)
-        params = list(parser.product(params)) * repeat
+        params = list(utils.params.product(params)) * repeat
         try:
             for args in tqdm(params, desc="Run  "):
                 run = self.create_run(args)

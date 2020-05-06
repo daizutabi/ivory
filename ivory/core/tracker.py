@@ -27,7 +27,7 @@ class Tracker:
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
         self.tracking_uri = self.client._tracking_client.tracking_uri
         if self.artifact_location:
-            self.artifact_location = utils.to_uri(self.artifact_location)
+            self.artifact_location = utils.path.to_uri(self.artifact_location)
 
     def get_experiment_id(self, name: str):
         experiment = self.client.get_experiment_by_name(name)
@@ -107,7 +107,7 @@ class Tracker:
         uri = experiment.artifact_location
         if not uri.startswith("file"):
             raise NotImplementedError
-        path = utils.local_file_uri_to_path(uri)
+        path = utils.path.local_file_uri_to_path(uri)
         num_runs = 0
         for run_info in self.client.list_run_infos(experiment_id, run_view_type=2):
             run_id = run_info.run_id
@@ -135,7 +135,7 @@ class Tracker:
         for run_id in run_ids:
             if query:
                 params = self.load_params(run_id)
-                if utils.match(params, **query):
+                if utils.params.match(params, **query):
                     yield run_id
             else:
                 yield run_id
@@ -180,7 +180,7 @@ class Tracker:
             params = self.load_params(run_id)
             update = {}
             for arg in args:
-                value = utils.get_value(params["run"], arg)
+                value = utils.params.get_value(params["run"], arg)
                 if value is not None:
                     update[arg] = value
                 elif arg in default:
@@ -201,11 +201,11 @@ def load(
         return params_cache[run_id]
     source_name = tracker.get_source_name(run_id)
     client = tracker.client
-    with utils.chdir(source_name):
+    with utils.path.chdir(source_name):
         with tempfile.TemporaryDirectory() as tmpdir:
             if run_id not in params_cache:
                 params_path = client.download_artifacts(run_id, "params.yaml", tmpdir)
-                params, _ = utils.load_params(params_path)
+                params, _ = utils.path.load_params(params_path)
                 params_cache[run_id] = params
                 if name == "params":
                     return params

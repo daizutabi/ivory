@@ -42,7 +42,7 @@ class Tracking:
             path = os.path.join(tmpdir, "params.yaml")
             with open(path, "w") as file:
                 yaml.dump(run.params, file, sort_keys=False)
-            with utils.chdir(run.source_name):
+            with utils.path.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
 
     def log_params(self, run_id: str, params: Dict[str, Any]):
@@ -61,7 +61,7 @@ class Tracking:
             directory = os.path.join(tmpdir, mode)
             os.mkdir(directory)
             run.save(directory)
-            with utils.chdir(run.source_name):
+            with utils.path.chdir(run.source_name):
                 self.client.log_artifacts(run.id, tmpdir)
                 if mode != "current":
                     return

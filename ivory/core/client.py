@@ -22,7 +22,8 @@ class Client(Base):
         Returns:
             an experiment instance.
         """
-        params, source_name = utils.load_params(name.split(".")[0], self.source_name)
+        basename = name.split(".")[0]
+        params, source_name = utils.path.load_params(basename, self.source_name)
         if "run" not in params:
             params = {"run": params}
         if "experiment" not in params:
@@ -34,9 +35,14 @@ class Client(Base):
             experiment.set_tracker(self.tracker)
         return experiment
 
-    def create_run(self, name: str, args=None, run_name: str = "run", **kwargs):
-        experiment = self.create_experiment(name)
-        return experiment.create_run(args, run_name, **kwargs)
+    def create_run(self, name: str, args=None, **kwargs):
+        return self.create_experiment(name).create_run(args, **kwargs)
+
+    def create_task(self, name: str):
+        return self.create_experiment(name).create_task()
+
+    def create_study(self, name: str):
+        return self.create_experiment(name).create_study()
 
     def create_evaluator(self) -> Evaluator:
         return Evaluator(self)
@@ -136,13 +142,13 @@ class Client(Base):
 
 
 def create_client(path="client", directory=".", tracker=True) -> Client:
-    source_name = utils.normpath(path, directory)
+    source_name = utils.path.normpath(path, directory)
     if os.path.exists(source_name):
-        params, _ = utils.load_params(source_name)
+        params, _ = utils.path.load_params(source_name)
     else:
         params = default.get("client")
     if not tracker and "tracker" in params["client"]:
         params["client"].pop("tracker")
-    with utils.chdir(source_name):
+    with utils.path.chdir(source_name):
         client = instance.create_base_instance(params, "client", source_name)
     return client

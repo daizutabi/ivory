@@ -48,8 +48,8 @@ class Creator(Base):
         params = copy.deepcopy(self.params)
         if name not in params:
             params.update(default.get(name))
-        update, args = utils.create_update(params[name], args, **kwargs)
-        utils.update_dict(params[name], update)
+        update, args = utils.params.create_update(params[name], args, **kwargs)
+        utils.params.update_dict(params[name], update)
         return params, args
 
     def create_run(self, args=None, name: str = "run", **kwargs):
@@ -58,7 +58,7 @@ class Creator(Base):
         if self.tracker:
             run.set_tracker(self.tracker, name)
             run.tracking.log_params_artifact(run)
-            args = {arg: utils.get_value(run.params[name], arg) for arg in args}
+            args = {arg: utils.params.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
         return run
 

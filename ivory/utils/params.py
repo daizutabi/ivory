@@ -1,3 +1,4 @@
+import itertools
 from typing import Any, Dict, Optional
 
 
@@ -205,3 +206,11 @@ def match(params, **query):
         elif value != cond:
             return False
     return True
+
+
+def product(params):
+    for values in itertools.product(*params.values()):
+        args = {}
+        for name, value in zip(params.keys(), values):
+            args[name] = value
+        yield args

@@ -6,6 +6,7 @@ import logzero
 from logzero import logger
 
 import ivory
+from ivory.core import parser
 from ivory.core.exceptions import TestDataNotFoundError
 
 if "." not in sys.path:
@@ -28,16 +29,16 @@ def cli():
 
 
 @cli.command(help="Invoke a run or product runs.")
-@click.argument("path")
+@click.argument("name")
 @click.argument("args", nargs=-1)
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
 @click.option("--notest", is_flag=True, help="Skip test after training.")
 @click.option("--notrack", is_flag=True, help="No tracking mode.")
-def run(path, args, repeat, notest, notrack):
+def run(name, args, repeat, notest, notrack):
     client = ivory.create_client(tracker=not notrack)
-    experiment = client.create_experiment(path)
-    task = experiment.create_task()
-    for run in task.product(args, repeat=repeat):
+    task = client.create_task(name)
+    params = parser.parse_args(args)
+    for run in task.product(params, repeat=repeat):
         run.start("train")
         if not notest and not notrack:
             run = client.load_run(run.id, "best")
@@ -50,7 +51,6 @@ def run(path, args, repeat, notest, notrack):
 @cli.command(help="Optimize hyper parameters.")
 @click.argument("path")
 @click.argument("name")
-# @click.argument("n_trials", nargs=-1)
 @click.option("--notrack", is_flag=True, help="No tracking mode.")
 def optimize(path, name, notrack):
     client = ivory.create_client(tracker=not notrack)

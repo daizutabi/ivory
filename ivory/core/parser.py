@@ -1,5 +1,4 @@
 import ast
-import itertools
 import re
 
 
@@ -51,11 +50,3 @@ def literal_eval(value):
         return ast.literal_eval(value)
     except ValueError:
         return value
-
-
-def product(params):
-    for values in itertools.product(*params.values()):
-        args = {}
-        for name, value in zip(params.keys(), values):
-            args[name] = value
-        yield args

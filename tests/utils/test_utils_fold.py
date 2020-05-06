@@ -1,6 +1,6 @@
 import numpy as np
 
-from ivory.utils import kfold_split, multilabel_stratified_kfold_split
+from ivory.utils.fold import kfold_split, multilabel_stratified_kfold_split
 
 
 def test_kfold_split():

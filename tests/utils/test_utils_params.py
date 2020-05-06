@@ -1,12 +1,6 @@
 import pytest
 
-from ivory.utils import colon_to_list, literal_eval, update_dict
-
-
-def test_literal_eval():
-    x = {"a": "1e2", "b": [1, "1e-1", {"c": ["1e3", "abc"]}]}
-    y = literal_eval(x)
-    assert y == {"a": 100.0, "b": [1, 0.1, {"c": [1000.0, "abc"]}]}
+from ivory.utils.params import colon_to_list, update_dict
 
 
 def test_update_dict():
