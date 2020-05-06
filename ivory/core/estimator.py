@@ -6,13 +6,11 @@ from ivory.utils.tqdm import tqdm
 
 
 class Estimator(State):
-    __estimator__ = None
-
-    def __init__(self, **kwargs):
-        self.estimator = None
+    def __init__(self, estimator_factory, **kwargs):
+        self.estimator_factory = estimator_factory
         self.params = {}
         self.kwargs = {}
-        keys = inspect.signature(self.__estimator__).parameters.keys()
+        keys = inspect.signature(self.estimator_factory).parameters.keys()
         for key, value in kwargs.items():
             if key in keys:
                 self.kwargs[key] = value

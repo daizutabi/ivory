@@ -5,9 +5,8 @@ from typing import Any, Dict, Iterator
 
 from ivory import utils
 from ivory.core import default, instance
-from ivory.core.base import Base
+from ivory.core.base import Base, Experiment
 from ivory.core.evaluator import Evaluator
-from ivory.core.experiment import Experiment
 from ivory.core.run import Run
 
 

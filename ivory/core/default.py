@@ -18,7 +18,7 @@ DEFAULT_CLASS["core"] = {
     "client": "ivory.core.client.Client",
     "tracker": "ivory.core.tracker.Tracker",
     "tuner": "ivory.core.tuner.Tuner",
-    "experiment": "ivory.core.experiment.Experiment",
+    "experiment": "ivory.core.base.Experiment",
     "objective": "ivory.core.objective.Objective",
     "run": "ivory.core.run.Run",
     "task": "ivory.core.run.Task",

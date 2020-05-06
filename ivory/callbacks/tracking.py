@@ -21,12 +21,14 @@ class Tracking:
         self.client = mlflow.tracking.MlflowClient(self.tracking_uri)
 
     def on_epoch_end(self, run: Run):
+        self.save_run(run, "current")
+        if not run.metrics:
+            return
         metrics = run.metrics.copy()
         monitor = run.monitor
         if monitor:
             metrics.update(best_score=monitor.best_score, best_epoch=monitor.best_epoch)
         self.log_metrics(run.id, metrics, run.metrics.epoch)
-        self.save_run(run, "current")
 
     def on_fit_end(self, run: Run):
         self.set_terminated(run.id)

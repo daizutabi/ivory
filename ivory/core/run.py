@@ -1,6 +1,6 @@
+import gc
 import os
 import warnings
-from dataclasses import dataclass
 from typing import Any, Dict
 
 import ivory.core.collections
@@ -95,7 +95,10 @@ class Task(Run):
         params = list(parser.product(params)) * repeat
         try:
             for args in tqdm(params, desc="Run  "):
-                yield self.create_run(args)
+                run = self.create_run(args)
+                yield run
+                del run
+                gc.collect()
         finally:
             self.terminate()
 
