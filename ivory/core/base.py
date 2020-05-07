@@ -8,7 +8,7 @@ from ivory.core import default, instance
 
 
 class Base(ivory.core.collections.Dict):
-    """Base class for Ivory entity such as `client`, `experiment`, and `run`. """
+    """Base class for entities such as `client`, `experiment`, and `run`. """
 
     def __init__(self, params, **objects):
         super().__init__()
@@ -127,4 +127,8 @@ class Experiment(Creator):
         return self.create_run(name="task")
 
     def create_study(self):
-        return self.create_run(name="study")
+        study = self.create_run(name="study")
+        if "study" not in self.params or "tuner" not in self.params["study"]:
+            if self.tuner:
+                study.set(tuner=self.tuner)
+        return study

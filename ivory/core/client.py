@@ -33,6 +33,8 @@ class Client(Base):
         experiment = instance.create_base_instance(params, "experiment", source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)
+        if self.tuner:
+            experiment.set(tuner=self.tuner)
         return experiment
 
     def create_run(self, name: str, args=None, **kwargs):

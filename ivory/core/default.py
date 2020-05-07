@@ -6,7 +6,7 @@ DEFAULTS: Dict[str, Any] = {}
 DEFAULTS["client"] = {"client": {"tracker": {}}}
 DEFAULTS["experiment"] = {"experiment": {}}
 DEFAULTS["task"] = {"task": {}}
-DEFAULTS["study"] = {"study": {"objective": {}}}
+DEFAULTS["study"] = {"study": {"objective": {}, "tuner": {}}}
 
 
 def get(name: str) -> Dict[str, Any]:
