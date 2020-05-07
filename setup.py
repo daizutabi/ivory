@@ -38,6 +38,7 @@ def check():
     run("mypy ivory")
     run("pycodestyle tests")
     run("pyflakes tests")
+    run("mypy tests")
 
 
 def publish():

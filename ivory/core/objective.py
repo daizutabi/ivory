@@ -1,4 +1,5 @@
-from typing import Callable
+import gc
+from typing import Any, Callable, Dict
 
 import numpy as np
 import optuna
@@ -6,6 +7,7 @@ from optuna.trial import Trial
 
 from ivory.callbacks.pruning import Pruning
 from ivory.core import instance
+from ivory.utils.range import Range
 
 
 class Objective:
@@ -36,6 +38,42 @@ class Objective:
             score = run.monitor.best_score
             if np.isnan(score):
                 raise optuna.exceptions.TrialPruned("Best score is nan.")
+            del run
+            gc.collect()
             return score
 
         return objective
+
+    def create_suggest(self, params: Dict[str, Any]) -> str:
+        """Creates a suggest function from a parameter dictionary."""
+        suggests = {}
+        for key, value in params.items():
+            log = False
+            if key.endswith(".log"):
+                log = True
+                key = key.rpartition(".")[0]
+            if isinstance(value, Range):
+                low, high, step = value.start, value.stop, value.step
+                if log:
+                    suggests[key] = ["float", dict(low=low, high=high, log=log)]
+                elif value.is_integer:
+                    suggests[key] = ["int", dict(low=low, high=high, step=step)]
+                else:
+                    if step == 1 and value.n == 0:
+                        suggests[key] = ["float", dict(low=low, high=high)]
+                    else:
+                        if value.n:
+                            step = (high - low) / value.n
+                        args = dict(low=low, high=high, step=step)
+                        suggests[key] = ["discrete_uniform", args]
+            else:
+                suggests[key] = ["categorical", dict(choices=value)]
+
+        def suggest(trial: Trial, suggests=suggests):
+            for key, value in suggests.items():
+                suggest = getattr(trial, "suggest_" + value[0])
+                suggest(key, **value[1])
+
+        suggest_name = ".".join(suggests.keys())
+        self.suggests[suggest_name] = suggest
+        return suggest_name

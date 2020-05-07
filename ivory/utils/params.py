@@ -214,3 +214,13 @@ def product(params):
         for name, value in zip(params.keys(), values):
             args[name] = value
         yield args
+
+
+def to_str(params):
+    t = []
+    for key, value in params.items():
+        if isinstance(value, str):
+            t.append(f"{key}={value!r}")
+        else:
+            t.append(f"{key}={value:.4g}")
+    return " ".join(t)

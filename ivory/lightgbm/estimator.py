@@ -17,10 +17,13 @@ class Estimator(ivory.core.estimator.Estimator):
             best_params=self.best_params, tuning_history=self.tuning_history
         )
 
-    def fit(self, input, target):
-        train_set = lgb.Dataset(input[0], target[0])
-        val_set = lgb.Dataset(input[1], target[1])
-        valid_sets = [train_set, val_set]
+    def fit(self, input, target, val=None):
+        train_set = lgb.Dataset(input, target)
+        if val is not None:
+            val_set = lgb.Dataset(*val)
+            valid_sets = [train_set, val_set]
+        else:
+            valid_sets = [train_set]
         self.estimator = self.estimator_factory(
             self.params, train_set, valid_sets=valid_sets, **self.kwargs
         )
@@ -29,7 +32,7 @@ class Estimator(ivory.core.estimator.Estimator):
         if mode == "train":
             _, train_input, train_target = run.datasets.train.get()
             _, val_input, val_target = run.datasets.val.get()
-            self.fit([train_input, val_input], [train_target, val_target])
+            self.fit(train_input, train_target, [val_input, val_target])
         index, input, *target = run.datasets[mode].get()
         output = self.predict(input)
         if run.results:

@@ -12,6 +12,7 @@ run:
   dataloaders:
     data:
       class: example.TorchData
+      num_samples: __default__
   model:
     class: example.Model
     hidden_sizes: [100, 100]

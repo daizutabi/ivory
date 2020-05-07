@@ -105,8 +105,7 @@ class Client(Base):
         return self.tracker.load_params(run_id)
 
     def load_run(self, run_id: str, mode: str = "test") -> Run:
-        run = self.tracker.load_run(run_id, mode)
-        return run
+        return self.tracker.load_run(run_id, mode)
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)

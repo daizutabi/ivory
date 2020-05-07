@@ -20,7 +20,7 @@ metrics:
 monitor:
   metric: val_loss
 early_stopping:
-  patience: 8
+  patience: $.scheduler.patience
 trainer:
   max_epochs: 10
   verbose: 2

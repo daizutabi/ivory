@@ -1,4 +1,6 @@
+import functools
 import gc
+import inspect
 import os
 import warnings
 from typing import Any, Dict
@@ -28,10 +30,16 @@ class Run(CallbackCaller):
         self.on_init_end()
 
     def start(self, mode: str = "train"):
-        self.init(mode)
-        for obj in self.values():
-            if hasattr(obj, "start") and callable(obj.start):
-                obj.start(self)
+        if mode == "both":
+            self.start("train")
+            if self.tracker:
+                self.tracker.load_state_dict(self, "best")
+                self.start("test")
+        else:
+            self.init(mode)
+            for obj in self.values():
+                if hasattr(obj, "start") and callable(obj.start):
+                    obj.start(self)
 
     def state_dict(self):
         state_dict = {}
@@ -78,8 +86,8 @@ class Run(CallbackCaller):
 
 
 class Task(Run):
-    def create_run(self, args):
-        run = super().create_run(args)
+    def create_run(self, args, **kwargs):
+        run = super().create_run(args, **kwargs)
         if self.tracking:
             self.tracking.set_parent_run_id(run.id, self.id)
         return run
@@ -95,6 +103,8 @@ class Task(Run):
         try:
             for args in tqdm(params, desc="Run  "):
                 run = self.create_run(args)
+                msg = utils.params.to_str(args)
+                tqdm.write(f"[{run.name}] {msg}")
                 yield run
                 del run
                 gc.collect()
@@ -113,9 +123,21 @@ class Study(Task):
             self.tracking.set_tags(self.id, {"study_name": study_name})
             study.set_user_attr("run_id", self.id)
         has_pruning = self.tuner.pruner is not None
-        objective = self.objective(suggest_name, self.create_run, has_pruning)
+        keys = inspect.signature(study.optimize).parameters.keys()
+        params = {}
+        for key in list(kwargs.keys()):
+            if key not in keys:
+                params[key] = kwargs.pop(key)
+        create_run = functools.partial(self.create_run, **params)
+        objective = self.objective(suggest_name, create_run, has_pruning)
         try:
             study.optimize(objective, **kwargs)
         finally:
             self.terminate()
         return study
+
+    def optimize_from_params(
+        self, params: Dict[str, Any], study_name: str = "", **kwargs
+    ):
+        suggest_name = self.objective.create_suggest(params)
+        self.optimize(suggest_name, study_name, **kwargs)

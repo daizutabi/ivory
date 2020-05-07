@@ -7,7 +7,7 @@ from logzero import logger
 
 import ivory
 from ivory.core import parser
-from ivory.core.exceptions import TestDataNotFoundError
+from ivory.utils.range import Range
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -32,36 +32,50 @@ def cli():
 @click.argument("name")
 @click.argument("args", nargs=-1)
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
-@click.option("--notest", is_flag=True, help="Skip test after training.")
-@click.option("--notrack", is_flag=True, help="No tracking mode.")
-def run(name, args, repeat, notest, notrack):
-    client = ivory.create_client(tracker=not notrack)
-    task = client.create_task(name)
-    params = parser.parse_args(args)
-    for run in task.product(params, repeat=repeat):
-        run.start("train")
-        if not notest and not notrack:
-            run = client.load_run(run.id, "best")
-            try:
-                run.start("test")
-            except TestDataNotFoundError:
-                pass
+@click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
+@click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
+def run(name, args, repeat, quiet, verbose):
+    client = ivory.create_client()
+    if not args and repeat == 1:
+        run = client.create_run(name)
+        run.start("both")
+    else:
+        task = client.create_task(name)
+        params = parser.parse_args(args)
+        for run in task.product(params, repeat=repeat):
+            run.start("both")
 
 
 @cli.command(help="Optimize hyper parameters.")
-@click.argument("path")
 @click.argument("name")
-@click.option("--notrack", is_flag=True, help="No tracking mode.")
-def optimize(path, name, notrack):
-    client = ivory.create_client(tracker=not notrack)
-    experiment = client.create_experiment(path)
-    study = experiment.create_study()
-    study.optimize(name, n_trials=3)
+@click.argument("args", nargs=-1)
+@click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
+@click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
+def optimize(name, args, quiet, verbose):
+    client = ivory.create_client()
+    study = client.create_study(name)
+    if "=" not in args[0]:
+        suggest_name = args[0]
+        params = parser.parse_args(args[1:])
+        kwargs = {key: values[0] for key, values in params.items()}
+        if "n_trials" not in kwargs and "timeout" not in kwargs:
+            kwargs["n_trials"] = 3
+        study.optimize(suggest_name, **kwargs)
+    else:
+        params = parser.parse_args(args)
+        kwargs = {}
+        for key in list(params.keys()):
+            if not isinstance(params[key], Range) and len(params[key]) == 1:
+                kwargs[key] = params.pop(key)[0]
+        if "n_trials" not in kwargs and "timeout" not in kwargs:
+            kwargs["n_trials"] = 3
+        study.optimize_from_params(params, **kwargs)
 
 
 @cli.command(help="Start tracking UI.")
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
-def ui(quiet):
+@click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
+def ui(quiet, verbose):
     logger.info("Tracking UI.")
     client = ivory.create_client()
     client.ui()

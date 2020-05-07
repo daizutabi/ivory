@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import mlflow
+from logzero import logger
 from mlflow.tracking.client import MlflowClient
 from mlflow.tracking.context import registry as context_registry
 from mlflow.tracking.context.git_context import _get_git_commit
@@ -43,6 +44,7 @@ class Tracker:
     def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
+            logger.info(f'A new experiment created with name: {name}')
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
@@ -165,6 +167,13 @@ class Tracker:
     def load_instance(self, run_id: str, instance_name: str, mode: str) -> Any:
         name = self.get_run_name_without_number(run_id)
         return load(self, run_id, name, instance_name, mode=mode)
+
+    def load_state_dict(self, run: Run, mode: str):
+        mode = get_valid_mode(self.client, run.id, mode)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_dict_path = self.client.download_artifacts(run.id, mode, tmpdir)
+            state_dict = run.load(state_dict_path)
+            run.load_state_dict(state_dict)
 
     def update_params(self, experiment_id: str, **default):
         runs = []

@@ -13,6 +13,8 @@ def test_cpu():
     y = cpu([x, x])
     assert y[0].device.type == "cpu"
     assert y[1].device.type == "cpu"
+    y = cpu({'a': x})
+    assert y['a'].device.type == "cpu"
 
 
 def test_cuda():
@@ -24,3 +26,5 @@ def test_cuda():
     y = cuda([x, x])
     assert y[0].device.type == "cuda"
     assert y[1].device.type == "cuda"
+    y = cuda({'a': x})
+    assert y['a'].device.type == "cuda"

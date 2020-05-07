@@ -103,7 +103,7 @@ class Trainer(State):
         epoch = str(self.epoch).zfill(width)
         if not run.metrics:
             return ""
-        msg = f"[{run.name}] epoch={epoch} {run.metrics}"
+        msg = f"[{epoch}] {run.metrics}"
         if not run.monitor:
             return msg
         if run.monitor.is_best:
