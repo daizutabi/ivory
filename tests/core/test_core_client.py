@@ -29,7 +29,7 @@ def test_search_run_ids(client):
     assert next(client.search_parent_run_ids("rfr")) == task.id
     assert len(list(client.search_nested_run_ids("rfr"))) == 2
 
-    assert client.get_run_id("rfr", "task", 1) == task.id
+    assert client.get_run_id("rfr", "task", 0) == task.id
     assert client.get_parent_run_id(a.id) == task.id
     assert next(client.search_run_ids("rfr", parent_run_id=task.id)) == b.id
 

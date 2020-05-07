@@ -5,6 +5,8 @@ import os
 import warnings
 from typing import Any, Dict
 
+from termcolor import colored
+
 import ivory.core.collections
 import ivory.core.state
 from ivory import utils
@@ -88,6 +90,9 @@ class Run(CallbackCaller):
 class Task(Run):
     def create_run(self, args, **kwargs):
         run = super().create_run(args, **kwargs)
+        run_name = colored(f"[{run.name}]", "green")
+        msg = utils.params.to_str(args)
+        tqdm.write(run_name + f" {msg}")
         if self.tracking:
             self.tracking.set_parent_run_id(run.id, self.id)
         return run
@@ -103,8 +108,6 @@ class Task(Run):
         try:
             for args in tqdm(params, desc="Run  "):
                 run = self.create_run(args)
-                msg = utils.params.to_str(args)
-                tqdm.write(f"[{run.name}] {msg}")
                 yield run
                 del run
                 gc.collect()

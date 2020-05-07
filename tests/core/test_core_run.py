@@ -2,7 +2,7 @@ import os
 
 
 def test_create_run(run):
-    assert run.name.startswith("Run#0")
+    assert run.name.startswith("run#")
 
 
 def test_start(run):

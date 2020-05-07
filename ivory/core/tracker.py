@@ -44,13 +44,13 @@ class Tracker:
     def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
-            logger.info(f'A new experiment created with name: {name}')
+            logger.info(f"A new experiment created with name: {name}")
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
     def get_run_number(self, experiment_id: str, name: str) -> int:
         name = create_run_name(name)
-        number = 0
+        number = -1
         for run in self.client.search_runs(experiment_id, run_view_type=3):
             run_name = get_run_name(run)
             if run_name.startswith(name):
@@ -267,11 +267,12 @@ def get_valid_mode(client: MlflowClient, run_id: str, mode: str) -> str:
 git_cache: Dict[str, str] = {}
 
 
-def create_run_name(name: str, number: int = 0) -> str:
-    name = name[0].upper() + name[1:]
-    if not number:
+def create_run_name(name: str, number: int = -1) -> str:
+    # name = name[0].upper() + name[1:]
+    if number == -1:
         return name
-    return f"{name}#{number:03d}"
+    # return f"{name}#{number:03d}"
+    return f"{name}#{number}"
 
 
 def split_run_name(run_name: str) -> Tuple[str, int]:

@@ -219,6 +219,8 @@ def product(params):
 def to_str(params):
     t = []
     for key, value in params.items():
+        if key == "verbose":
+            continue
         if isinstance(value, str):
             t.append(f"{key}={value!r}")
         else:

@@ -103,13 +103,16 @@ class Trainer(State):
         epoch = str(self.epoch).zfill(width)
         if not run.metrics:
             return ""
-        msg = f"[{epoch}] {run.metrics}"
+        msg = f"[{epoch}]"
         if not run.monitor:
-            return msg
-        if run.monitor.is_best:
+            pass
+        elif run.monitor.is_best:
             msg = colored(msg, "green")
         else:
             msg = colored(msg, "yellow")
+        msg += f" {run.metrics}"
+        if run.monitor and run.monitor.is_best:
+            msg += colored(" best", "green")
         if early_stopped:
             msg += colored(" early stopped", "magenta")
         if pruned:
