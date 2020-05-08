@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, Optional
 
 from ivory import utils
 from ivory.core import default, instance
@@ -34,17 +34,21 @@ class Client(Base):
         if self.tracker:
             experiment.set_tracker(self.tracker)
         if self.tuner:
-            experiment.set(tuner=self.tuner)
+            experiment.set_tuner(self.tuner)
         return experiment
 
     def create_run(self, name: str, args=None, **kwargs):
         return self.create_experiment(name).create_run(args, **kwargs)
 
-    def create_task(self, name: str):
-        return self.create_experiment(name).create_task()
+    def create_task(self, name: str, run_number: Optional[int] = None):
+        if run_number is None:
+            return self.create_experiment(name).create_task()
+        return self.load_run_by_name(name, "task", run_number)
 
-    def create_study(self, name: str):
-        return self.create_experiment(name).create_study()
+    def create_study(self, name: str, run_number: Optional[int] = None):
+        if run_number is None:
+            return self.create_experiment(name).create_study()
+        return self.load_run_by_name(name, "study", run_number)
 
     def create_evaluator(self) -> Evaluator:
         return Evaluator(self)
@@ -52,6 +56,7 @@ class Client(Base):
     def search_run_ids(
         self,
         name: str = "",
+        run_name: str = "",
         parent_run_id: str = "",
         parent_only: bool = False,
         nested_only: bool = False,
@@ -62,6 +67,7 @@ class Client(Base):
 
         Args:
             name: experiment name pattern for filtering.
+            run_name: run name pattern for filtering.
             parent_run_id: if specified, search from runs which have the parent id.
             parent_only: if True, search from parent runs.
             nested_only: if True, search from nested runs.
@@ -76,6 +82,7 @@ class Client(Base):
                 continue
             yield from self.tracker.search_run_ids(
                 experiment.experiment_id,
+                run_name,
                 parent_run_id,
                 parent_only,
                 nested_only,
@@ -89,9 +96,9 @@ class Client(Base):
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
         return self.search_run_ids(name, nested_only=True, **query)
 
-    def get_run_id(self, name: str, run_name: str, number: int) -> str:
+    def get_run_id(self, name: str, run_name: str, run_number: int) -> str:
         experiment_id = self.tracker.get_experiment_id(name)
-        return self.tracker.get_run_id(experiment_id, run_name, number)
+        return self.tracker.get_run_id(experiment_id, run_name, run_number)
 
     def set_parent_run_id(self, run_id: str, parent_run_id: str):
         self.tracker.set_parent_run_id(run_id, parent_run_id)
@@ -108,6 +115,13 @@ class Client(Base):
 
     def load_run(self, run_id: str, mode: str = "test") -> Run:
         return self.tracker.load_run(run_id, mode)
+
+    def load_run_by_name(self, name: str, run_name: str, run_number: int) -> Run:
+        if run_number == -1:
+            run_id = next(self.search_run_ids(name, run_name))
+        else:
+            run_id = self.get_run_id(name, run_name, run_number)
+        return self.load_run(run_id, "test")
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)

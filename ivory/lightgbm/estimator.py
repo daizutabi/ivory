@@ -1,7 +1,7 @@
-import lightgbm as lgb
 import optuna.integration.lightgbm as lgb_tuner
 
 import ivory.core.estimator
+import lightgbm as lgb
 from ivory.core.run import Run
 
 

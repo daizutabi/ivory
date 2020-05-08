@@ -123,6 +123,9 @@ class Experiment(Creator):
             self.params["experiment"]["id"] = self.id
         self.set(tracker=tracker)
 
+    def set_tuner(self, tuner):
+        self.set(tuner=tuner)
+
     def create_task(self):
         return self.create_run(name="task")
 

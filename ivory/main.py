@@ -32,15 +32,16 @@ def cli():
 @click.argument("name")
 @click.argument("args", nargs=-1)
 @click.option("-r", "--repeat", default=1, help="Number of repeatation.")
+@click.option("-n", "--number", default=None, help="Task number to load.")
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
-def run(name, args, repeat, quiet, verbose):
+def run(name, args, repeat, number, quiet, verbose):
     client = ivory.create_client()
     if not args and repeat == 1:
         run = client.create_run(name)
         run.start("both")
     else:
-        task = client.create_task(name)
+        task = client.create_task(name, number and int(number))
         params = parser.parse_args(args)
         for run in task.product(params, repeat=repeat):
             run.start("both")
@@ -49,11 +50,12 @@ def run(name, args, repeat, quiet, verbose):
 @cli.command(help="Optimize hyper parameters.")
 @click.argument("name")
 @click.argument("args", nargs=-1)
+@click.option("-n", "--number", default=None, help="Study number to load.")
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
-def optimize(name, args, quiet, verbose):
+def optimize(name, args, number, quiet, verbose):
     client = ivory.create_client()
-    study = client.create_study(name)
+    study = client.create_study(name, number and int(number))
     if "=" not in args[0]:
         suggest_name = args[0]
         params = parser.parse_args(args[1:])
@@ -69,7 +71,7 @@ def optimize(name, args, quiet, verbose):
                 kwargs[key] = params.pop(key)[0]
         if "n_trials" not in kwargs and "timeout" not in kwargs:
             kwargs["n_trials"] = 3
-        study.optimize_from_params(params, **kwargs)
+        study.optimize_params(params, **kwargs)
 
 
 @cli.command(help="Start tracking UI.")

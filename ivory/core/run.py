@@ -116,10 +116,8 @@ class Task(Run):
 
 
 class Study(Task):
-    def optimize(self, suggest_name: str, study_name: str = "", **kwargs):
-        if not study_name:
-            study_name = self.name
-        study_name = ".".join([self.experiment_name, suggest_name, study_name])
+    def optimize(self, suggest_name: str, **kwargs):
+        study_name = ".".join([self.experiment_name, suggest_name, self.name])
         mode = self.create_instance("monitor").mode
         study = self.tuner.create_study(study_name, mode)
         if self.tracking:
@@ -139,8 +137,8 @@ class Study(Task):
             self.terminate()
         return study
 
-    def optimize_from_params(
-        self, params: Dict[str, Any], study_name: str = "", **kwargs
-    ):
+    def optimize_params(self, params: Dict[str, Any], **kwargs):
+        if self.tracking:
+            self.tracking.set_tags(self.id, params)
         suggest_name = self.objective.create_suggest(params)
-        self.optimize(suggest_name, study_name, **kwargs)
+        self.optimize(suggest_name, **kwargs)

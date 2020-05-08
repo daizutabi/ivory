@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -122,6 +123,7 @@ class Tracker:
     def search_run_ids(
         self,
         experiment_id: str,
+        run_name: str = "",
         parent_run_id: str = "",
         parent_only: bool = False,
         nested_only: bool = False,
@@ -135,6 +137,8 @@ class Tracker:
         else:
             run_ids = self.list_run_ids(experiment_id, parent_run_id, exclude_parent)
         for run_id in run_ids:
+            if run_name and not re.match(run_name, self.get_run_name(run_id)):
+                continue
             if query:
                 params = self.load_params(run_id)
                 if utils.params.match(params, **query):
@@ -161,6 +165,7 @@ class Tracker:
     def load_run(self, run_id: str, mode: str) -> Run:
         name = self.get_run_name_without_number(run_id)
         run = load(self, run_id, name, mode=mode)
+        run.source_name = self.get_source_name(run_id)
         run.set_tracker(self, name)
         return run
 

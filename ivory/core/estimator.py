@@ -54,7 +54,9 @@ class Estimator(State):
             run.on_epoch_end()
         finally:
             if run.metrics:
-                tqdm.write(f"[{run.name}] {run.metrics}")
+                metrics = str(run.metrics)
+                if metrics:
+                    tqdm.write(f"[{run.name}] {metrics}")
             run.on_fit_end()
 
     def test(self, run: Run):
