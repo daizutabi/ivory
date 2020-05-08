@@ -4,7 +4,7 @@ from ivory.core.client import create_client
 
 
 def test_client_repr(client):
-    assert repr(client) == "Client(num_objects=1)"
+    assert repr(client) == "Client(num_objects=2)"
 
 
 def test_search_run_ids(client):
@@ -39,10 +39,19 @@ def test_search_run_ids(client):
     assert len(list(client.search_run_ids("rfr", parent_run_id=task.id))) == 3
 
 
+def test_create_task(client):
+    task = client.create_task("rfr")
+    name = task.name
+    number = int(task.name.split("#")[1])
+    task = client.create_task("rfr", number)
+    assert task.name == name
+
+
 def test_create_study(client):
     study = client.create_study("rfr")
     study.create_run({"fold": 1})
     assert len(list(client.search_run_ids("rfr", parent_only=True))) == 2
+    assert client.create_study("rfr", -1).name == study.name
 
 
 def test_create_evaluator(client):
