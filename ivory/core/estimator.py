@@ -1,4 +1,5 @@
 import inspect
+from typing import Callable
 
 from ivory.core.run import Run
 from ivory.core.state import State
@@ -6,7 +7,7 @@ from ivory.utils.tqdm import tqdm
 
 
 class Estimator(State):
-    def __init__(self, estimator_factory, **kwargs):
+    def __init__(self, estimator_factory: Callable, **kwargs):
         self.estimator_factory = estimator_factory
         self.params = {}
         self.kwargs = {}

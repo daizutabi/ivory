@@ -80,7 +80,7 @@ class Tracking:
         self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)
 
 
-def to_str(value):
+def to_str(value: Any) -> str:
     if isinstance(value, (list, tuple)):
         return "[" + ", ".join(to_str(x) for x in value) + "]"
     elif isinstance(value, float):

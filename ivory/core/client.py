@@ -158,8 +158,10 @@ class Client(Base):
         return num_runs
 
 
-def create_client(path="client", directory=".", tracker=True) -> Client:
-    source_name = utils.path.normpath(path, directory)
+def create_client(
+    name: str = "client", directory: str = ".", tracker: bool = True
+) -> Client:
+    source_name = utils.path.normpath(name, directory)
     if os.path.exists(source_name):
         params, _ = utils.path.load_params(source_name)
     else:

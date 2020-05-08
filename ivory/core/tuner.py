@@ -5,6 +5,8 @@ import optuna
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler
 
+from ivory.core.run import Study
+
 DEFAULT_STORAGE = "sqlite://"
 
 
@@ -15,7 +17,7 @@ class Tuner:
     pruner: Optional[BasePruner] = None
     load_if_exists: bool = True
 
-    def create_study(self, study_name: str, mode: str):
+    def create_study(self, study_name: str, mode: str) -> Study:
         """Creates and returns an Optuna `Study` object."""
         if mode == "min":
             direction = "minimize"

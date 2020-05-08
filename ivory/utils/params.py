@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterator, Optional
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -208,7 +208,7 @@ def match(params, **query):
     return True
 
 
-def product(params):
+def product(params: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     for values in itertools.product(*params.values()):
         args = {}
         for name, value in zip(params.keys(), values):

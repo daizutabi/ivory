@@ -15,7 +15,7 @@ from ivory.utils.tqdm import tqdm
 
 
 class Run(CallbackCaller):
-    def set_tracker(self, tracker, name):
+    def set_tracker(self, tracker, name: str):
         if not self.id:
             self.name, self.id = tracker.create_run(
                 self.experiment_id, name, self.source_name
@@ -101,12 +101,12 @@ class Task(Run):
         if self.tracking:
             self.tracking.set_terminated(self.id)
 
-    def product(self, params, repeat: int = 1):
+    def product(self, params: Dict[str, Any], repeat: int = 1):
         if self.tracking:
             self.tracking.set_tags(self.id, params)
-        params = list(utils.params.product(params)) * repeat
+        params_list = list(utils.params.product(params)) * repeat
         try:
-            for args in tqdm(params, desc="Run  "):
+            for args in tqdm(params_list, desc="Run  "):
                 run = self.create_run(args)
                 yield run
                 del run
