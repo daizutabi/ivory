@@ -74,6 +74,14 @@ def optimize(name, args, number, quiet, verbose):
         study.optimize_params(params, **kwargs)
 
 
+@cli.command(help="Remove deleted runs.")
+@click.argument("name")
+def clean(name):
+    client = ivory.create_client()
+    num_runs = client.remove_deleted_runs(name)
+    print("Removed runs:", num_runs)
+
+
 @cli.command(help="Start tracking UI.")
 @click.option("-q", "--quiet", is_flag=True, help="Queit mode.", callback=loglevel)
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)

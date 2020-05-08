@@ -65,7 +65,7 @@ class Tracking:
                 self.client.log_artifacts(run.id, tmpdir)
                 if mode != "current":
                     return
-                if run.monitor and run.monitor.is_best:
+                if run.monitor and run.monitor.is_best and run.monitor.best_epoch > -1:
                     os.rename(directory, directory.replace("current", "best"))
                     self.client.log_artifacts(run.id, tmpdir)
 

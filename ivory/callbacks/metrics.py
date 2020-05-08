@@ -32,7 +32,7 @@ class Metrics(ivory.core.collections.Dict, State):
         if run.trainer:
             self.epoch = run.trainer.epoch
         else:
-            self.epoch = 0
+            self.epoch = -1
 
     def on_train_start(self, run: Run):
         self.losses: List[float] = []
