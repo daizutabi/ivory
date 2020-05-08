@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable
+from typing import Callable, Optional
 
 from ivory.core.run import Run
 from ivory.core.state import State
@@ -7,16 +7,19 @@ from ivory.utils.tqdm import tqdm
 
 
 class Estimator(State):
-    def __init__(self, estimator_factory: Callable, **kwargs):
+    def __init__(self, estimator_factory: Optional[Callable] = None, **kwargs):
         self.estimator_factory = estimator_factory
         self.params = {}
         self.kwargs = {}
-        keys = inspect.signature(self.estimator_factory).parameters.keys()
-        for key, value in kwargs.items():
-            if key in keys:
-                self.kwargs[key] = value
-            else:
-                self.params[key] = value
+        if self.estimator_factory:
+            keys = inspect.signature(self.estimator_factory).parameters.keys()
+            for key, value in kwargs.items():
+                if key in keys:
+                    self.kwargs[key] = value
+                else:
+                    self.params[key] = value
+        else:
+            self.kwargs.update(kwargs)
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -69,6 +72,23 @@ class Estimator(State):
         index, input, *target = run.datasets[mode].get()
         if mode == "train":
             self.fit(input, *target)
+        output = self.predict(input)
+        if run.results:
+            run.results.step(index, output, *target)
+        if mode != "test" and run.metrics:
+            run.metrics.step(input, output, *target)
+
+
+class Trainable(Estimator):
+    def fit(self, input, target, val):
+        raise NotImplementedError
+
+    def step(self, run: Run, mode: str):
+        if mode == "train":
+            _, train_input, train_target = run.datasets.train.get()
+            _, val_input, val_target = run.datasets.val.get()
+            self.fit(train_input, train_target, [val_input, val_target])
+        index, input, *target = run.datasets[mode].get()
         output = self.predict(input)
         if run.results:
             run.results.step(index, output, *target)

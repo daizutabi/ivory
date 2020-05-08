@@ -12,7 +12,7 @@ install:
   - pip install pycodestyle pyflakes mypy
   - pip install pytest pytest-cov coveralls
   - pip install iterative-stratification
-  - pip install torch torchvision lightgbm
+  - pip install torch torchvision lightgbm tensorflow
   - pip install -e .
 
 before_script:

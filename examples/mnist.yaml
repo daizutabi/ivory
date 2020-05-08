@@ -1,0 +1,12 @@
+library: tensorflow
+datasets:
+  data:
+    class: mnist.Data
+  dataset:
+  fold: 0
+model:
+  call: mnist.create_model
+results:
+trainer:
+  model: $
+  epochs: 5

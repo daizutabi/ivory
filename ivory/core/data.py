@@ -20,6 +20,15 @@ class Data:
         self.target = None
         self.init()
 
+    def __repr__(self):
+        cls_name = self.__class__.__name__
+        if self.fold is None:
+            return f"{cls_name}()"
+        else:
+            num_train = self.fold[self.fold != -1].shape[0]
+            num_test = len(self.fold) - num_train
+            return f"{cls_name}(train_size={num_train}, test_size={num_test})"
+
     def init(self):
         """Initializes `fold`, `index`, `input`, `target`."""
 

@@ -42,6 +42,11 @@ DEFAULT_CLASS["torch"] = {
     "trainer": "ivory.torch.trainer.Trainer",
 }
 
+DEFAULT_CLASS["tensorflow"] = {
+    "run": "ivory.tensorflow.run.Run",
+    "trainer": "ivory.tensorflow.trainer.Trainer",
+}
+
 
 def update_class(params: Dict[str, Any], library: str = "core"):
     for key, value in params.items():
