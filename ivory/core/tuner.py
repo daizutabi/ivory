@@ -1,14 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import optuna
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler
 
+DEFAULT_STORAGE = "sqlite://"
+
 
 @dataclass
 class Tuner:
-    storage: str = "sqlite://"
+    storage: str = field(default_factory=lambda: DEFAULT_STORAGE)
     sampler: Optional[BaseSampler] = None
     pruner: Optional[BasePruner] = None
     load_if_exists: bool = True

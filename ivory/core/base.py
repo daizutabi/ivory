@@ -123,15 +123,8 @@ class Experiment(Creator):
             self.params["experiment"]["id"] = self.id
         self.set(tracker=tracker)
 
-    def set_tuner(self, tuner):
-        self.set(tuner=tuner)
-
     def create_task(self):
         return self.create_run(name="task")
 
     def create_study(self):
-        study = self.create_run(name="study")
-        if "study" not in self.params or "tuner" not in self.params["study"]:
-            if self.tuner:
-                study.set(tuner=self.tuner)
-        return study
+        return self.create_run(name="study")

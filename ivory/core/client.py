@@ -33,8 +33,6 @@ class Client(Base):
         experiment = instance.create_base_instance(params, "experiment", source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)
-        if self.tuner:
-            experiment.set_tuner(self.tuner)
         return experiment
 
     def create_run(self, name: str, args=None, **kwargs):
@@ -47,8 +45,12 @@ class Client(Base):
 
     def create_study(self, name: str, run_number: Optional[int] = None):
         if run_number is None:
-            return self.create_experiment(name).create_study()
-        return self.load_run_by_name(name, "study", run_number)
+            study = self.create_experiment(name).create_study()
+        else:
+            study = self.load_run_by_name(name, "study", run_number)
+        if self.tuner and "storage" not in study.params["study"]["tuner"]:
+            study.set(tuner=self.tuner)
+        return study
 
     def create_evaluator(self) -> Evaluator:
         return Evaluator(self)
