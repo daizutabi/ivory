@@ -9,10 +9,11 @@ matrix:
       python: 3.8
 
 install:
+  - pip install -U setuptools
   - pip install pycodestyle pyflakes mypy
   - pip install pytest pytest-cov coveralls
-  - pip install iterative-stratification
   - pip install tensorflow torch torchvision lightgbm
+  - pip install iterative-stratification
   - pip install -e .
 
 before_script:
