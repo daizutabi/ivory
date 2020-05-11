@@ -28,7 +28,7 @@ class Trainer(State):
             self.test(run)
 
     def train(self, run: Run):
-        run.on_fit_start()
+        run.on_fit_begin()
         try:
             self.loop(run)
         finally:
@@ -46,7 +46,7 @@ class Trainer(State):
         for self.epoch in epochs:
             if early_stopped or pruned:  # for tqdm
                 continue
-            run.on_epoch_start()
+            run.on_epoch_begin()
             self.train_loop(run)
             self.val_loop(run)
             try:
@@ -71,20 +71,20 @@ class Trainer(State):
         return dataloader
 
     def train_loop(self, run: Run):
-        run.on_train_start()
+        run.on_train_begin()
         for index, input, target in self.get_dataloader(run, "train"):
             self.global_step += 1
             self.train_step(run, index, input, target)
         run.on_train_end()
 
     def val_loop(self, run: Run):
-        run.on_val_start()
+        run.on_val_begin()
         for index, input, target in self.get_dataloader(run, "val"):
             self.val_step(run, index, input, target)
         run.on_val_end()
 
     def test_loop(self, run: Run):
-        run.on_test_start()
+        run.on_test_begin()
         for index, input, *target in self.get_dataloader(run, "test"):
             self.test_step(run, index, input, *target)
         run.on_test_end()

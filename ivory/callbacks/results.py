@@ -16,10 +16,10 @@ class Results(Dict, State):
         self.outputs = []
         self.targets = []
 
-    def on_train_start(self, run: Run):
+    def on_train_begin(self, run: Run):
         self.reset()
 
-    def on_test_start(self, run: Run):
+    def on_test_begin(self, run: Run):
         self.reset()
 
     def step(self, index, output, target=None):

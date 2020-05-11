@@ -17,7 +17,7 @@ def test_base():
 
 
 class Callback:
-    def on_fit_start(self, caller):
+    def on_fit_begin(self, caller):
         caller["called"] = True
 
 
@@ -25,14 +25,14 @@ def test_callback_caller():
     callback = Callback()
     caller = CallbackCaller({}, callback=callback)
     caller.create_callbacks()
-    assert caller.on_fit_start
+    assert caller.on_fit_begin
     assert caller.on_fit_end
     caller.on_fit_end()
     assert not caller.called
-    caller.on_fit_start()
+    caller.on_fit_begin()
     assert caller.called
 
 
 def test_repr(run):
     run.create_callbacks()
-    assert repr(run.on_fit_start) == "Callback(['trainer'])"
+    assert repr(run.on_fit_begin) == "Callback(['trainer'])"

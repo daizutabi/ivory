@@ -19,7 +19,7 @@ class Trainer(ivory.core.trainer.Trainer):
     amp_level: str = "O1"
     scheduler_step_mode: str = "epoch"
 
-    def on_fit_start(self, run):
+    def on_fit_begin(self, run):
         if self.gpu:
             run.model.cuda()
             if self.precision == 16:
@@ -27,7 +27,7 @@ class Trainer(ivory.core.trainer.Trainer):
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
 
-    def on_train_start(self, run):
+    def on_train_begin(self, run):
         run.model.train()
 
     def train_step(self, run, index, input, target):
@@ -49,7 +49,7 @@ class Trainer(ivory.core.trainer.Trainer):
         if run.sheduler and self.scheduler_step_mode == "batch":
             run.scheduler.step()
 
-    def on_val_start(self, run):
+    def on_val_begin(self, run):
         run.model.eval()
 
     @torch.no_grad()
@@ -69,8 +69,8 @@ class Trainer(ivory.core.trainer.Trainer):
             else:
                 run.scheduler.step()
 
-    def on_test_start(self, run):
-        self.on_fit_start(run)
+    def on_test_begin(self, run):
+        self.on_fit_begin(run)
         run.model.eval()
 
     @torch.no_grad()

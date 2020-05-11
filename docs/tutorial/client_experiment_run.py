@@ -55,6 +55,6 @@ run.start()
 for key, value in run.items():
     print(f"{key}={repr(value)}")
 
-# `on_XXX_start` and `on_XXX_end` methods were dynamically added. They are callback
+# `on_XXX_begin` and `on_XXX_end` methods were dynamically added. They are callback
 # functions invoked by the started run instance. The `repr` of them shows that which
 # objects will be called in order.

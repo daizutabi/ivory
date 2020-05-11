@@ -8,8 +8,8 @@ def step(func, target, x):
 
 
 def test_metrics(metrics, dataloaders, data, dataset, run):
-    metrics.on_epoch_start(run)
-    metrics.on_train_start(run)
+    metrics.on_epoch_begin(run)
+    metrics.on_train_begin(run)
     train_loader = dataloaders.train
     it = iter(train_loader)
     index, input, target = next(it)
@@ -20,7 +20,7 @@ def test_metrics(metrics, dataloaders, data, dataset, run):
     assert len(metrics.losses) == 4
     metrics.on_train_end(run)
     assert metrics.loss > 0
-    metrics.on_val_start(run)
+    metrics.on_val_begin(run)
     train_loader = dataloaders.train
     it = iter(train_loader)
     index, input, target = next(it)

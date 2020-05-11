@@ -28,7 +28,7 @@ class Run(CallbackCaller):
     def init(self, mode: str = "train"):
         self.create_callbacks()
         self.mode = mode
-        self.on_init_start()
+        self.on_init_begin()
         self.on_init_end()
 
     def start(self, mode: str = "train"):

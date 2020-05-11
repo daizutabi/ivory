@@ -46,12 +46,12 @@ class Estimator(State):
             self.test(run)
 
     def train(self, run: Run):
-        run.on_fit_start()
-        run.on_epoch_start()
-        run.on_train_start()
+        run.on_fit_begin()
+        run.on_epoch_begin()
+        run.on_train_begin()
         self.step(run, "train")
         run.on_train_end()
-        run.on_val_start()
+        run.on_val_begin()
         self.step(run, "val")
         run.on_val_end()
         try:
@@ -64,7 +64,7 @@ class Estimator(State):
             run.on_fit_end()
 
     def test(self, run: Run):
-        run.on_test_start()
+        run.on_test_begin()
         self.step(run, "test")
         run.on_test_end()
 

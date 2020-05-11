@@ -28,16 +28,16 @@ class Metrics(ivory.core.collections.Dict, State):
         args = str(self).replace(" ", ", ")
         return f"{class_name}({args})"
 
-    def on_epoch_start(self, run: Run):
+    def on_epoch_begin(self, run: Run):
         if run.trainer and hasattr(run.trainer, "epoch"):
             self.epoch = run.trainer.epoch
         else:
             self.epoch = -1
 
-    def on_train_start(self, run: Run):
+    def on_train_begin(self, run: Run):
         self.losses: List[float] = []
 
-    def on_val_start(self, run: Run):
+    def on_val_begin(self, run: Run):
         self.losses = []
 
     def step(self, input, output, target):

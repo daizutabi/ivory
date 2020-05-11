@@ -71,17 +71,17 @@ class Callback:
     """Callback class for the Ivory callback system."""
 
     METHODS = [
-        "on_init_start",
+        "on_init_begin",
         "on_init_end",
-        "on_fit_start",
-        "on_epoch_start",
-        "on_train_start",
+        "on_fit_begin",
+        "on_epoch_begin",
+        "on_train_begin",
         "on_train_end",
-        "on_val_start",
+        "on_val_begin",
         "on_val_end",
         "on_epoch_end",
         "on_fit_end",
-        "on_test_start",
+        "on_test_begin",
         "on_test_end",
     ]
 
