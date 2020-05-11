@@ -22,5 +22,5 @@ monitor:
 early_stopping:
   patience: $.scheduler.patience
 trainer:
-  max_epochs: 10
+  epochs: 10
   verbose: 2

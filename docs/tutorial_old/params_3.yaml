@@ -23,7 +23,7 @@ metrics:
   criterion: torch.nn.functional.mse_loss
 trainer:
   class: ivory.torch.Trainer
-  max_epochs: 10
+  epochs: 10
   verbose: 2
 experiment:
   class: ivory.Experiment

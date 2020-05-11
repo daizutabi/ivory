@@ -31,7 +31,7 @@ def test_def():
 
 def test_create_instance(params):
     trainer = create_instance(params, "run.trainer")
-    assert trainer.max_epochs == 10
+    assert trainer.epochs == 10
 
 
 def test_instantiate_global():

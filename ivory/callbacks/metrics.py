@@ -29,7 +29,7 @@ class Metrics(ivory.core.collections.Dict, State):
         return f"{class_name}({args})"
 
     def on_epoch_start(self, run: Run):
-        if run.trainer:
+        if run.trainer and hasattr(run.trainer, "epoch"):
             self.epoch = run.trainer.epoch
         else:
             self.epoch = -1

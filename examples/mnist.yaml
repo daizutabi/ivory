@@ -9,4 +9,7 @@ model:
 results:
 trainer:
   model: $
+  optimizer: adam
+  loss: sparse_categorical_crossentropy
+  metrics: [accuracy]
   epochs: 5

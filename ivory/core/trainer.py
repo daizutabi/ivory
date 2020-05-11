@@ -12,7 +12,7 @@ from ivory.utils.tqdm import tqdm
 @dataclass
 class Trainer(State):
     epoch: int = -1
-    max_epochs: int = 1000
+    epochs: int = 1000
     global_step: int = -1
     verbose: int = 1
 
@@ -38,7 +38,7 @@ class Trainer(State):
         self.test_loop(run)
 
     def loop(self, run: Run):
-        max_epoch = self.epoch + self.max_epochs
+        max_epoch = self.epoch + self.epochs
         epochs = range(self.epoch + 1, max_epoch + 1)
         if self.verbose == 1:
             epochs = tqdm(epochs, desc="Epoch", leave=False)

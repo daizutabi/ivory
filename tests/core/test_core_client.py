@@ -68,7 +68,7 @@ def test_load(client):
     run.start()
     run_id = next(client.search_run_ids("example"))
     params = client.load_params(run_id)
-    assert params["run"]["trainer"]["max_epochs"] == 10
+    assert params["run"]["trainer"]["epochs"] == 10
 
     run = client.load_run(run_id)
     assert run.id == run_id

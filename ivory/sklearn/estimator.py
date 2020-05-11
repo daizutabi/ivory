@@ -7,10 +7,12 @@ import ivory.core.estimator
 class Estimator(ivory.core.estimator.Estimator):
     def __init__(self, estimator_factory, return_probability=True, **kwargs):
         super().__init__(estimator_factory, **kwargs)
-        self.return_probability = return_probability
         if self.params:
             raise ValueError(f"Unknown parameters: {list(self.params.keys())}")
         self.estimator = estimator_factory(**self.kwargs)
+        if not hasattr(self.estimator, "predict_proba"):
+            return_probability = False
+        self.return_probability = return_probability
 
     def predict(self, input):
         if self.return_probability:
