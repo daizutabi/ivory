@@ -13,9 +13,6 @@ plugins:
   - search
   - pheasant:
       version: ivory
-      jupyter: true
-      header:
-        disabled: true
 
 nav:
   - Home: index.md
