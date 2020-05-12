@@ -80,7 +80,9 @@ class Run(CallbackCaller):
             elif isinstance(self[name], ivory.core.state.State):
                 state_dict[name] = ivory.core.state.load(path)
             else:
-                state_dict[name] = self.load_instance(path)
+                instance_state_dict = self.load_instance(path)
+                if instance_state_dict:
+                    state_dict[name] = instance_state_dict
         return state_dict
 
     def load_instance(self, path):

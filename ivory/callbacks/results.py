@@ -1,5 +1,4 @@
 """A container to store training, validation and test results. """
-import numpy as np
 import pandas as pd
 
 from ivory.core.collections import Dict
@@ -12,9 +11,6 @@ class Results(Dict, State):
         self.index = None
         self.output = None
         self.target = None
-        self.indexes = []
-        self.outputs = []
-        self.targets = []
 
     def on_train_begin(self, run: Run):
         self.reset()
@@ -40,16 +36,7 @@ class Results(Dict, State):
         self.reset()
 
     def result_dict(self):
-        self.stack()
         return dict(index=self.index, output=self.output, target=self.target)
-
-    def stack(self):
-        if self.index is not None or not self.indexes:
-            return
-        self.index = np.vstack(self.indexes)
-        self.output = np.vstack(self.outputs)
-        if self.targets:
-            self.target = np.vstack(self.targets)
 
     def to_dataframe(self):
         def to_dataframe(result):

@@ -1,8 +1,6 @@
 """Metrics to record scores while training."""
 from dataclasses import dataclass
-from typing import Any, Dict, List
-
-import numpy as np
+from typing import Any, Dict
 
 import ivory.core.collections
 from ivory.core.run import Run
@@ -29,27 +27,10 @@ class Metrics(ivory.core.collections.Dict, State):
         return f"{class_name}({args})"
 
     def on_epoch_begin(self, run: Run):
-        if run.trainer and hasattr(run.trainer, "epoch"):
+        if run.trainer:
             self.epoch = run.trainer.epoch
         else:
-            self.epoch = -1
-
-    def on_train_begin(self, run: Run):
-        self.losses: List[float] = []
-
-    def on_val_begin(self, run: Run):
-        self.losses = []
-
-    def step(self, input, output, target):
-        pass
-
-    def on_train_end(self, run: Run):
-        if self.losses:
-            self["loss"] = np.mean(self.losses)
-
-    def on_val_end(self, run: Run):
-        if self.losses:
-            self["val_loss"] = np.mean(self.losses)
+            self.epoch = 0
 
     def on_epoch_end(self, run: Run):
         self.update(self.metrics_dict(run))

@@ -12,7 +12,7 @@ from ivory.utils.tqdm import tqdm
 @dataclass
 class Trainer(State):
     epoch: int = -1
-    epochs: int = 1000
+    epochs: int = 1
     global_step: int = -1
     verbose: int = 1
 
@@ -56,10 +56,7 @@ class Trainer(State):
             except optuna.exceptions.TrialPruned as e:
                 pruned = e
             finally:
-                if self.verbose:
-                    msg = self.message(run, max_epoch, early_stopped, pruned)
-                    if msg:
-                        tqdm.write(msg)
+                self.log(run, early_stopped, pruned)
         if pruned:
             raise pruned
 
@@ -98,23 +95,27 @@ class Trainer(State):
     def test_step(self, run: Run, index, input, *target):
         """Performs a single test step."""
 
-    def message(self, run: Run, max_epoch: int, early_stopped, pruned) -> str:
-        width = len(str(max_epoch))
-        epoch = str(self.epoch).zfill(width)
-        if not run.metrics:
-            return ""
-        msg = f"[{epoch}]"
-        if not run.monitor:
-            pass
-        elif run.monitor.is_best:
-            msg = colored(msg, "green")
-        else:
-            msg = colored(msg, "yellow")
-        msg += f" {run.metrics}"
-        if run.monitor and run.monitor.is_best:
-            msg += colored(" best", "green")
-        if early_stopped:
-            msg += colored(" early stopped", "magenta")
-        if pruned:
-            msg += colored(" pruned", "red")
-        return msg
+    def log(self, run: Run, early_stopped=False, pruned=False):
+        msg = message(run, early_stopped, pruned)
+        if msg:
+            tqdm.write(msg)
+
+
+def message(run: Run, early_stopped=False, pruned=False) -> str:
+    if not run.metrics:
+        return ""
+    msg = f"[epoch#{run.trainer.epoch}]"
+    if not run.monitor:
+        pass
+    elif run.monitor.is_best:
+        msg = colored(msg, "green")
+    else:
+        msg = colored(msg, "yellow")
+    msg += f" {run.metrics}"
+    if run.monitor and run.monitor.is_best:
+        msg += colored(" best", "green")
+    if early_stopped:
+        msg += colored(" early stopped", "magenta")
+    if pruned:
+        msg += colored(" pruned", "red")
+    return msg

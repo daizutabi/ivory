@@ -7,9 +7,22 @@ datasets:
 model:
   call: mnist.create_model
 results:
+metrics:
+  class: mnist.Metrics
+monitor:
+scheduler:
+  class: tensorflow.keras.callbacks.LearningRateScheduler
+  schedule:
+    def: mnist.lr_schedule
 trainer:
   model: $
   optimizer: adam
   loss: sparse_categorical_crossentropy
   metrics: [accuracy]
+  callbacks:
+    - class: mnist.CallbackMetric
+      datasets: $
+      metrics: $
+    - $.scheduler
   epochs: 5
+  verbose: 1

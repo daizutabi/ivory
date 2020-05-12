@@ -54,43 +54,25 @@ class Estimator(State):
         run.on_val_begin()
         self.step(run, "val")
         run.on_val_end()
-        try:
-            run.on_epoch_end()
-        finally:
-            if run.metrics:
-                metrics = str(run.metrics)
-                if metrics:
-                    tqdm.write(f"[{run.name}] {metrics}")
-            run.on_fit_end()
+        run.on_epoch_end()
+        self.log(run)
+        run.on_fit_end()
 
     def test(self, run: Run):
         run.on_test_begin()
         self.step(run, "test")
         run.on_test_end()
 
-    def step(self, run: Run, mode: str):
+    def step(self, run: Run, mode: str, training: bool = True):
         index, input, *target = run.datasets[mode].get()
-        if mode == "train":
+        if mode == "train" and training:
             self.fit(input, *target)
         output = self.predict(input)
         if run.results:
             run.results.step(index, output, *target)
-        if mode != "test" and run.metrics:
-            run.metrics.step(input, output, *target)
 
-
-class Trainable(Estimator):
-    def fit(self, input, target, val):
-        raise NotImplementedError
-
-    def step(self, run: Run, mode: str):
-        if mode == "train":
-            _, train_input, train_target = run.datasets.train.get()
-            _, val_input, val_target = run.datasets.val.get()
-            self.fit(train_input, train_target, [val_input, val_target])
-        index, input, *target = run.datasets[mode].get()
-        output = self.predict(input)
-        if run.results:
-            run.results.step(index, output, *target)
-        if mode != "test" and run.metrics:
-            run.metrics.step(input, output, *target)
+    def log(self, run: Run):
+        if run.metrics:
+            metrics = str(run.metrics)
+            if metrics:
+                tqdm.write(f"[{run.name}] {metrics}")

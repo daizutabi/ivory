@@ -1,5 +1,6 @@
 """The base module contains base classes for the Ivory system."""
 import copy
+import inspect
 from typing import Callable, Dict
 
 import ivory.core.collections
@@ -85,6 +86,8 @@ class Callback:
         "on_test_end",
     ]
 
+    ARGUMENTS = ["run"]
+
     def __init__(self, caller: "CallbackCaller", methods: Dict[str, Callable]):
         self.caller = caller
         self.methods = methods
@@ -111,7 +114,9 @@ class CallbackCaller(Creator):
                 if hasattr(self[key], method):
                     callback = getattr(self[key], method)
                     if callable(callback):
-                        methods[key] = callback
+                        parameters = inspect.signature(callback).parameters
+                        if list(parameters.keys()) == Callback.ARGUMENTS:
+                            methods[key] = callback
 
             self[method] = Callback(self, methods)
 

@@ -17,8 +17,8 @@ def test_base():
 
 
 class Callback:
-    def on_fit_begin(self, caller):
-        caller["called"] = True
+    def on_fit_begin(self, run):
+        run["called"] = True
 
 
 def test_callback_caller():

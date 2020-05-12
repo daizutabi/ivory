@@ -2,9 +2,10 @@ import lightgbm as lgb
 import optuna.integration.lightgbm as lgb_tuner
 
 import ivory.core.estimator
+from ivory.core.run import Run
 
 
-class Estimator(ivory.core.estimator.Trainable):
+class Estimator(ivory.core.estimator.Estimator):
     def __init__(self, **kwargs):
         super().__init__(lgb.train, **kwargs)
 
@@ -26,6 +27,13 @@ class Estimator(ivory.core.estimator.Trainable):
         self.estimator = self.estimator_factory(
             self.params, train_set, valid_sets=valid_sets, **self.kwargs
         )
+
+    def step(self, run: Run, mode: str):  # type:ignore
+        if mode == "train":
+            _, train_input, train_target = run.datasets.train.get()
+            _, val_input, val_target = run.datasets.val.get()
+            self.fit(train_input, train_target, [val_input, val_target])
+        super().step(run, mode, training=False)
 
 
 class Regressor(Estimator):
