@@ -1,13 +1,16 @@
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterable, Iterator, Optional
+
+import numpy as np
 
 from ivory import utils
 from ivory.core import default, instance
 from ivory.core.base import Base, Experiment
 from ivory.core.evaluator import Evaluator
 from ivory.core.run import Run
+from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
@@ -41,19 +44,20 @@ class Client(Base):
     def create_task(self, name: str, run_number: Optional[int] = None):
         if run_number is None:
             return self.create_experiment(name).create_task()
-        return self.load_run_by_name(name, "task", run_number)
+        else:
+            return self.load_run_by_name(name, task=run_number)
 
     def create_study(self, name: str, run_number: Optional[int] = None):
         if run_number is None:
             study = self.create_experiment(name).create_study()
         else:
-            study = self.load_run_by_name(name, "study", run_number)
+            study = self.load_run_by_name(name, study=run_number)
         if self.tuner and "storage" not in study.params["study"]["tuner"]:
             study.set(tuner=self.tuner)
         return study
 
-    def create_evaluator(self) -> Evaluator:
-        return Evaluator(self)
+    def create_evaluator(self, run_ids=None) -> Evaluator:
+        return Evaluator(self, run_ids)
 
     def search_run_ids(
         self,
@@ -98,9 +102,18 @@ class Client(Base):
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
         return self.search_run_ids(name, nested_only=True, **query)
 
-    def get_run_id(self, name: str, run_name: str, run_number: int) -> str:
-        experiment_id = self.tracker.get_experiment_id(name)
-        return self.tracker.get_run_id(experiment_id, run_name, run_number)
+    def get_run_id(self, name: str, **kwargs) -> str:
+        run_name = list(kwargs)[0]
+        run_number = kwargs[run_name]
+        if run_number == -1:
+            return next(self.search_run_ids(name, run_name))
+        else:
+            experiment_id = self.tracker.get_experiment_id(name)
+            return self.tracker.get_run_id(experiment_id, run_name, run_number)
+
+    def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        run_id = self.get_run_id(name, **kwargs)
+        return self.search_run_ids(name, parent_run_id=run_id)
 
     def set_parent_run_id(self, run_id: str, parent_run_id: str):
         self.tracker.set_parent_run_id(run_id, parent_run_id)
@@ -118,15 +131,29 @@ class Client(Base):
     def load_run(self, run_id: str, mode: str = "test") -> Run:
         return self.tracker.load_run(run_id, mode)
 
-    def load_run_by_name(self, name: str, run_name: str, run_number: int) -> Run:
-        if run_number == -1:
-            run_id = next(self.search_run_ids(name, run_name))
-        else:
-            run_id = self.get_run_id(name, run_name, run_number)
-        return self.load_run(run_id, "test")
+    def load_run_by_name(self, name: str, mode: str = "test", **kwargs) -> Run:
+        run_id = self.get_run_id(name, **kwargs)
+        return self.load_run(run_id, mode)
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)
+
+    def load_results(self, run_ids: Iterable[str], verbose: bool = True):
+        indexes = []
+        outputs = []
+        targets = []
+        if verbose:
+            run_ids = tqdm(list(run_ids), leave=False)
+        for run_id in run_ids:
+            results = self.load_instance(run_id, "results")
+            for mode in ["val", "test"]:
+                indexes.append(results[mode]["index"])
+                outputs.append(results[mode]["output"])
+                targets.append(results[mode]["target"])
+        index = np.vstack(indexes)
+        output = np.vstack(outputs)
+        target = np.vstack(targets)
+        return [index, output, target]
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
@@ -159,7 +186,7 @@ class Client(Base):
 
 
 def create_client(
-    name: str = "client", directory: str = ".", tracker: bool = True
+    directory: str = ".", name: str = "client", tracker: bool = True
 ) -> Client:
     source_name = utils.path.normpath(name, directory)
     if os.path.exists(source_name):
