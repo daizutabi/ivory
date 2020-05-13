@@ -111,6 +111,12 @@ class Client(Base):
             experiment_id = self.tracker.get_experiment_id(name)
             return self.tracker.get_run_id(experiment_id, run_name, run_number)
 
+    def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        run_name = list(kwargs)[0]
+        run_numbers = kwargs[run_name]
+        for run_number in run_numbers:
+            yield self.get_run_id(name, **{run_name: run_number})
+
     def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
         run_id = self.get_run_id(name, **kwargs)
         return self.search_run_ids(name, parent_run_id=run_id)
