@@ -74,6 +74,13 @@ def optimize(name, args, number, quiet, verbose):
         study.optimize_params(params, **kwargs)
 
 
+@cli.command(help="Update parameters.")
+@click.argument("name")
+def update(name):
+    client = ivory.create_client()
+    client.update_params(name)
+
+
 @cli.command(help="Remove deleted runs.")
 @click.argument("name")
 def clean(name):

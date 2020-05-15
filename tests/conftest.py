@@ -22,11 +22,6 @@ def experiment(client):
     return client.create_experiment("example")
 
 
-@pytest.fixture(scope="session")
-def evaluator(client):
-    return client.create_evaluator()
-
-
 @pytest.fixture(scope="function")
 def params(experiment):
     yield experiment.create_params()[0]

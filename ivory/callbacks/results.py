@@ -1,4 +1,8 @@
 """A container to store training, validation and test results. """
+from typing import Iterable
+
+import numpy as np
+
 from ivory.core.collections import Dict
 from ivory.core.run import Run
 from ivory.core.state import State
@@ -35,3 +39,24 @@ class Results(Dict, State):
 
     def result_dict(self):
         return dict(index=self.index, output=self.output, target=self.target)
+
+
+def concatenate(iterable: Iterable[Results], callback=None):
+    indexes = []
+    outputs = []
+    targets = []
+    for results in iterable:
+        for mode in ["val", "test"]:
+            if mode not in results:
+                continue
+            result = results[mode]
+            index, output, target = result["index"], result["output"], result["target"]
+            if callback:
+                index, output, target = callback(index, output, target)
+            indexes.append(index)
+            outputs.append(output)
+            targets.append(target)
+    index = np.concatenate(indexes)
+    output = np.concatenate(outputs)
+    target = np.concatenate(targets)
+    return index, output, target

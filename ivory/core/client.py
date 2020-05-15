@@ -3,8 +3,7 @@ import re
 import subprocess
 from typing import Any, Dict, Iterable, Iterator, Optional
 
-import numpy as np
-
+import ivory.callbacks.results
 from ivory import utils
 from ivory.core import default, instance
 from ivory.core.base import Base, Experiment
@@ -144,22 +143,12 @@ class Client(Base):
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)
 
-    def load_results(self, run_ids: Iterable[str], verbose: bool = True):
-        indexes = []
-        outputs = []
-        targets = []
+    def load_results(self, run_ids: Iterable[str], callback=None, verbose: bool = True):
+        run_ids = list(run_ids)
+        it = (self.load_instance(run_id, "results") for run_id in run_ids)
         if verbose:
-            run_ids = tqdm(list(run_ids), leave=False)
-        for run_id in run_ids:
-            results = self.load_instance(run_id, "results")
-            for mode in ["val", "test"]:
-                indexes.append(results[mode]["index"])
-                outputs.append(results[mode]["output"])
-                targets.append(results[mode]["target"])
-        index = np.vstack(indexes)
-        output = np.vstack(outputs)
-        target = np.vstack(targets)
-        return [index, output, target]
+            it = tqdm(it, total=len(run_ids), leave=False)
+        return ivory.callbacks.results.concatenate(it, callback=callback)
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
