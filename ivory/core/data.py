@@ -51,6 +51,10 @@ class Data:
             return index[self.fold == -1]
 
     def get_input(self, index: Index) -> Value:
+        """
+        Args:
+            index: Index
+        """
         return self.input[index]
 
     def get_target(self, index: Index) -> Value:

@@ -2,20 +2,6 @@ import pandas as pd
 import scipy.special
 
 
-def concat_results(iterable):
-    outputs = []
-    targets = []
-    for results in iterable:
-        output, target = results.to_dataframe()
-        outputs.append(output)
-        targets.append(target)
-    output = pd.concat(outputs)
-    target = pd.concat(targets)
-    output.sort_index(inplace=True)
-    target.sort_index(inplace=True)
-    return output, target
-
-
 def softmax(df):
     prob = scipy.special.softmax(df.to_numpy(), axis=1)
     return pd.DataFrame(prob, index=df.index)

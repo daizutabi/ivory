@@ -1,14 +1,14 @@
 """A container to store training, validation and test results. """
-from typing import Iterable
+from typing import Dict, Iterable
 
 import numpy as np
 
-from ivory.core.collections import Dict
+import ivory.core.collections
 from ivory.core.run import Run
 from ivory.core.state import State
 
 
-class Results(Dict, State):
+class Results(ivory.core.collections.Dict, State):
     def reset(self):
         self.index = None
         self.output = None
@@ -41,10 +41,10 @@ class Results(Dict, State):
         return dict(index=self.index, output=self.output, target=self.target)
 
 
-def concatenate(iterable: Iterable[Results], callback=None):
-    indexes = []
-    outputs = []
-    targets = []
+def concatenate(iterable: Iterable[Results], callback=None) -> Results:
+    indexes: Dict[str, list] = {"val": [], "test": []}
+    outputs: Dict[str, list] = {"val": [], "test": []}
+    targets: Dict[str, list] = {"val": [], "test": []}
     for results in iterable:
         for mode in ["val", "test"]:
             if mode not in results:
@@ -53,10 +53,13 @@ def concatenate(iterable: Iterable[Results], callback=None):
             index, output, target = result["index"], result["output"], result["target"]
             if callback:
                 index, output, target = callback(index, output, target)
-            indexes.append(index)
-            outputs.append(output)
-            targets.append(target)
-    index = np.concatenate(indexes)
-    output = np.concatenate(outputs)
-    target = np.concatenate(targets)
-    return index, output, target
+            indexes[mode].append(index)
+            outputs[mode].append(output)
+            targets[mode].append(target)
+    results = Results()
+    for mode in ["val", "test"]:
+        index = np.concatenate(indexes[mode])
+        output = np.concatenate(outputs[mode])
+        target = np.concatenate(targets[mode])
+        results[mode] = dict(index=index, output=output, target=target)
+    return results

@@ -5,9 +5,9 @@ from typing import Any, Dict, Iterable, Iterator, Optional
 
 import ivory.callbacks.results
 from ivory import utils
+from ivory.callbacks.results import Results
 from ivory.core import default, instance
 from ivory.core.base import Base, Experiment
-from ivory.core.evaluator import Evaluator
 from ivory.core.run import Run
 from ivory.utils.tqdm import tqdm
 
@@ -55,8 +55,34 @@ class Client(Base):
             study.set(tuner=self.tuner)
         return study
 
-    def create_evaluator(self, run_ids=None) -> Evaluator:
-        return Evaluator(self, run_ids)
+    def get_run_id(self, name: str, **kwargs) -> str:
+        run_name = list(kwargs)[0]
+        run_number = kwargs[run_name]
+        if run_number == -1:
+            return next(self.search_run_ids(name, run_name))
+        else:
+            experiment_id = self.tracker.get_experiment_id(name)
+            return self.tracker.get_run_id(experiment_id, run_name, run_number)
+
+    def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        run_name = list(kwargs)[0]
+        run_numbers = kwargs[run_name]
+        for run_number in run_numbers:
+            yield self.get_run_id(name, **{run_name: run_number})
+
+    def get_parent_run_id(self, name: str, **kwargs) -> str:
+        run_id = self.get_run_id(name, **kwargs)
+        return self.tracker.get_parent_run_id(run_id)
+
+    def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        run_id = self.get_run_id(name, **kwargs)
+        return self.search_run_ids(name, parent_run_id=run_id)
+
+    def set_parent_run_id(self, name, **kwargs):
+        run_id = self.get_run_id(name, run=kwargs["run"])
+        parent = {name: number for name, number in kwargs.items() if name != "run"}
+        parent_run_id = self.get_run_id(name, **parent)
+        self.tracker.set_parent_run_id(run_id, parent_run_id)
 
     def search_run_ids(
         self,
@@ -96,35 +122,10 @@ class Client(Base):
             )
 
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        return self.search_run_ids(name, parent_only=True, **query)
+        yield from self.search_run_ids(name, parent_only=True, **query)
 
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        return self.search_run_ids(name, nested_only=True, **query)
-
-    def get_run_id(self, name: str, **kwargs) -> str:
-        run_name = list(kwargs)[0]
-        run_number = kwargs[run_name]
-        if run_number == -1:
-            return next(self.search_run_ids(name, run_name))
-        else:
-            experiment_id = self.tracker.get_experiment_id(name)
-            return self.tracker.get_run_id(experiment_id, run_name, run_number)
-
-    def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        run_name = list(kwargs)[0]
-        run_numbers = kwargs[run_name]
-        for run_number in run_numbers:
-            yield self.get_run_id(name, **{run_name: run_number})
-
-    def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        run_id = self.get_run_id(name, **kwargs)
-        return self.search_run_ids(name, parent_run_id=run_id)
-
-    def set_parent_run_id(self, run_id: str, parent_run_id: str):
-        self.tracker.set_parent_run_id(run_id, parent_run_id)
-
-    def get_parent_run_id(self, run_id: str) -> str:
-        return self.tracker.get_parent_run_id(run_id)
+        yield from self.search_run_ids(name, nested_only=True, **query)
 
     def set_terminated(self, name: str = ""):
         for run_id in self.search_run_ids(name):
@@ -143,7 +144,20 @@ class Client(Base):
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
         return self.tracker.load_instance(run_id, instance_name, mode)
 
-    def load_results(self, run_ids: Iterable[str], callback=None, verbose: bool = True):
+    def load_results(
+        self, run_ids: Iterable[str], callback=None, verbose: bool = True
+    ) -> Results:
+        """Loads results from multiple runs and concatenates them.
+
+        Args:
+            run_ids: Multiple run ids to load.
+            callback (callable): Callback function for each run. This function must take
+                a `(index, output, target)` and return the same signature.
+            verbose: If `True`, tqdm progress bar is displayed.
+
+        Returns:
+            A concatenated results instance.
+        """
         run_ids = list(run_ids)
         it = (self.load_instance(run_id, "results") for run_id in run_ids)
         if verbose:
@@ -164,13 +178,13 @@ class Client(Base):
             self.tracker.update_params(experiment.experiment_id, **default)
 
     def remove_deleted_runs(self, name: str = "") -> int:
-        """Remove deleted runs from local file system.
+        """Removes deleted runs from a local file system.
 
         Args:
-            name: experiment name pattern for filtering.
+            name: A regex pattern of experiment name for filtering.
 
         Returns:
-            number of removed runs.
+            Number of removed runs.
         """
         num_runs = 0
         for experiment in self.tracker.list_experiments():
@@ -183,6 +197,16 @@ class Client(Base):
 def create_client(
     directory: str = ".", name: str = "client", tracker: bool = True
 ) -> Client:
+    """Creates an Ivory client.
+
+    Args:
+        directory: A directory where a YAML config file exists.
+        name: The YAML config file name.
+        tracker: Invoke tracking or not.
+
+    Returns:
+        An created client.
+    """
     source_name = utils.path.normpath(name, directory)
     if os.path.exists(source_name):
         params, _ = utils.path.load_params(source_name)
