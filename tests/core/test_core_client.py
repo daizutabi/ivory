@@ -1,3 +1,4 @@
+import numpy as np
 import torch.nn
 
 from ivory.core.client import create_client
@@ -42,6 +43,34 @@ def test_search_run_ids(client):
     run_number = int(run.name.split("#")[1])
     client.set_parent_run_id("rfr", run=run_number, task=0)
     assert len(list(client.search_run_ids("rfr", parent_run_id=task.id))) == 3
+    e = run
+
+    task = client.create_task("rfr")
+    c = task.create_run({"fold": 1})
+    c.start("train")
+    d = task.create_run({"fold": 2})
+    d.start("train")
+
+    run_ids = client.get_nested_run_ids("rfr", task=[1, 0])
+    assert list(run_ids) == [d.id, c.id, e.id, b.id, a.id]
+    run_ids = client.get_nested_run_ids("rfr", task=[0, 1], fold=1)
+    assert list(run_ids) == [a.id, c.id]
+
+
+def test_search_run_ids_best_score(client):
+    a = client.create_run("example")
+    a.start()
+    b = client.create_run("example")
+    b.start()
+    best_score = np.inf
+    for run_id in client.search_run_ids("example", exclude_parent=True):
+        monitor = client.load_instance(run_id, "monitor")
+        best_score = min(best_score, monitor.best_score)
+
+    run_ids = client.search_run_ids(
+        "example", best_score_limit=best_score, exclude_parent=True
+    )
+    assert len(list(run_ids)) == 1
 
 
 def test_create_task(client):
@@ -55,7 +84,7 @@ def test_create_task(client):
 def test_create_study(client):
     study = client.create_study("rfr")
     study.create_run({"fold": 1})
-    assert len(list(client.search_run_ids("rfr", parent_only=True))) == 2
+    assert len(list(client.search_run_ids("rfr", parent_only=True))) == 3
     assert client.create_study("rfr", -1).name == study.name
 
 

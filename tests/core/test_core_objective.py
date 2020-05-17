@@ -20,6 +20,6 @@ def test_create_suggest():
     objective.create_suggest(params)
     assert "b" in objective.suggests
 
-    params = {"c": Range(0.1, 0.3, n=10), "d": ["a", "b", "c"]}
+    params = {"c": Range(0.1, 0.3, num=10), "d": ["a", "b", "c"]}
     objective.create_suggest(params)
     assert "c.d" in objective.suggests

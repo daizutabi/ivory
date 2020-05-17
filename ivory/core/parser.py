@@ -1,10 +1,11 @@
 import ast
 import re
+from typing import Any, Dict, Iterable, List
 
 from ivory.utils.range import Range
 
 
-def parse_args(args=None, **kwargs):
+def parse_args(args=None, **kwargs) -> Dict[str, Iterable[Any]]:
     if args is None:
         args = {}
     elif isinstance(args, (list, tuple)):
@@ -17,21 +18,21 @@ def parse_args(args=None, **kwargs):
     return {arg: parse_value(value) for arg, value in args.items()}
 
 
-def parse_value(value):
+def parse_value(value) -> Iterable[Any]:
     if isinstance(value, (list, tuple)):
-        return value
+        return list(value)
     if not isinstance(value, str):
         return [value]
     if not value:
         return [""]
     if "," in value:
-        values = []
+        values: List[Any] = []
         for v in value.split(","):
             values.extend(parse_value(v))
         return values
     if ":" in value:
-        value, n = value.split(":")
-        n = int(n)
+        value, n_str = value.split(":")
+        n = int(n_str)
     else:
         n = 0
     match = re.match(r"(.+)-(.+)", value)
@@ -42,7 +43,7 @@ def parse_value(value):
         else:
             start = match.group(1)
             stop = match.group(2)
-            step = 1
+            step = "1"
         start = literal_eval(start)
         stop = literal_eval(stop)
         step = literal_eval(step)

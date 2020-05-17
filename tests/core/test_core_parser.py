@@ -33,14 +33,14 @@ def test_parser():
     assert x.start == 4
     assert x.stop == 0
     assert x.step == 1
-    assert x.n == 0
+    assert x.num == 0
     assert len(x) == 5
 
     x = parser.parse_args(["a=0.0-1.0:100"])["a"]
     assert x.start == 0.0
     assert x.stop == 1.0
     assert x.step == 1
-    assert x.n == 100
+    assert x.num == 100
     assert len(x) == 100
 
     x = parser.parse_args(["a=0-10-3"])["a"]

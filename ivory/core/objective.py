@@ -59,11 +59,11 @@ class Objective:
                 elif value.is_integer:
                     suggests[key] = ["int", dict(low=low, high=high, step=step)]
                 else:
-                    if step == 1 and value.n == 0:
+                    if step == 1 and value.num == 0:
                         suggests[key] = ["float", dict(low=low, high=high)]
                     else:
-                        if value.n:
-                            step = (high - low) / value.n
+                        if value.num:
+                            step = (high - low) / value.num
                         args = dict(low=low, high=high, step=step)
                         suggests[key] = ["discrete_uniform", args]
             else:

@@ -3,7 +3,7 @@ import re
 import shutil
 import tempfile
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import mlflow
 from logzero import logger
@@ -74,7 +74,10 @@ class Tracker:
         return self.client.list_experiments(view_type)
 
     def list_run_ids(
-        self, experiment_id: str, parent_run_id: str = "", exclude_parent: bool = False
+        self,
+        experiment_id: str,
+        parent_run_id: Union[str, Iterable[str]] = "",
+        exclude_parent: bool = False,
     ) -> Iterator[str]:
         if parent_run_id:
             yield from self.list_nested_run_ids(experiment_id, parent_run_id)
@@ -87,8 +90,12 @@ class Tracker:
                     yield run_id
 
     def list_nested_run_ids(
-        self, experiment_id: str, parent_run_id: str = ""
+        self, experiment_id: str, parent_run_id: Union[str, Iterable[str]] = ""
     ) -> Iterator[str]:
+        if not isinstance(parent_run_id, str):
+            for parent_run_id in list(parent_run_id):
+                yield from self.list_nested_run_ids(experiment_id, parent_run_id)
+            return
         filter_string = ""
         if parent_run_id:
             filter_string = f"tags.{MLFLOW_PARENT_RUN_ID}={parent_run_id!r}"
@@ -124,10 +131,11 @@ class Tracker:
         self,
         experiment_id: str,
         run_name: str = "",
-        parent_run_id: str = "",
+        parent_run_id: Union[str, Iterable[str]] = "",
         parent_only: bool = False,
         nested_only: bool = False,
         exclude_parent: bool = False,
+        best_score_limit: Optional[float] = None,
         **query,
     ) -> Iterator[str]:
         if parent_only:
@@ -141,7 +149,13 @@ class Tracker:
                 continue
             if query:
                 params = self.load_params(run_id)
-                if utils.params.match(params, **query):
+                if not utils.params.match(params, **query):
+                    continue
+            if best_score_limit is not None:
+                monitor = self.load_instance(run_id, "monitor", "test")
+                if monitor.mode == "min" and monitor.best_score <= best_score_limit:
+                    yield run_id
+                elif monitor.mode == "max" and monitor.best_score >= best_score_limit:
                     yield run_id
             else:
                 yield run_id

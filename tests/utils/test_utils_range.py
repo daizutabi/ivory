@@ -12,9 +12,9 @@ def test_range_repr():
     assert repr(x) == "Range(1, 2)"
     x = Range(1, 5, 2)
     assert repr(x) == "Range(1, 5, 2)"
-    x = Range(1, 5, n=10)
+    x = Range(1, 5, num=10)
     assert repr(x) == "Range(1, 5, n=10)"
-    x = Range(1, 5, 2, n=10)
+    x = Range(1, 5, 2, num=10)
     assert repr(x) == "Range(1, 5, 2, n=10)"
 
 
@@ -30,11 +30,11 @@ def test_range_iter():
     x = list(Range(0, 8, 3))
     assert x == [0, 3, 6]
 
-    x = list(Range(0, 8, n=4))
+    x = list(Range(0, 8, num=4))
     assert x == [0, 3, 5, 8]
 
     x = list(Range(0.0, 10.0))
     assert len(x) == 11
 
-    x = list(Range(0.0, 10.0, n=5))
+    x = list(Range(0.0, 10.0, num=5))
     assert len(x) == 5

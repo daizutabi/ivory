@@ -3,7 +3,7 @@ import gc
 import inspect
 import os
 import warnings
-from typing import Any, Dict
+from typing import Any, Dict, Iterable, Iterator
 
 from termcolor import colored
 
@@ -103,18 +103,59 @@ class Task(Run):
         if self.tracking:
             self.tracking.set_terminated(self.id)
 
-    def product(self, params: Dict[str, Any], repeat: int = 1):
+    def product(
+        self, params: Dict[str, Iterable[Any]], repeat: int = 1
+    ) -> Iterator[Run]:
         if self.tracking:
             self.tracking.set_tags(self.id, params)
         params_list = list(utils.params.product(params)) * repeat
-        try:
-            for args in tqdm(params_list, desc="Run  "):
+        for args in tqdm(params_list, desc="Prod "):
+            run = self.create_run(args)
+            yield run
+            del run
+            gc.collect()
+        self.terminate()
+
+    def chain(
+        self, params: Dict[str, Iterable[Any]], use_best_param: bool = True, **kwargs
+    ) -> Iterator[Run]:
+        if self.tracking:
+            self.tracking.set_tags(self.id, params)
+        params_list = {arg: list(value) for arg, value in params.items()}
+        base_params = kwargs.copy()
+        for arg, values in list(params_list.items()):
+            if len(values) == 1:
+                base_params[arg] = values[0]
+                del params_list[arg]
+        total = sum(len(value) for value in params_list.values())
+        bar = tqdm(total=total, desc="Chain")
+        best_params: Dict[str, Any] = {}
+        for arg, values in params_list.items():
+            best_param = None
+            for value in values:
+                args = base_params.copy()
+                args.update({arg: value})
+                if use_best_param:
+                    args.update(best_params)
                 run = self.create_run(args)
                 yield run
+                if run.monitor:
+                    current_score = run.monitor.best_score
+                    if best_param is None:
+                        best_score = current_score
+                        best_param = value
+                    elif run.monitor.mode == "min" and current_score < best_score:
+                        best_score = current_score
+                        best_param = value
+                    if current_score > best_score:
+                        best_score = current_score
+                        best_param = value
                 del run
                 gc.collect()
-        finally:
-            self.terminate()
+            if best_param is not None:
+                best_params[arg] = best_param
+            bar.update(1)
+        self.terminate()
 
 
 class Study(Task):
@@ -133,10 +174,8 @@ class Study(Task):
                 params[key] = kwargs.pop(key)
         create_run = functools.partial(self.create_run, **params)
         objective = self.objective(suggest_name, create_run, has_pruning)
-        try:
-            study.optimize(objective, **kwargs)
-        finally:
-            self.terminate()
+        study.optimize(objective, **kwargs)
+        self.terminate()
         return study
 
     def optimize_params(self, params: Dict[str, Any], **kwargs):

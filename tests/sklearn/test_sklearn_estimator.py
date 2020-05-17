@@ -11,6 +11,13 @@ def test_rfr(client):
     assert run.results.train["output"].shape == (600,)
 
 
+def test_rfr_from_sklearn_directly(client):
+    experiment = client.create_experiment("rfr2")
+    run = experiment.create_run()
+    run.start()
+    assert run.results.train["output"].shape == (600,)
+
+
 def test_rfc():
     rfc = RandomForestClassifier(n_estimators=10)
     x = np.random.rand(100, 20)

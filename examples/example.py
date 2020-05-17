@@ -17,8 +17,8 @@ def create_data(num_samples=1000):
     if num_samples not in DATA:
         xy = 4 * np.random.rand(num_samples, 2) + 1
         xy = xy.astype(np.float32)
-        dx = 0.1 * (np.random.rand(num_samples) - 0.5)
-        dy = 0.1 * (np.random.rand(num_samples) - 0.5)
+        dx = 0.01 * (np.random.rand(num_samples) - 0.5)
+        dy = 0.01 * (np.random.rand(num_samples) - 0.5)
         z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
         DATA[num_samples] = xy, z
     return DATA[num_samples]

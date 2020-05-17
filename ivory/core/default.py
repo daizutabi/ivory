@@ -48,6 +48,11 @@ DEFAULT_CLASS["tensorflow"] = {
 }
 
 
+DEFAULT_CLASS["sklearn"] = {
+    "estimator": "ivory.sklearn.estimator.Estimator",
+}
+
+
 def update_class(params: Dict[str, Any], library: str = "core"):
     for key, value in params.items():
         if value is None:

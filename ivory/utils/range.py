@@ -2,11 +2,11 @@ import numpy as np
 
 
 class Range:
-    def __init__(self, start, stop, step=1, n: int = 0):
+    def __init__(self, start, stop, step=1, num: int = 0):
         self.start = start
         self.stop = stop
         self.step = step
-        self.n = n
+        self.num = num
 
     @property
     def is_integer(self):
@@ -21,8 +21,8 @@ class Range:
         s = f"{class_name}({self.start}, {self.stop}"
         if self.step != 1:
             s += f", {self.step}"
-        if self.n >= 2:
-            s += f", n={self.n}"
+        if self.num >= 2:
+            s += f", n={self.num}"
         return s + ")"
 
     def __iter__(self):
@@ -31,17 +31,17 @@ class Range:
                 it = range(self.start, self.stop + 1, self.step)
             else:
                 it = range(self.start, self.stop - 1, -self.step)
-            if self.n < 2:
+            if self.num < 2:
                 return iter(it)
             else:
                 values = list(it)
-                index = np.linspace(0, len(values) - 1, self.n)
+                index = np.linspace(0, len(values) - 1, self.num)
                 return (values[int(round(x))] for x in index)
         else:
-            n = self.n
-            if n < 2:
-                n = round(abs(self.stop - self.start) / self.step + 1)
-            return iter(float(x) for x in np.linspace(self.start, self.stop, n))
+            num = self.num
+            if num < 2:
+                num = round(abs(self.stop - self.start) / self.step + 1)
+            return iter(float(x) for x in np.linspace(self.start, self.stop, num))
 
     def __len__(self):
         return len(list(iter(self)))

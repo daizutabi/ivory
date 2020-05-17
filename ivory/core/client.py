@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterable, Iterator, Optional
+from typing import Any, Dict, Iterable, Iterator, Optional, Union
 
 import ivory.callbacks.results
 from ivory import utils
@@ -67,6 +67,8 @@ class Client(Base):
     def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
         run_name = list(kwargs)[0]
         run_numbers = kwargs[run_name]
+        if isinstance(run_numbers, int):
+            run_numbers = [run_numbers]
         for run_number in run_numbers:
             yield self.get_run_id(name, **{run_name: run_number})
 
@@ -75,20 +77,22 @@ class Client(Base):
         return self.tracker.get_parent_run_id(run_id)
 
     def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        run_id = self.get_run_id(name, **kwargs)
-        return self.search_run_ids(name, parent_run_id=run_id)
+        run_name = list(kwargs)[0]
+        run_numbers = kwargs.pop(run_name)
+        parent_run_ids = self.get_run_ids(name, **{run_name: run_numbers})
+        yield from self.search_run_ids(name, parent_run_id=parent_run_ids, **kwargs)
 
     def set_parent_run_id(self, name, **kwargs):
-        run_id = self.get_run_id(name, run=kwargs["run"])
         parent = {name: number for name, number in kwargs.items() if name != "run"}
         parent_run_id = self.get_run_id(name, **parent)
-        self.tracker.set_parent_run_id(run_id, parent_run_id)
+        for run_id in self.get_run_ids(name, run=kwargs["run"]):
+            self.tracker.set_parent_run_id(run_id, parent_run_id)
 
     def search_run_ids(
         self,
         name: str = "",
         run_name: str = "",
-        parent_run_id: str = "",
+        parent_run_id: Union[str, Iterable[str]] = "",
         parent_only: bool = False,
         nested_only: bool = False,
         exclude_parent: bool = False,

@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterable, Iterator, Optional
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -208,7 +208,13 @@ def match(params, **query):
     return True
 
 
-def product(params: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
+def product(params: Dict[str, Iterable[Any]]) -> Iterator[Dict[str, Any]]:
+    """
+    Examples:
+        >>> params = {"a": [1, 2], "b": [3, 4]}
+        >>> list(product(params))
+        [{'a': 1, 'b': 3}, {'a': 1, 'b': 4}, {'a': 2, 'b': 3}, {'a': 2, 'b': 4}]
+    """
     for values in itertools.product(*params.values()):
         args = {}
         for name, value in zip(params.keys(), values):
