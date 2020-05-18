@@ -31,11 +31,11 @@ class Tracking:
         self.log_metrics(run.id, metrics, run.metrics.epoch)
 
     def on_fit_end(self, run: Run):
-        self.set_terminated(run.id)
+        if self.client.get_run(run.id).info.status == "RUNNING":
+            self.client.set_terminated(run.id)
 
     def on_test_end(self, run: Run):
         self.save_run(run, "test")
-        self.set_terminated(run.id)
 
     def log_params_artifact(self, run: Run):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -68,9 +68,6 @@ class Tracking:
                 if run.monitor and run.monitor.is_best and run.monitor.best_epoch > -1:
                     os.rename(directory, directory.replace("current", "best"))
                     self.client.log_artifacts(run.id, tmpdir)
-
-    def set_terminated(self, run_id: str):
-        self.client.set_terminated(run_id)
 
     def set_tags(self, run_id: str, tags: Dict[str, Any]):
         for key, value in tags.items():

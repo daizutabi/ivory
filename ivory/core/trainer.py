@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-import optuna
+from optuna.exceptions import TrialPruned
 from termcolor import colored
 
-from ivory.core.exceptions import EarlyStopped
+from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 from ivory.core.state import State
 from ivory.utils.tqdm import tqdm
@@ -53,11 +53,13 @@ class Trainer(State):
                 run.on_epoch_end()
             except EarlyStopped as e:
                 early_stopped = e
-            except optuna.exceptions.TrialPruned as e:
+            except Pruned as e:
+                pruned = e
+            except TrialPruned as e:
                 pruned = e
             finally:
                 self.log(run, early_stopped, pruned)
-        if pruned:
+        if isinstance(pruned, TrialPruned):
             raise pruned
 
     def get_dataloader(self, run: Run, mode: str):
@@ -101,7 +103,7 @@ class Trainer(State):
             tqdm.write(msg)
 
 
-def message(run: Run, early_stopped=False, pruned=False) -> str:
+def message(run: Run, early_stopped=None, pruned=None) -> str:
     if not run.metrics:
         return ""
     msg = f"[epoch#{run.trainer.epoch}]"

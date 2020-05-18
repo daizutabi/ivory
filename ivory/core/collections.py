@@ -16,13 +16,19 @@ class Dict:
         self.dict[key] = value
 
     def __getitem__(self, key):
-        if key in self.dict:
-            return self.dict[key]
-        else:
-            return Missing(self, key)
+        return self.dict[key]
 
     def __getattr__(self, key):
-        return self.__getitem__(key)
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return Missing(self, key)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def __contains__(self, key):
         return key in self.dict
@@ -37,6 +43,10 @@ class Dict:
         class_name = self.__class__.__name__
         args = ", ".join(f"{key!r}" for key in self.keys())
         return f"{class_name}({args})"
+
+    def __call__(self, **kwargs):
+        self.set(**kwargs)
+        return self
 
     def set(self, **kwargs):
         for key, value in kwargs.items():

@@ -88,8 +88,8 @@ def test_create_study(client):
     assert client.create_study("rfr", -1).name == study.name
 
 
-def test_set_terminated(client):
-    assert client.set_terminated("rfr") is None
+def test_set_terminated_all(client):
+    assert client.set_terminated_all("rfr") is None
 
 
 def test_load(client):

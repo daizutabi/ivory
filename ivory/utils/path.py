@@ -42,7 +42,7 @@ def chdir(source_name: str):
         os.chdir(curdir)
 
 
-def normpath(name: str, directory: str = ".") -> str:
+def normpath(name: str, directory: str = "") -> str:
     """Returns the absolute path with the extension."""
     path = os.path.abspath(os.path.join(directory, name))
     if os.path.exists(path + ".yaml"):

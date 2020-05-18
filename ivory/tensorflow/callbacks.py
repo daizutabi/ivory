@@ -1,5 +1,7 @@
 import tensorflow.keras.callbacks
+from optuna.exceptions import TrialPruned
 
+from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 
 
@@ -14,9 +16,9 @@ class Callback(tensorflow.keras.callbacks.Callback):
         self.run = run
         self.trainer = run.trainer
 
-    def on_train_begin(self, logs=None):
-        """Calls `run.on_fit_begin()`."""
-        self.run.on_fit_begin()
+    # def on_train_begin(self, logs=None):
+    #     """Calls `run.on_fit_begin()`."""
+    #     self.run.on_fit_begin()
 
     def on_epoch_begin(self, epoch, logs=None):
         """Calls `run.on_epoch_begin()` and `run.on_train_begin()`."""
@@ -41,12 +43,22 @@ class Callback(tensorflow.keras.callbacks.Callback):
             for key, value in logs.items():
                 key = key.replace("accuracy", "acc")
                 self.run.metrics[key] = value
-        self.run.on_epoch_end()
-        self.trainer.log(self.run)
+        early_stopped = pruned = None
+        try:
+            self.run.on_epoch_end()
+        except EarlyStopped as e:
+            early_stopped = e
+        except Pruned as e:
+            pruned = e
+        except TrialPruned as e:
+            pruned = e
+        finally:
+            self.trainer.log(self.run, early_stopped, pruned)
+        if pruned:
+            raise pruned
 
-    def on_train_end(self, logs=None):
-        """Calls `run.on_fit_end()`."""
-        self.run.on_fit_end()
+    # def on_train_end(self, logs=None):
+    #     """Calls `run.on_fit_end()`."""
 
     def on_train_batch_end(self, batch, logs=None):
         """Call `trainer.on_batch_end` to update a progress bar."""

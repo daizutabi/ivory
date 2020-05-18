@@ -18,7 +18,9 @@ def test_dict():
     assert list(a.values()) == [1, 2]
     assert "x" in dir(a)
 
-    assert isinstance(a["z"], Missing)
+    with pytest.raises(KeyError):
+        a["z"]
+
     assert isinstance(a.z, Missing)
 
     with pytest.raises(AttributeError):

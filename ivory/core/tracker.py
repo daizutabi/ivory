@@ -173,6 +173,9 @@ class Tracker:
     def get_parent_run_id(self, run_id: str) -> str:
         return get_parent_run_id(self.client.get_run(run_id))
 
+    def get_run_status(self, run_id: str) -> str:
+        return self.client.get_run(run_id).info.status
+
     def load_params(self, run_id: str) -> Dict[str, Any]:
         return load(self, run_id, "params")
 

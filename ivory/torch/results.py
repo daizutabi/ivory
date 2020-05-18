@@ -6,6 +6,7 @@ from ivory.torch import utils
 
 class Results(ivory.callbacks.results.Results):
     def reset(self):
+        super().reset()
         self.indexes = []
         self.outputs = []
         self.targets = []
@@ -30,4 +31,5 @@ class Results(ivory.callbacks.results.Results):
             target = np.vstack(self.targets)
         else:
             target = None
-        return dict(index=index, output=output, target=target)
+        super().step(index, output, target)
+        return super().result_dict()

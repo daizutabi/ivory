@@ -33,7 +33,7 @@ class Objective:
                 run.tracking.set_tags(run.id, {"trial_number": trial.number})
                 trial.set_user_attr("run_id", run.id)
             if has_pruning:
-                run["pruning"] = Pruning(trial, run.monitor.metric)
+                run.set(pruning=Pruning(trial, run.monitor.metric))
             run.start("train")
             score = run.monitor.best_score
             if np.isnan(score):

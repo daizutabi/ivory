@@ -1,7 +1,8 @@
 """A container to store training, validation and test results. """
-from typing import Dict, Iterable
+from typing import Callable, Dict, Iterable, Optional
 
 import numpy as np
+import pandas as pd
 
 import ivory.core.collections
 from ivory.core.run import Run
@@ -38,15 +39,42 @@ class Results(ivory.core.collections.Dict, State):
         self.reset()
 
     def result_dict(self):
+        dict = ivory.core.collections.Dict()
         return dict(index=self.index, output=self.output, target=self.target)
 
+    def mean(self):
+        results = Results()
+        for mode, result in self.items():
+            index = result.index
+            kwargs = {}
+            for key, value in list(result.items())[1:]:
+                if value.ndim == 1:
+                    series = pd.Series(value, index=index)
+                    value = series.groupby(level=0).mean()
+                else:
+                    df = pd.DataFrame(value)
+                    df["index"] = index
+                    value = df.groupby("index").mean()
+                value.sort_index(inplace=True)
+                kwargs[key] = value.to_numpy()
+                kwargs["index"] = value.index.to_numpy()
+            dict = ivory.core.collections.Dict()
+            results[mode] = dict(**kwargs)
+        return results
 
-def concatenate(iterable: Iterable[Results], callback=None) -> Results:
-    indexes: Dict[str, list] = {"val": [], "test": []}
-    outputs: Dict[str, list] = {"val": [], "test": []}
-    targets: Dict[str, list] = {"val": [], "test": []}
+
+def concatenate(
+    iterable: Iterable[Results],
+    callback: Optional[Callable] = None,
+    modes: Iterable[str] = ("val", "test"),
+    reduction: str = "none",
+) -> Results:
+    modes = list(modes)
+    indexes: Dict[str, list] = {mode: [] for mode in modes}
+    outputs: Dict[str, list] = {mode: [] for mode in modes}
+    targets: Dict[str, list] = {mode: [] for mode in modes}
     for results in iterable:
-        for mode in ["val", "test"]:
+        for mode in modes:
             if mode not in results:
                 continue
             result = results[mode]
@@ -57,9 +85,12 @@ def concatenate(iterable: Iterable[Results], callback=None) -> Results:
             outputs[mode].append(output)
             targets[mode].append(target)
     results = Results()
-    for mode in ["val", "test"]:
+    for mode in modes:
         index = np.concatenate(indexes[mode])
         output = np.concatenate(outputs[mode])
         target = np.concatenate(targets[mode])
+        dict = ivory.core.collections.Dict()
         results[mode] = dict(index=index, output=output, target=target)
+    if reduction != 'none':
+        results = getattr(results, reduction)()
     return results

@@ -74,6 +74,13 @@ def optimize(name, args, number, quiet, verbose):
         study.optimize_params(params, **kwargs)
 
 
+@cli.command(help="Kill the last run to prune.")
+@click.argument("name")
+def kill(name):
+    client = ivory.create_client()
+    client.set_terminated(name, status="KILLED", run=-1)
+
+
 @cli.command(help="Update parameters.")
 @click.argument("name")
 def update(name):

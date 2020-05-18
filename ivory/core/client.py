@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import sys
 from typing import Any, Dict, Iterable, Iterator, Optional, Union
 
 import ivory.callbacks.results
@@ -82,7 +83,7 @@ class Client(Base):
         parent_run_ids = self.get_run_ids(name, **{run_name: run_numbers})
         yield from self.search_run_ids(name, parent_run_id=parent_run_ids, **kwargs)
 
-    def set_parent_run_id(self, name, **kwargs):
+    def set_parent_run_id(self, name: str, **kwargs):
         parent = {name: number for name, number in kwargs.items() if name != "run"}
         parent_run_id = self.get_run_id(name, **parent)
         for run_id in self.get_run_ids(name, run=kwargs["run"]):
@@ -96,18 +97,20 @@ class Client(Base):
         parent_only: bool = False,
         nested_only: bool = False,
         exclude_parent: bool = False,
+        best_score_limit: Optional[float] = None,
         **query,
     ) -> Iterator[str]:
-        """Yields matching run ids.
+        """Yields matching run id.
 
         Args:
-            name: experiment name pattern for filtering.
-            run_name: run name pattern for filtering.
-            parent_run_id: if specified, search from runs which have the parent id.
-            parent_only: if True, search from parent runs.
-            nested_only: if True, search from nested runs.
-            exclude_parent: if True, skip parent runs.
-            **query: key-value pairs for filtering.
+            name: Experiment name pattern for filtering.
+            run_name: Run name pattern for filtering.
+            parent_run_id: If specified, search from runs which have the parent id.
+            parent_only: If True, search from parent runs.
+            nested_only: If True, search from nested runs.
+            exclude_parent: If True, skip parent runs.
+            best_score_limit: Yields runs with the best score better than this value.
+            **query: Key-value pairs for filtering.
 
         Yields:
             run_id
@@ -122,6 +125,7 @@ class Client(Base):
                 parent_only,
                 nested_only,
                 exclude_parent,
+                best_score_limit,
                 **query,
             )
 
@@ -131,7 +135,11 @@ class Client(Base):
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
         yield from self.search_run_ids(name, nested_only=True, **query)
 
-    def set_terminated(self, name: str = ""):
+    def set_terminated(self, name: str, status: Optional[str] = None, **kwargs):
+        run_id = self.get_run_id(name, **kwargs)
+        self.tracker.client.set_terminated(run_id, status=status)
+
+    def set_terminated_all(self, name: str = ""):
         for run_id in self.search_run_ids(name):
             self.tracker.client.set_terminated(run_id)
 
@@ -149,7 +157,11 @@ class Client(Base):
         return self.tracker.load_instance(run_id, instance_name, mode)
 
     def load_results(
-        self, run_ids: Iterable[str], callback=None, verbose: bool = True
+        self,
+        run_ids: Iterable[str],
+        callback=None,
+        reduction: str = "none",
+        verbose: bool = True,
     ) -> Results:
         """Loads results from multiple runs and concatenates them.
 
@@ -166,7 +178,9 @@ class Client(Base):
         it = (self.load_instance(run_id, "results") for run_id in run_ids)
         if verbose:
             it = tqdm(it, total=len(run_ids), leave=False)
-        return ivory.callbacks.results.concatenate(it, callback=callback)
+        return ivory.callbacks.results.concatenate(
+            it, callback=callback, reduction=reduction
+        )
 
     def ui(self):
         tracking_uri = self.tracker.tracking_uri
@@ -199,7 +213,7 @@ class Client(Base):
 
 
 def create_client(
-    directory: str = ".", name: str = "client", tracker: bool = True
+    directory: str = "", name: str = "client", tracker: bool = True
 ) -> Client:
     """Creates an Ivory client.
 
@@ -211,6 +225,10 @@ def create_client(
     Returns:
         An created client.
     """
+    if directory:
+        path = os.path.abspath(directory)
+        if path not in sys.path:
+            sys.path.insert(0, path)
     source_name = utils.path.normpath(name, directory)
     if os.path.exists(source_name):
         params, _ = utils.path.load_params(source_name)

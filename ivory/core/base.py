@@ -57,10 +57,13 @@ class Creator(Base):
         params, args = self.create_params(args, name, **kwargs)
         run = instance.create_base_instance(params, name, self.source_name)
         if self.tracker:
+            from ivory.callbacks.pruning import Pruning
+
             run.set_tracker(self.tracker, name)
             run.tracking.log_params_artifact(run)
             args = {arg: utils.params.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
+            run.set(pruning=Pruning())
         return run
 
     def create_instance(self, instance_name: str, args=None, name="run", **kwargs):

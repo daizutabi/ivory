@@ -1,4 +1,5 @@
 import ivory.core.estimator
+from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 from ivory.core.trainer import message
 from ivory.tensorflow.callbacks import Callback
@@ -24,22 +25,28 @@ class Trainer(ivory.core.estimator.Estimator):
         return self.model.predict(input)
 
     def train(self, run: Run):
+        run.on_fit_begin()
         callbacks = [Callback(run)]
         if "callbacks" in self.kwargs:
             callbacks = self.kwargs.pop("callbacks") + callbacks
         train_input, train_target = run.datasets.train.get()[1:]
         val_input, val_target = run.datasets.val.get()[1:]
-        self.model.fit(
-            train_input,
-            train_target,
-            batch_size=self.batch_size,
-            validation_data=(val_input, val_target),
-            initial_epoch=self.epoch + 1,
-            epochs=self.epoch + self.epochs + 1,
-            callbacks=callbacks,
-            verbose=0,
-            **self.kwargs,
-        )
+        try:
+            self.model.fit(
+                train_input,
+                train_target,
+                batch_size=self.batch_size,
+                validation_data=(val_input, val_target),
+                initial_epoch=self.epoch + 1,
+                epochs=self.epoch + self.epochs + 1,
+                callbacks=callbacks,
+                verbose=0,
+                **self.kwargs,
+            )
+        except (EarlyStopped, Pruned):
+            pass
+        finally:
+            run.on_fit_end()
 
     def test(self, run: Run):
         run.on_test_begin()

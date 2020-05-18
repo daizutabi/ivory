@@ -101,7 +101,7 @@ class Task(Run):
 
     def terminate(self):
         if self.tracking:
-            self.tracking.set_terminated(self.id)
+            self.tracking.client.set_terminated(self.id)
 
     def product(
         self, params: Dict[str, Iterable[Any]], repeat: int = 1

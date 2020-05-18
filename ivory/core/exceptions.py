@@ -5,7 +5,14 @@ class IvoryError(Exception):
 class EarlyStopped(IvoryError):
     """Exception for early stopped runs.
 
-    This error tells a trainer that the current `run` was early stopped.
+    This error tells a trainer that the current `run` should be early stopped.
+    """
+
+
+class Pruned(IvoryError):
+    """Exception for pruned runs.
+
+    This error tells a trainer that the current `run` should  be pruned.
     """
 
 
