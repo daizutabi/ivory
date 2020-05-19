@@ -1,6 +1,7 @@
 [![PyPI version][pypi-image]][pypi-link]
 [![Python versions][pyversions-image]][pyversions-link]
 [![Travis][travis-image]][travis-link]
+[![AppVeyor][appveyor-image]][appveyor-link]
 [![Coverage Status][coveralls-image]][coveralls-link]
 [![Code style: black][black-image]][black-link]
 
@@ -39,6 +40,8 @@ See [Ivory documentation](https://ivory.daizutabi.net).
 [pypi-link]: https://pypi.org/project/ivory
 [travis-image]: https://travis-ci.org/daizutabi/ivory.svg?branch=master
 [travis-link]: https://travis-ci.org/daizutabi/ivory
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/ys2ic8n4j7r5j4bg/branch/master?svg=true
+[appveyor-link]: https://ci.appveyor.com/project/daizutabi/ivory
 [coveralls-image]: https://coveralls.io/repos/github/daizutabi/ivory/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/daizutabi/ivory?branch=master
 [black-image]: https://img.shields.io/badge/code%20style-black-000000.svg
