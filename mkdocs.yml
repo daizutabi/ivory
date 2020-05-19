@@ -13,10 +13,11 @@ plugins:
   - search
   - pheasant:
       version: ivory
-  - mkapi
+  # - mkapi
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.py
   # - Tutorial:
   #     Overview: tutorial/overview.py
   #     Client: tutorial/client_experiment_run.py
@@ -25,7 +26,7 @@ nav:
       # Trainer: tutorial/trainer.md
       # Run: tutorial/run.md
       # Experiment: tutorial/experiment.md
-  - API: mkapi:ivory
+  # - API: mkapi:ivory
 
 
 markdown_extensions:

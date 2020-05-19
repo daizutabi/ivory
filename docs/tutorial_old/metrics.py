@@ -1,7 +1,8 @@
-# # Metrics
+"""
+# Metrics
 
 # Ivory has a `ivory.callbacks.Metrics` that doesn't depend on any specific library such
-# as PyTorch or scikit-learn, *etc.* As the module name shows, a  `Metrics` is a
+# as PyTorch or scikit-learn, *etc.* As the module name shows, a `Metrics` is a
 # callback called from a `Trainer`, which is created by a `Run`.
 
 # So at this stage, we cannot get an instance of `Metrics`. Instead, let's check the
@@ -13,7 +14,7 @@
 # There four instance methods. `train_evaluate` and `val_evaluate` are functions that
 # called from train and validation loops. `evalute` is a customizable function for
 # metrics at a step. You can overwrite this function, for example:
-
+"""
 from typing import Dict
 
 import torch

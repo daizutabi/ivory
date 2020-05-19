@@ -20,10 +20,10 @@ class Client(Base):
         """Creates an `Experiment` according to the YAML file specified by `name`.
 
         Args:
-            path: experiment name.
+            name: Experiment name.
 
         Returns:
-            an experiment instance.
+            An `Experiment` instance.
         """
         basename = name.split(".")[0]
         params, source_name = utils.path.load_params(basename, self.source_name)

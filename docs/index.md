@@ -1,4 +1,4 @@
-# Ivory
+# Ivory Documentation
 
 Ivory is a lightweight framework for machine learning. It integrates model design, hyperparmeter tuning, and tracking. Ivory uses [Optuna](https://preferred.jp/en/projects/optuna/) for hyperparmeter tuning and [MLflow Tracking](https://mlflow.org/docs/latest/tracking.html) for tracking.
 
