@@ -16,7 +16,10 @@ class Dict:
         self.dict[key] = value
 
     def __getitem__(self, key):
-        return self.dict[key]
+        if isinstance(key, int):
+            return self.dict[list(self.keys())[key]]
+        else:
+            return self.dict[key]
 
     def __getattr__(self, key):
         try:

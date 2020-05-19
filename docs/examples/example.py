@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any, Dict
 
 import numpy as np
 import torch.nn as nn
@@ -10,44 +9,28 @@ import ivory.core.estimator
 import ivory.torch.data
 from ivory.utils.fold import kfold_split
 
-DATA: Dict[int, Any] = {}
-
 
 def create_data(num_samples=1000):
-    if num_samples not in DATA:
-        xy = 4 * np.random.rand(num_samples, 2) + 1
-        xy = xy.astype(np.float32)
-        dx = 0.1 * (np.random.rand(num_samples) - 0.5)
-        dy = 0.1 * (np.random.rand(num_samples) - 0.5)
-        z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
-        DATA[num_samples] = xy, z
-    return DATA[num_samples]
+    xy = 4 * np.random.rand(num_samples, 2) + 1
+    xy = xy.astype(np.float32)
+    dx = 0.1 * (np.random.rand(num_samples) - 0.5)
+    dy = 0.1 * (np.random.rand(num_samples) - 0.5)
+    z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
+    z = z.reshape(-1, 1)
+    return xy, z
 
 
 @dataclass
 class Data(ivory.core.data.Data):
-    results: Any
-    num_samples: int = 1000
-    __requires__ = ["results"]
+    n_splits: int = 5
 
-    def __post_init__(self):
-        super().__post_init__()
-        self.input, self.target = create_data(self.num_samples)
+    DATA = create_data(1000)
+
+    def init(self):
+        self.input, self.target = self.DATA
         self.index = np.arange(len(self.input))
-        self.fold = kfold_split(self.input, n_splits=5)
+        self.fold = kfold_split(self.input, n_splits=self.n_splits)
         self.fold = np.where(self.fold == 4, -1, self.fold)
-
-
-@dataclass
-class TorchData(Data):
-    def __post_init__(self):
-        super().__post_init__()
-        self.target = self.target.reshape(-1, 1)
-
-
-@dataclass(repr=False)
-class Dataset(ivory.torch.data.Dataset):
-    dummy: int = 10
 
 
 class Model(nn.Module):

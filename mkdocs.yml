@@ -7,7 +7,7 @@ site_dir: ../ivory-site/site
 repo_url: https://github.com/daizutabi/ivory/
 edit_uri: ""
 
-theme: ivory
+theme: readthedocs
 
 plugins:
   - search

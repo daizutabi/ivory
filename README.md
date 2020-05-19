@@ -31,10 +31,6 @@ pip install ivory
 
 See [Ivory documentation](https://ivory.daizutabi.net).
 
-## Overview
-
-![overview](overview.png "Overview of Ivory components")
-
 
 [pypi-image]: https://badge.fury.io/py/ivory.svg
 [pypi-link]: https://pypi.org/project/ivory

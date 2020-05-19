@@ -1,0 +1,31 @@
+library: torch
+dataloaders:
+  data:
+    class: example.Data
+    n_splits: 5
+  dataset:
+  batch_size: 10
+  fold: 0
+model:
+  class: example.Model
+  hidden_sizes: [100, 100]
+optimizer:
+  class: torch.optim.SGD
+  params: $.model.parameters()
+  lr: 1e-3
+scheduler:
+  class: torch.optim.lr_scheduler.ReduceLROnPlateau
+  optimizer: $
+  factor: 0.5
+  patience: 4
+results:
+metrics:
+  criterion:
+    def: torch.nn.functional.mse_loss
+monitor:
+  metric: val_loss
+early_stopping:
+  patience: 10
+trainer:
+  epochs: 10
+  verbose: 2
