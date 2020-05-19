@@ -40,7 +40,7 @@ See [Ivory documentation](https://ivory.daizutabi.net).
 [pypi-link]: https://pypi.org/project/ivory
 [travis-image]: https://travis-ci.org/daizutabi/ivory.svg?branch=master
 [travis-link]: https://travis-ci.org/daizutabi/ivory
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/ys2ic8n4j7r5j4bg/branch/master?svg=true
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/8axnc3q53ula9x01?svg=true
 [appveyor-link]: https://ci.appveyor.com/project/daizutabi/ivory
 [coveralls-image]: https://coveralls.io/repos/github/daizutabi/ivory/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/daizutabi/ivory?branch=master
