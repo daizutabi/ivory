@@ -17,8 +17,9 @@ install:
   - conda info -a
   - conda create -q -n test-environment python=%PYTHON_VERSION%
   - activate test-environment
+  - pip install torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
   - pip install pytest pytest-cov
-  - pip install tensorflow torch torchvision lightgbm
+  - pip install tensorflow lightgbm
   - pip install iterative-stratification
   - pip install -e .
 
