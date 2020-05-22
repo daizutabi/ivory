@@ -2,7 +2,7 @@ import ivory.core.estimator
 from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 from ivory.core.trainer import message
-from ivory.tensorflow.callbacks import Callback
+from ivory.tensorflow.callback import Callback
 from ivory.utils.tqdm import tqdm
 
 
@@ -20,9 +20,6 @@ class Trainer(ivory.core.estimator.Estimator):
     def __repr__(self):
         class_name = self.__class__.__name__
         return f"{class_name}()"
-
-    def predict(self, input):
-        return self.model.predict(input)
 
     def train(self, run: Run):
         run.on_fit_begin()
@@ -55,6 +52,9 @@ class Trainer(ivory.core.estimator.Estimator):
         if run.results:
             run.results.step(index, output, *target)
         run.on_test_end()
+
+    def predict(self, input):
+        return self.model.predict(input)
 
     def log(self, run: Run, early_stopped=False, pruned=False):
         msg = message(run, early_stopped, pruned)

@@ -33,12 +33,6 @@ class Estimator(State):
         else:
             return f"{class_name}()"
 
-    def fit(self, input, target):
-        self.estimator.fit(input, target)
-
-    def predict(self, input):
-        return self.estimator.predict(input)
-
     def start(self, run: Run):
         if run.mode == "train":
             self.train(run)
@@ -70,6 +64,12 @@ class Estimator(State):
         output = self.predict(input)
         if run.results:
             run.results.step(index, output, *target)
+
+    def fit(self, input, target):
+        self.estimator.fit(input, target)
+
+    def predict(self, input):
+        return self.estimator.predict(input)
 
     def log(self, run: Run):
         if run.metrics:

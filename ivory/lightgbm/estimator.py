@@ -17,6 +17,13 @@ class Estimator(ivory.core.estimator.Estimator):
             best_params=self.best_params, tuning_history=self.tuning_history
         )
 
+    def step(self, run: Run, mode: str):  # type:ignore
+        if mode == "train":
+            _, train_input, train_target = run.datasets.train.get()
+            _, val_input, val_target = run.datasets.val.get()
+            self.fit(train_input, train_target, [val_input, val_target])
+        super().step(run, mode, training=False)
+
     def fit(self, input, target, val=None):
         train_set = lgb.Dataset(input, target)
         if val is not None:
@@ -27,13 +34,6 @@ class Estimator(ivory.core.estimator.Estimator):
         self.estimator = self.estimator_factory(
             self.params, train_set, valid_sets=valid_sets, **self.kwargs
         )
-
-    def step(self, run: Run, mode: str):  # type:ignore
-        if mode == "train":
-            _, train_input, train_target = run.datasets.train.get()
-            _, val_input, val_target = run.datasets.val.get()
-            self.fit(train_input, train_target, [val_input, val_target])
-        super().step(run, mode, training=False)
 
 
 class Regressor(Estimator):

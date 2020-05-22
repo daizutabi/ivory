@@ -30,7 +30,7 @@ class Data(ivory.core.data.Data):
         self.input, self.target = self.DATA
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=self.n_splits)
-        self.fold = np.where(self.fold == 4, -1, self.fold)
+        self.fold = np.where(self.fold == self.n_splits - 1, -1, self.fold)
 
 
 class Model(nn.Module):

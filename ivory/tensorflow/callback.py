@@ -16,10 +16,6 @@ class Callback(tensorflow.keras.callbacks.Callback):
         self.run = run
         self.trainer = run.trainer
 
-    # def on_train_begin(self, logs=None):
-    #     """Calls `run.on_fit_begin()`."""
-    #     self.run.on_fit_begin()
-
     def on_epoch_begin(self, epoch, logs=None):
         """Calls `run.on_epoch_begin()` and `run.on_train_begin()`."""
         self.trainer.epoch = epoch
@@ -56,9 +52,6 @@ class Callback(tensorflow.keras.callbacks.Callback):
             self.trainer.log(self.run, early_stopped, pruned)
         if pruned:
             raise pruned
-
-    # def on_train_end(self, logs=None):
-    #     """Calls `run.on_fit_end()`."""
 
     def on_train_batch_end(self, batch, logs=None):
         """Call `trainer.on_batch_end` to update a progress bar."""

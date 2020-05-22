@@ -1,3 +1,9 @@
+"""
+This module provides the Ivory Client class which is a main class of Ivory library.
+
+The first thing you shoud do after importing the `ivory` package is to call
+`ivory.create_client()` to get an client instance.
+"""
 import os
 import re
 import subprocess
@@ -14,7 +20,12 @@ from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
-    """The Ivory client class."""
+    """The Ivory client class.
+
+    Attributes:
+        tracker (Tracker, optional): A Tracker instance for tracking run process.
+        tuner (Tuner, optional): A Tuner instance for hyperparameter tuning.
+    """
 
     def create_experiment(self, name: str) -> Experiment:
         """Creates an `Experiment` according to the YAML file specified by `name`.
@@ -66,12 +77,11 @@ class Client(Base):
             return self.tracker.get_run_id(experiment_id, run_name, run_number)
 
     def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        run_name = list(kwargs)[0]
-        run_numbers = kwargs[run_name]
-        if isinstance(run_numbers, int):
-            run_numbers = [run_numbers]
-        for run_number in run_numbers:
-            yield self.get_run_id(name, **{run_name: run_number})
+        for run_name, run_numbers in kwargs.items():
+            if isinstance(run_numbers, int):
+                run_numbers = [run_numbers]
+            for run_number in run_numbers:
+                yield self.get_run_id(name, **{run_name: run_number})
 
     def get_parent_run_id(self, name: str, **kwargs) -> str:
         run_id = self.get_run_id(name, **kwargs)
@@ -136,8 +146,8 @@ class Client(Base):
         yield from self.search_run_ids(name, nested_only=True, **query)
 
     def set_terminated(self, name: str, status: Optional[str] = None, **kwargs):
-        run_id = self.get_run_id(name, **kwargs)
-        self.tracker.client.set_terminated(run_id, status=status)
+        for run_id in self.get_run_ids(name, **kwargs):
+            self.tracker.client.set_terminated(run_id, status=status)
 
     def set_terminated_all(self, name: str = ""):
         for run_id in self.search_run_ids(name):
@@ -218,12 +228,18 @@ def create_client(
     """Creates an Ivory client.
 
     Args:
-        directory: A directory where a YAML config file exists.
-        name: The YAML config file name.
-        tracker: Invoke tracking or not.
+        directory: A working directory. If a YAML file specified by the `name`
+            parameter exists, the file is loaded to configure the client. In addition,
+            this directory is automatically inserted to `sys.path`.
+        name: A YAML config file name.
+        tracker: If true, the client instance has a tracker.
 
     Returns:
         An created client.
+
+    Note:
+        If `tracker` is True (default value), a `mlruns` directory is made under the
+        working directory by the MLFlow Tracking.
     """
     if directory:
         path = os.path.abspath(directory)
