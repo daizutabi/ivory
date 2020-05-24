@@ -19,9 +19,9 @@ nav:
   - Quickstart: index.md
   # - Tutorial:
   #   - Quickstart: quickstart.py
-  - Python API:
-    - Data: api/data.md
-    - Data: api/data.md
+  # - Python API:
+  #   - Data: api/data.md
+  #   - Data: api/data.md
   # - Tutorial:
   #     Overview: tutorial/overview.py
   #     Client: tutorial/client_experiment_run.py

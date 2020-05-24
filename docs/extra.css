@@ -1,13 +1,18 @@
 code {
   background: none !important;
   border: none !important;
-  font-size: 0.9rem !important;
   padding: 0px !important;
   margin: 0px !important;
 }
 
+p code {
+  font-size: 0.95rem !important;
+}
+
+
 .rst-content code {
     color: #3C4CE7;
+    font-size: 0.95rem !important;
 }
 
 pre {

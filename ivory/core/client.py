@@ -1,8 +1,6 @@
 """
-This module provides the Ivory Client class which is a main class of Ivory library.
-
-The first thing you shoud do after importing the `ivory` package is to call
-`ivory.create_client()` to get an client instance.
+This module provides the Ivory Client class which is one of the main classes of
+Ivory library.
 """
 import os
 import re
@@ -15,7 +13,7 @@ from ivory import utils
 from ivory.callbacks.results import Results
 from ivory.core import default, instance
 from ivory.core.base import Base, Experiment
-from ivory.core.run import Run
+from ivory.core.run import Run, Study, Task
 from ivory.utils.tqdm import tqdm
 
 
@@ -32,9 +30,6 @@ class Client(Base):
 
         Args:
             name: Experiment name.
-
-        Returns:
-            An `Experiment` instance.
         """
         basename = name.split(".")[0]
         params, source_name = utils.path.load_params(basename, self.source_name)
@@ -49,16 +44,38 @@ class Client(Base):
             experiment.set_tracker(self.tracker)
         return experiment
 
-    def create_run(self, name: str, args=None, **kwargs):
+    def create_run(self, name: str, args=None, **kwargs) -> Run:
+        """Creates a `Run`.
+
+        Args:
+            name: Experiment name.
+            args (dict, optional): Parameter dictionary to update the default values
+                of `Experiment`.
+            **kwargs: Additional parameters.
+        """
         return self.create_experiment(name).create_run(args, **kwargs)
 
-    def create_task(self, name: str, run_number: Optional[int] = None):
+    def create_task(self, name: str, run_number: Optional[int] = None) -> Task:
+        """Creates a `Task`.
+
+        Args:
+            name: Experiment name.
+            run_number: If specified, load an existing task instead of creating a new
+                one.
+        """
         if run_number is None:
             return self.create_experiment(name).create_task()
         else:
-            return self.load_run_by_name(name, task=run_number)
+            return self.load_run_by_name(name, task=run_number)  # type:ignore
 
-    def create_study(self, name: str, run_number: Optional[int] = None):
+    def create_study(self, name: str, run_number: Optional[int] = None) -> Study:
+        """Creates a `Study`.
+
+        Args:
+            name: Experiment name.
+            run_number: If specified, load an existing study instead of creating a new
+                one.
+        """
         if run_number is None:
             study = self.create_experiment(name).create_study()
         else:
@@ -68,6 +85,13 @@ class Client(Base):
         return study
 
     def get_run_id(self, name: str, **kwargs) -> str:
+        """Returns a RunID.
+
+        Args:
+            name: Experiment name.
+            **kwargs: Run name. If you want to get a run with name of 'run#5',
+                **kwargs shoud be `run=5`.
+        """
         run_name = list(kwargs)[0]
         run_number = kwargs[run_name]
         if run_number == -1:
