@@ -8,7 +8,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import Any, Dict, Iterable, Iterator, Optional, Union
+from typing import Any, Dict, Iterable, Iterator, Optional, Tuple, Union
 
 import ivory.callbacks.results
 from ivory import utils
@@ -98,6 +98,12 @@ class Client(Base):
         parent_run_id = self.get_run_id(name, **parent)
         for run_id in self.get_run_ids(name, run=kwargs["run"]):
             self.tracker.set_parent_run_id(run_id, parent_run_id)
+
+    def get_run_name(self, run_id: str) -> str:
+        return self.tracker.get_run_name(run_id)
+
+    def get_run_name_tuple(self, run_id: str) -> Tuple[str, int]:
+        return self.tracker.get_run_name_tuple(run_id)
 
     def search_run_ids(
         self,

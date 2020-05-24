@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, Iterable, Iterator, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple
 
 
 def update_dict(org: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -232,3 +232,54 @@ def to_str(params):
         else:
             t.append(f"{key}={value:.4g}")
     return " ".join(t)
+
+
+def split_params(
+    params: Optional[Dict[str, Iterable[Any]]] = None, **kwargs
+) -> Tuple[Dict[str, Iterable[Any]], Dict[str, Any]]:
+    """Returns (`params`, `base_params`).
+
+    `params` for variable parameters and `base_params` for fixed parameters.
+
+    Args:
+        params: Parameter dictionay.
+        **kwargs: Optional parameters
+
+    Examples:
+        >>> params = {"a": range(2), "b": 3}
+        >>> params, base_params = split_params(params, c='abc', d=range(3))
+        >>> params
+        {'a': range(0, 2), 'd': range(0, 3)}
+        >>> base_params
+        {'b': 3, 'c': 'abc'}
+    """
+    if params is None:
+        params = {}
+    if kwargs:
+        params.update(kwargs)
+    params = params.copy()
+    base_params: Dict[str, Any] = {}
+    params_list = {arg: to_list(values) for arg, values in params.items()}
+    for arg, values in params_list.items():
+        if len(values) == 1:
+            base_params[arg] = values[0]
+            del params[arg]
+    return params, base_params
+
+
+def to_list(x) -> List[Any]:
+    """
+    Examples:
+        >>> to_list(range(3))
+        [0, 1, 2]
+        >>> to_list(100)
+        [100]
+        >>> to_list('abc')
+        ['abc']
+    """
+    if isinstance(x, str):
+        return [x]
+    try:
+        return list(x)
+    except TypeError:
+        return [x]

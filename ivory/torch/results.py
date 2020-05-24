@@ -25,10 +25,10 @@ class Results(ivory.callbacks.results.Results):
             self.targets.append(target.numpy())
 
     def result_dict(self):
-        index = np.vstack(self.indexes)
-        output = np.vstack(self.outputs)
+        index = np.concatenate(self.indexes)
+        output = np.concatenate(self.outputs)
         if self.targets:
-            target = np.vstack(self.targets)
+            target = np.concatenate(self.targets)
         else:
             target = None
         super().step(index, output, target)

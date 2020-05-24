@@ -3,7 +3,7 @@ import gc
 import inspect
 import os
 import warnings
-from typing import Any, Dict, Iterable, Iterator
+from typing import Any, Dict, Iterable, Iterator, Optional
 
 from termcolor import colored
 
@@ -104,31 +104,43 @@ class Task(Run):
             self.tracking.client.set_terminated(self.id)
 
     def product(
-        self, params: Dict[str, Iterable[Any]], repeat: int = 1
+        self,
+        params: Optional[Dict[str, Iterable[Any]]] = None,
+        repeat: int = 1,
+        **kwargs,
     ) -> Iterator[Run]:
+        params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
         params_list = list(utils.params.product(params)) * repeat
-        for args in tqdm(params_list, desc="Prod "):
-            run = self.create_run(args)
+        if "verbose" in base_params and base_params["verbose"] == 0:
+            it = params_list
+        else:
+            it = tqdm(params_list, desc="Prod ")
+        for args in it:
+            args_ = base_params.copy()
+            args_.update(args)
+            run = self.create_run(args_)
             yield run
             del run
             gc.collect()
         self.terminate()
 
     def chain(
-        self, params: Dict[str, Iterable[Any]], use_best_param: bool = True, **kwargs
+        self,
+        params: Optional[Dict[str, Iterable[Any]]] = None,
+        use_best_param: bool = True,
+        **kwargs,
     ) -> Iterator[Run]:
+        params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
         params_list = {arg: list(value) for arg, value in params.items()}
-        base_params = kwargs.copy()
-        for arg, values in list(params_list.items()):
-            if len(values) == 1:
-                base_params[arg] = values[0]
-                del params_list[arg]
         total = sum(len(value) for value in params_list.values())
-        bar = tqdm(total=total, desc="Chain")
+        if "verbose" in base_params and base_params["verbose"] == 0:
+            bar = None
+        else:
+            bar = tqdm(total=total, desc="Chain")
         best_params: Dict[str, Any] = {}
         for arg, values in params_list.items():
             best_param = None
@@ -154,7 +166,8 @@ class Task(Run):
                 gc.collect()
             if best_param is not None:
                 best_params[arg] = best_param
-            bar.update(1)
+            if bar is not None:
+                bar.update(1)
         self.terminate()
 
 

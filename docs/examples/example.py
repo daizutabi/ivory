@@ -16,7 +16,6 @@ def create_data(num_samples=1000):
     dx = 0.1 * (np.random.rand(num_samples) - 0.5)
     dy = 0.1 * (np.random.rand(num_samples) - 0.5)
     z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
-    z = z.reshape(-1, 1)
     return xy, z
 
 
@@ -30,7 +29,13 @@ class Data(ivory.core.data.Data):
         self.input, self.target = self.DATA
         self.index = np.arange(len(self.input))
         self.fold = kfold_split(self.input, n_splits=self.n_splits)
-        self.fold = np.where(self.fold == self.n_splits - 1, -1, self.fold)
+
+        # Creating test set just for demonstration.
+        is_test = self.fold == self.n_splits - 1
+        self.fold = np.where(is_test, -1, self.fold)
+        self.target = np.where(is_test, np.nan, self.target)
+
+        self.target = self.target.reshape(-1, 1)  # (sample, channel)
 
 
 class Model(nn.Module):

@@ -163,9 +163,9 @@ class Tracker:
     def get_run_name(self, run_id: str) -> str:
         return get_run_name(self.client.get_run(run_id))
 
-    def get_run_name_without_number(self, run_id: str) -> str:
+    def get_run_name_tuple(self, run_id: str) -> Tuple[str, int]:
         run_name = self.get_run_name(run_id)
-        return split_run_name(run_name)[0]
+        return split_run_name(run_name)
 
     def get_source_name(self, run_id: str) -> str:
         return get_source_name(self.client.get_run(run_id))
@@ -180,14 +180,14 @@ class Tracker:
         return load(self, run_id, "params")
 
     def load_run(self, run_id: str, mode: str) -> Run:
-        name = self.get_run_name_without_number(run_id)
+        name, _ = self.get_run_name_tuple(run_id)
         run = load(self, run_id, name, mode=mode)
         run.source_name = self.get_source_name(run_id)
         run.set_tracker(self, name)
         return run
 
     def load_instance(self, run_id: str, instance_name: str, mode: str) -> Any:
-        name = self.get_run_name_without_number(run_id)
+        name, _ = self.get_run_name_tuple(run_id)
         return load(self, run_id, name, instance_name, mode=mode)
 
     def load_state_dict(self, run: Run, mode: str):

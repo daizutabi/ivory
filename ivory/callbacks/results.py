@@ -1,5 +1,5 @@
 """A container to store training, validation and test results. """
-from typing import Callable, Dict, Iterable, Optional
+from typing import Callable, Dict, Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -63,6 +63,13 @@ class Results(ivory.core.collections.Dict, State):
         return results
 
 
+def stack(x: List[np.ndarray]) -> np.ndarray:
+    if x[0].ndim == 1:
+        return np.hstack(x)
+    else:
+        return np.vstack(x)
+
+
 def concatenate(
     iterable: Iterable[Results],
     callback: Optional[Callable] = None,
@@ -91,6 +98,6 @@ def concatenate(
         target = np.concatenate(targets[mode])
         dict = ivory.core.collections.Dict()
         results[mode] = dict(index=index, output=output, target=target)
-    if reduction != 'none':
+    if reduction != "none":
         results = getattr(results, reduction)()
     return results
