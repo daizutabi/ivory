@@ -198,7 +198,7 @@ class Client(Base):
 
     def load_results(
         self,
-        run_ids: Iterable[str],
+        run_ids: Union[str, Iterable[str]],
         callback=None,
         reduction: str = "none",
         verbose: bool = True,
@@ -214,6 +214,8 @@ class Client(Base):
         Returns:
             A concatenated results instance.
         """
+        if isinstance(run_ids, str):
+            return self.load_instance(run_ids, "results")
         run_ids = list(run_ids)
         it = (self.load_instance(run_id, "results") for run_id in run_ids)
         if verbose:

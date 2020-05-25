@@ -42,6 +42,17 @@ class Results(ivory.core.collections.Dict, State):
         dict = ivory.core.collections.Dict()
         return dict(index=self.index, output=self.output, target=self.target)
 
+    def set(self, **kwargs):
+        results = {}
+        for key, value in kwargs.items():
+            dict = ivory.core.collections.Dict()
+            if len(value) == 3:
+                dict(index=value[0], output=value[1], target=value[2])
+            else:
+                dict(index=value[0], output=value[1], target=None)
+            results[key] = dict
+        super().set(**results)
+
     def mean(self):
         results = Results()
         for mode, result in self.items():
