@@ -112,15 +112,14 @@ class Task(Run):
         params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
+            self.tracking.set_tags(self.id, base_params)
         params_list = list(utils.params.product(params)) * repeat
-        if "verbose" in base_params and base_params["verbose"] == 0:
-            it = params_list
-        else:
-            it = tqdm(params_list, desc="Prod ")
-        for args in it:
-            args_ = base_params.copy()
-            args_.update(args)
-            run = self.create_run(args_)
+        if "verbose" not in base_params or base_params["verbose"]:
+            params_list = tqdm(params_list, desc="Prod ")
+        for args_ in params_list:
+            args = base_params.copy()
+            args.update(args_)
+            run = self.create_run(args)
             yield run
             del run
             gc.collect()
@@ -135,6 +134,7 @@ class Task(Run):
         params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
+            self.tracking.set_tags(self.id, base_params)
         params_list = {arg: list(value) for arg, value in params.items()}
         total = sum(len(value) for value in params_list.values())
         if "verbose" in base_params and base_params["verbose"] == 0:

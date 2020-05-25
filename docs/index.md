@@ -4,12 +4,12 @@ Ivory is a lightweight framework for machine learning. It integrates model desig
 
 Using Ivory, you can tackle both tracking and tuning workflow at one place.
 
-Another key feature of Ivory is its model design. You can write down all of your model structure and tracking/tuning process in one YAML file. It allows us to understand the whole process at a glance.
+Another key feature of Ivory is its workflow design. You can write down all of your workflow such as model structure or tracking/tuning process in one YAML file. It allows us to understand the whole process at a glance.
 
 
 ## Installation
 
-You can install Ivory by a `pip` command.
+Install Ivory using `pip`.
 
 ~~~bash terminal
 $ pip install ivory
@@ -17,25 +17,24 @@ $ pip install ivory
 
 ## Using a Ivory Client
 
-Ivory has the `Client` class that manages the workflow of any machine learning. Let's create your first `Client` instance. In this quickstart, we are working with examples under the `examples` directory.
+Ivory has the `Client` class that manages the workflow of machine learning. Let's create your first `Client` instance. In this quickstart, we are working with examples under the `src` directory.
 
 ```python hide
 import os
 import shutil
 
-if os.path.exists('examples/mlruns'):
-  shutil.rmtree('examples/mlruns')
-  print('deleted')
+if os.path.exists('src/mlruns'):
+  shutil.rmtree('src/mlruns')
 ```
 
 ```python
 import ivory
 
-client = ivory.create_client("examples")
+client = ivory.create_client("src")
 client
 ```
 
-The representation of the `client` shows that it has two objects. Objects that a client has can be accessed by *index notation* or *dot notation*.
+The representation of the `client` shows that it has two objects. These objects can be accessed by *index notation* or *dot notation*.
 
 ```python
 client[0]  # or client['tracker'], or client.tracker
@@ -59,27 +58,27 @@ A `Tuner` instance connects Ivory to [Optuna: A hyperparameter optimization fram
 
 We can customize these objects with a YAML file named `client.yml` under the woking directory.  In our case, the file just contains the minimum settings.
 
-#File client.yml {%=examples/client.yml%}
+#File client.yml {%=src/client.yml%}
 
 !!! note
     A YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and without a tuner.
 
-    If you don't need a tracker, use `ivory.create_client(tracker=False)`.
+    If you don't need a tracker, for example in debugging, use `ivory.create_client(tracker=False)`.
 
 ## Create NumPy data
 
-In this quickstart, we try to predict rectangles area from thier width and height using [PyTorch](https://pytorch.org/). First, prepare the data as [NumPy](https://numpy.org/) arrays. In `example.py` under the working directory, a `create_data()` function is defined. The `ivory.create_client()` function automatically inserts the working directory to `sys.path`, so that we can import the module regardless of the current directory.
-
-```python
-import example
-```
+In this quickstart, we try to predict rectangles area from thier width and height using [PyTorch](https://pytorch.org/). First, prepare the data as [NumPy](https://numpy.org/) arrays. In `rectangle/data.py` under the working directory, a `create_data()` function is defined. The `ivory.create_client()` function automatically inserts the working directory to `sys.path`, so that we can import the module regardless of the current directory.
 
 Let's check the `create_data()` function definition and an example output:
 
-#Code example.create_data {{ example.create_data # inspect }}
+```python hide
+import rectangle.data
+```
+
+#Code rectangle.data.create_data {{ rectangle.data.create_data # inspect }}
 
 ```python
-xy, z = example.create_data(4)
+xy, z = rectangle.data.create_data(4)
 xy
 ```
 
@@ -91,7 +90,7 @@ z
 
 Ivory defines a set of Data classes (`Data`, `Dataset`, `Datasets`, `DataLoaders`). But now, we use the `Data` class only.
 
-#Code example.Data {{ example.Data # inspect }}
+#Code rectangle.data.Data {{ rectangle.data.Data # inspect }}
 
 Here, `kfold_split` function creates a fold-array.
 
@@ -107,7 +106,9 @@ In Ivory, fold number = `-1` means their samples are test data.
 Now, we can get a `Data` instance.
 
 ```python
-data = example.Data()
+import rectangle.data
+
+data = rectangle.data.Data()
 data
 ```
 
@@ -121,13 +122,17 @@ This returned value is a list of [index, input, target]. Ivory always keeps data
 
 We use a simple MLP model here.
 
-#Code example.Model {{ example.Model # inspect }}
+```python hide
+import rectangle.torch
+```
+
+#Code rectangle.torch.Model {{ rectangle.torch.Model # inspect }}
 
 ## Parameter file for Run
 
 Ivory configures a run using a YAML file. Here is a full example.
 
-#File torch.yaml {%=examples/torch.yml%}
+#File torch.yaml {%=src/torch.yml%}
 
 Let's create a run by `Client.create_run()`
 

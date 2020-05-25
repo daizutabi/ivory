@@ -1,13 +1,13 @@
 library: torch
 dataloaders:
   data:
-    class: example.Data
-    n_splits: 5
+    class: rectangle.data.Data
+    n_splits: 4
   dataset:
   batch_size: 10
   fold: 0
 model:
-  class: example.Model
+  class: rectangle.torch.Model
   hidden_sizes: [100, 100]
 optimizer:
   class: torch.optim.SGD
