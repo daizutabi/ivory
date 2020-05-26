@@ -18,10 +18,11 @@ class EarlyStopping(State):
         EarlyStopped: when ealry stopping occurs.
     """
 
-    patience: int = 0
+    patience: int
+    wait: int = 0
 
-    def __post_init__(self):
-        self.wait = 0
+    # def __post_init__(self):
+    #     self.wait = 0
 
     def on_epoch_end(self, run: Run):
         if run.monitor.is_best:

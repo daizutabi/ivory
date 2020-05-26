@@ -26,8 +26,8 @@ class Trainer(ivory.core.estimator.Estimator):
         callbacks = [Callback(run)]
         if "callbacks" in self.kwargs:
             callbacks = self.kwargs.pop("callbacks") + callbacks
-        train_input, train_target = run.datasets.train.get()[1:]
-        val_input, val_target = run.datasets.val.get()[1:]
+        train_input, train_target = run.datasets.train[:][1:]
+        val_input, val_target = run.datasets.val[:][1:]
         try:
             self.model.fit(
                 train_input,
@@ -47,7 +47,7 @@ class Trainer(ivory.core.estimator.Estimator):
 
     def test(self, run: Run):
         run.on_test_begin()
-        index, input, *target = run.datasets.test.get()
+        index, input, *target = run.datasets.test[:]
         output = self.model.predict(input, callbacks=[Callback(run)])
         if run.results:
             run.results.step(index, output, *target)

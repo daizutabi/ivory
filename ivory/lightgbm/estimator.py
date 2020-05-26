@@ -19,8 +19,8 @@ class Estimator(ivory.core.estimator.Estimator):
 
     def step(self, run: Run, mode: str):  # type:ignore
         if mode == "train":
-            _, train_input, train_target = run.datasets.train.get()
-            _, val_input, val_target = run.datasets.val.get()
+            _, train_input, train_target = run.datasets.train[:]
+            _, val_input, val_target = run.datasets.val[:]
             self.fit(train_input, train_target, [val_input, val_target])
         super().step(run, mode, training=False)
 

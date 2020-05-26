@@ -11,7 +11,7 @@ from ivory.core import default, instance
 class Base(ivory.core.collections.Dict):
     """Base class for entities such as `client`, `experiment`, and `run`. """
 
-    def __init__(self, params, **objects):
+    def __init__(self, params=None, **objects):
         super().__init__()
         self.params = params
         self.id = self.name = self.source_name = ""

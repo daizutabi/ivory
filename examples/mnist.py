@@ -50,7 +50,7 @@ class Metrics(ivory.tensorflow.metrics.Metrics):
 
 class CallbackMetric(Callback):
     def __init__(self, datasets, metrics):
-        _, self.input, self.target = datasets.val.get()
+        _, self.input, self.target = datasets.val[:]
         self.metrics = metrics
 
     def on_epoch_end(self, epoch, logs):

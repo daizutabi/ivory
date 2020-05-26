@@ -58,7 +58,8 @@ class Trainer(State):
             except TrialPruned as e:
                 pruned = e
             finally:
-                self.log(run, early_stopped, pruned)
+                if self.verbose:
+                    self.log(run, early_stopped, pruned)
         if isinstance(pruned, TrialPruned):
             raise pruned
 

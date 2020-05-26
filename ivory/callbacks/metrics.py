@@ -13,7 +13,7 @@ class Metrics(ivory.core.collections.Dict, State):
 
     def __post_init__(self):
         super().__post_init__()
-        self.history = {}
+        self.history = ivory.core.collections.Dict()
 
     def __str__(self):
         metrics = []

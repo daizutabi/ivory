@@ -98,6 +98,8 @@ class Dataset:
         return len(self.index)
 
     def __getitem__(self, index):
+        if index == slice(None, None, None):
+            index = None
         index, input, *target = self.get(index)
         if self.transform:
             input, *target = self.transform(self.mode, input, *target)
@@ -114,7 +116,7 @@ class Dataset:
             return self.data.get(self.index[index])
 
     def sample(self, n: int = 0, frac: float = 0.0):
-        index, input, *target = self.get()
+        index, input, *target = self[:]
         if frac:
             n = int(len(index) * frac)
         idx = np.random.permutation(len(index))[:n]

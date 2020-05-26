@@ -58,7 +58,7 @@ class Estimator(State):
         run.on_test_end()
 
     def step(self, run: Run, mode: str, training: bool = True):
-        index, input, *target = run.datasets[mode].get()
+        index, input, *target = run.datasets[mode][:]
         if mode == "train" and training:
             self.fit(input, *target)
         output = self.predict(input)

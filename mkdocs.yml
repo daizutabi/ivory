@@ -7,31 +7,29 @@ site_dir: ../ivory-site/site
 repo_url: https://github.com/daizutabi/ivory/
 edit_uri: ""
 
-theme: readthedocs
+theme: ivory
 
 plugins:
   - search
   - pheasant:
       version: ivory
+      cur_dir: docs
+      sys_paths: [docs/src]
   - mkapi
 
 nav:
-  - Quickstart: index.md
-  # - Tutorial:
-  #   - Quickstart: quickstart.py
+  - index.md
+  - quickstart.md
+  - Tutorial:
+    - tutorial/data.md
+    - tutorial/instance.md
+    - tutorial/model.md
+    - tutorial/callbacks.md
+    - tutorial/trainer.md
+    # - tutorial/run.md
   # - Python API:
+  #   - api/data.md
   #   - Data: api/data.md
-  #   - Data: api/data.md
-  # - Tutorial:
-  #     Overview: tutorial/overview.py
-  #     Client: tutorial/client_experiment_run.py
-      # Model: tutorial/model.py
-      # Metrics: tutorial/metrics.py
-      # Trainer: tutorial/trainer.md
-      # Run: tutorial/run.md
-      # Experiment: tutorial/experiment.md
-
-extra_css: [extra.css]
 
 markdown_extensions:
   - admonition

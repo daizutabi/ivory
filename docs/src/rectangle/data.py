@@ -15,7 +15,7 @@ def create_data(num_samples=1000):
     return xy, z
 
 
-@dataclass
+@dataclass(repr=False)
 class Data(ivory.core.data.Data):
     n_splits: int = 4
 

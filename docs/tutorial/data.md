@@ -1,0 +1,146 @@
+# Set of Data classes
+
+Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`.
+
+In this tutorial, we use the following Python module to explain about them.
+
+#File rectangle/data.py {%=/docs/src/rectangle/data.py%}
+
+## Data
+
+First import the module and check the basic behavior.
+
+{{ # cache:clear }}
+
+```python
+import rectangle.data
+
+data = rectangle.data.Data()
+data
+```
+
+In the `Data.init()` method, we need to define 4 attributes:
+
+* `index`: Index of samples.
+* `input`: Input data.
+* `target`: Target data.
+* `fold`: Fold number.
+
+A `Data.get()` method returns a list of [`index`, `input`, `target`]. This method is called from the `Dataset` instance when the dataset is indexed.
+```python
+data.get(0)  # Integer index.
+```
+
+```python
+data.get([0, 10, 20])  # Array-like index. list or np.ndarray
+```
+
+## Dataset
+
+An instance of the `Dataset` class holds one of train, validation, and test dataset. We use the Ivory's default `Dataset` class here instead of defining a subclass. The `Dataset()` initializer requires three arguments: A `Data` instance, `mode`, and `fold`.
+
+```python
+import ivory.core.data
+
+dataset = ivory.core.data.Dataset(data, 'train', 0)
+dataset
+```
+
+```python
+ivory.core.data.Dataset(data, 'val', 1)  # Another mode is `test`.
+```
+
+As the `Data` class, the `Dataset` class has a `init()` method without any arguments and no returned value.  You can define any code to modify data.
+
+To get sample from an dataset. use normal indexing
+
+```python
+dataset[0]  # Integer index.
+```
+
+```python
+dataset[[0, 10, 20]]  # Array-like index. list or np.ndarray
+```
+```python
+index, *_ = dataset[:]
+print(len(index))
+index[:10]
+```
+
+These data come from a subset of the `data` instance according to the mode and fold.
+
+The `Dataset` class takes an opptional argument: `transform`.
+
+```python
+def transform(mode:str, input, target):
+    if mode == 'train':
+        input = input * 2
+        target = target * 2
+    return input, target
+
+dataset_transformed = ivory.core.data.Dataset(data, 'train', 0, transform)
+dataset_transformed[0]
+```
+
+```python
+[2 * dataset[0][1], 2 * dataset[0][2]]
+```
+
+Usually, we don't instantiate the `Dataset` object directly. Instead, the next `Datasets` class manages the dataset.
+
+## Datasets
+
+An instance of the `Datasets` class holds a set of train, validation, and test dataset. We use the Ivory's default `Datasets` class here instead of defining a subclass. The `Datasets()` initializer requires three arguments: A `Data` instance, `Dataset` factory, and `fold`.
+
+```python
+from ivory.core.data import Dataset
+
+datasets = ivory.core.data.Datasets(data, Dataset, 0)
+datasets
+```
+
+!!! note
+    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function.
+
+A `Datasets` instance is a dict-like object:
+
+```python
+for dataset in datasets.items():
+  print(dataset)
+```
+
+Each dataset can be accessed by indexing or attributes.
+
+```python
+datasets['train'], datasets.val
+```
+
+Using the `Datasets` class, we can easily split a whole data stored in a `Data` instance into three train, validation, and test dataset.
+
+
+## DataLoaders
+
+The last class is the `DataLoaders`. This class is prepared for loading batches from a dataset. For example, assume that we are going to use PyTorch.
+
+```python
+from ivory.torch.data import DataLoaders
+
+dataloaders = DataLoaders(data, Dataset, fold=0, batch_size=4)
+dataloaders
+```
+
+!!! note
+    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function.
+
+```python
+for dataloader in dataloaders.items():
+  print(dataloader)
+```
+
+As you can see an `ivory.torch.data.DataLoaders` instance creates PyTorch's DataLoader. Check the samples.
+
+```python
+next(iter(dataloaders.train))
+```
+
+Returned samples are `torch.Tensor` instead of `np.ndarray`. We can use these tensors as inputs of a model.

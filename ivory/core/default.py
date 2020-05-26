@@ -54,6 +54,8 @@ DEFAULT_CLASS["sklearn"] = {
 
 
 def update_class(params: Dict[str, Any], library: str = "core"):
+    if 'library' in params:
+        library = params.pop("library")
     for key, value in params.items():
         if value is None:
             value = {}
