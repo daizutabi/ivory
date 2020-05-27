@@ -13,8 +13,8 @@ plugins:
   - search
   - pheasant:
       version: ivory
-      cur_dir: docs
-      sys_paths: [docs/src]
+      cur_dir: config
+      sys_paths: [examples]
   - mkapi
 
 nav:
@@ -26,6 +26,8 @@ nav:
     - tutorial/model.md
     - tutorial/callbacks.md
     - tutorial/trainer.md
+    - tutorial/core.md
+    - tutorial/task.md
     # - tutorial/run.md
   # - Python API:
   #   - api/data.md

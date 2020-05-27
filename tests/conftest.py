@@ -6,15 +6,15 @@ import pytest
 
 from ivory.core.client import create_client
 
-sys.path.insert(0, os.path.abspath("examples"))
+sys.path.insert(0, os.path.abspath("tests/examples"))
 
 
 @pytest.fixture(scope="session")
 def client():
-    client = create_client(directory="examples")
+    client = create_client(directory="tests/examples")
     yield client
-    if os.path.exists("examples/mlruns"):
-        shutil.rmtree("examples/mlruns")
+    if os.path.exists("tests/examples/mlruns"):
+        shutil.rmtree("tests/examples/mlruns")
 
 
 @pytest.fixture(scope="session")

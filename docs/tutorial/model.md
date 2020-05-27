@@ -6,7 +6,7 @@ We have prepared a `DataLoaders` instance for PyTorch. Now define a MLP model th
 
 The model is defined in `rectangle/torch.py`
 
-#File rectangle/torch.py {%=/docs/src/rectangle/torch.py%}
+#File rectangle/torch.py {%=examples/rectangle/torch.py%}
 
 We again use Ivory's [instance creation system](../instance).
 

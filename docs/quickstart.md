@@ -8,22 +8,22 @@ Install Ivory using `pip`.
 $ pip install ivory
 ~~~
 
-## Using a Ivory Client
+## Using an Ivory Client
 
-Ivory has the `Client` class that manages the workflow of machine learning. Let's create your first `Client` instance. In this quickstart, we are working with examples under the `src` directory.
+Ivory has the `Client` class that manages the workflow of machine learning. Let's create your first `Client` instance. In this quickstart, we are working with examples under the `examples` directory.
 
 ```python hide
 import os
 import shutil
 
-if os.path.exists('src/mlruns'):
-  shutil.rmtree('src/mlruns')
+if os.path.exists('examples/mlruns'):
+  shutil.rmtree('examples/mlruns')
 ```
 
 ```python
 import ivory
 
-client = ivory.create_client("src")
+client = ivory.create_client("examples")
 client
 ```
 
@@ -51,7 +51,7 @@ A `Tuner` instance connects Ivory to [Optuna: A hyperparameter optimization fram
 
 We can customize these objects with a YAML file named `client.yml` under the woking directory.  In our case, the file just contains the minimum settings.
 
-#File client.yml {%=src/client.yml%}
+#File client.yml {%=examples/client.yml%}
 
 !!! note
     A YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and without a tuner.
@@ -125,7 +125,7 @@ import rectangle.torch
 
 Ivory configures a run using a YAML file. Here is a full example.
 
-#File torch.yaml {%=src/torch.yml%}
+#File torch.yaml {%=examples/torch.yml%}
 
 Let's create a run by `Client.create_run()`
 

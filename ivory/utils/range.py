@@ -2,11 +2,16 @@ import numpy as np
 
 
 class Range:
-    def __init__(self, start, stop, step=1, num: int = 0):
+    def __init__(self, start, stop, step=1, num: int = 0, log: bool = False):
         self.start = start
         self.stop = stop
         self.step = step
         self.num = num
+        self.log = log
+        if log and num < 2:
+            raise ValueError(f"num must be larger than 1, but {num} given.")
+        if log and step != 1:
+            raise ValueError(f"Invalid step.")
 
     @property
     def is_integer(self):
@@ -39,9 +44,14 @@ class Range:
                 return (values[int(round(x))] for x in index)
         else:
             num = self.num
-            if num < 2:
-                num = round(abs(self.stop - self.start) / self.step + 1)
-            return iter(float(x) for x in np.linspace(self.start, self.stop, num))
+            if self.log:
+                start = np.log10(self.start)
+                stop = np.log10(self.stop)
+                return iter(float(x) for x in np.logspace(start, stop, num))
+            else:
+                if num < 2:
+                    num = round(abs(self.stop - self.start) / self.step + 1)
+                return iter(float(x) for x in np.linspace(self.start, self.stop, num))
 
     def __len__(self):
         return len(list(iter(self)))

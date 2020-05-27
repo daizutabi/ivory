@@ -4,7 +4,7 @@ Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, an
 
 In this tutorial, we use the following Python module to explain about them.
 
-#File rectangle/data.py {%=/docs/src/rectangle/data.py%}
+#File rectangle/data.py {%=examples/rectangle/data.py%}
 
 ## Data
 

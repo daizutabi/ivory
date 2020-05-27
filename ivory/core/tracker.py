@@ -45,7 +45,7 @@ class Tracker:
     def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
-            logger.info(f"A new experiment created with name: {name}")
+            logger.info(f"A new experiment created with name: {name!r}")
             experiment_id = self.client.create_experiment(name, self.artifact_location)
         return experiment_id
 
