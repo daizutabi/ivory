@@ -1,5 +1,7 @@
 # Creating Instance
 
+{{ ## cache:clear }}
+
 In this tutorial, we will learn about Ivory's internal instance creation system. This is worth to understand the way of writing a YAML file for machine learning.
 
 We creates a `DataLoaders` described in [the previous section](../data).
@@ -15,8 +17,6 @@ can be equivalently written as
     {'example': {'class': 'ExampleCalss', 'args1': 123, 'arg2': 'abc'}}
 
 Ivory excactly uses this relationship. We call this dictionary `params`.
-
-{{ # cache:clear }}
 
 ```python
 from ivory.core.instance import create_instance

@@ -15,7 +15,16 @@ def parse_args(args=None, **kwargs) -> Dict[str, Iterable[Any]]:
     else:
         raise ValueError(f"Invalid arguments type: {type(args)}.")
     args.update(kwargs)
-    return {arg: parse_value(value) for arg, value in args.items()}
+    parsed = {}
+    for arg, value in args.items():
+        value = parse_value(value)
+        if arg.endswith(".log"):
+            arg = arg[:-4]
+            if not isinstance(value, Range):
+                raise ValueError(f"Invalid value for log mode: {value}")
+            value.log = True
+        parsed[arg] = value
+    return parsed
 
 
 def parse_value(value) -> Iterable[Any]:

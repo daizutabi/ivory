@@ -1,10 +1,10 @@
 # Multiple Runs
 
+{{ ## cache:clear }}
+
 ## Task
 
 Ivory implements a special run type called **Task** which controls multiple nested runs. A task is useful for parameter search or cross validation.
-
-{{ # cache:clear }}
 
 ```python hide
 import os

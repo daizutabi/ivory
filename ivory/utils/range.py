@@ -8,8 +8,6 @@ class Range:
         self.step = step
         self.num = num
         self.log = log
-        if log and num < 2:
-            raise ValueError(f"num must be larger than 1, but {num} given.")
         if log and step != 1:
             raise ValueError(f"Invalid step.")
 
@@ -45,6 +43,8 @@ class Range:
         else:
             num = self.num
             if self.log:
+                if self.num < 2:
+                    raise ValueError(f"num must be larger than 1, but {num} given.")
                 start = np.log10(self.start)
                 stop = np.log10(self.stop)
                 return iter(float(x) for x in np.logspace(start, stop, num))

@@ -28,6 +28,7 @@ nav:
     - tutorial/trainer.md
     - tutorial/core.md
     - tutorial/task.md
+    - tutorial/tuning.md
     # - tutorial/run.md
   # - Python API:
   #   - api/data.md

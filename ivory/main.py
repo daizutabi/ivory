@@ -7,7 +7,7 @@ from logzero import logger
 
 import ivory
 from ivory.core import parser
-from ivory.utils.range import Range
+# from ivory.utils.range import Range
 
 if "." not in sys.path:
     sys.path.insert(0, ".")
@@ -63,15 +63,15 @@ def optimize(name, args, number, quiet, verbose):
         if "n_trials" not in kwargs and "timeout" not in kwargs:
             kwargs["n_trials"] = 3
         study.optimize(suggest_name, **kwargs)
-    else:
-        params = parser.parse_args(args)
-        kwargs = {}
-        for key in list(params.keys()):
-            if not isinstance(params[key], Range) and len(params[key]) == 1:
-                kwargs[key] = params.pop(key)[0]
-        if "n_trials" not in kwargs and "timeout" not in kwargs:
-            kwargs["n_trials"] = 3
-        study.optimize_params(params, **kwargs)
+    # else:
+    #     params = parser.parse_args(args)
+    #     kwargs = {}
+    #     for key in list(params.keys()):
+    #         if not isinstance(params[key], Range) and len(params[key]) == 1:
+    #             kwargs[key] = params.pop(key)[0]
+    #     if "n_trials" not in kwargs and "timeout" not in kwargs:
+    #         kwargs["n_trials"] = 3
+    #     study.optimize_params(params, **kwargs)
 
 
 @cli.command(help="Kill the last run to prune.")

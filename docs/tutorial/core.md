@@ -1,10 +1,10 @@
 # Ivory Core Entities
 
+{{ ## cache:clear }}
+
 ## Client
 
 Ivory has the `Client` class that manages the workflow of machine learning. In this tutorial, we are working with data and model to predict rectangle area. The source module exists under the `examples` directory.
-
-{{ # cache:clear }}
 
 ```python hide
 import os
@@ -43,7 +43,7 @@ os.listdir('examples')
 
 The `client.yml` is a configuration file for a `Client` instance. In our case, the file just contains the minimum settings.
 
-#File client.yml {%=examples/client.yml%}
+#File client.yml {%=/examples/client.yml%}
 
 !!! note
     A YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and without a tuner.
@@ -61,7 +61,7 @@ experiment
 
 The ID for this experiment was given by the MLFlow Tracking. The `Client.create_experiment()` function loads a corresponding YAML file to the first argument from the working directory.
 
-#File torch.yml {%=examples/torch.yml%}
+#File torch.yml {%=/examples/torch.yml%}
 
 After loading, the `Experiment` instance setups the parameters for creating runs later. The parameters are stored in the `params` attribute.
 
@@ -77,9 +77,9 @@ This is similar to the YAML file, but is slightly changed by the Ivory Client.
 
 ## Run
 
-After setting up an `Experiment` instance, you can create runs with various parameter.
+After setting up an `Experiment` instance, you can create runs with various parameters. Ivory provides several way to configure them as below.
 
-**Default parameters**
+### Default parameters
 
 Calling without arguments creates a run with default parameters.
 
@@ -90,8 +90,7 @@ run
 
 Here, the ID for this run was given by the MLFlow Tracking. On the other hand, the name is given by Ivory as a form of "`(run class name in lower case)#(run number)`".
 
-
-**Parameter configuration**
+### Simple literal (int, float, str)
 
 Passing key-value pairs, you can change the parameters.
 
@@ -107,26 +106,60 @@ run = experiment.create_run(fold=0.5)
 run.dataloaders.fold
 ```
 
-**Duplicated parameter**
+### List
 
-Duplicated parameters are updated together.
+A list parameter can be overwritten by passing a new list. Off course you can change the lengh of the list. The original `hidden_sizes` was `[100, 100]`.
+
+```python
+run = experiment.create_run(hidden_sizes=[2, 3, 4])
+run.model
+```
+
+As an alternative way, you can use *0-indexed colon-notation* like below. In this case, pass a dictionary to the first argument, because a colon (`:`) can't be in keyword arguments.
+
+```python
+params = {
+    "hidden_sizes:0": 10,  # Order is important.
+    "hidden_sizes:1": 20,  # Start from 0.
+    "hidden_sizes:2": 30,  # No skip. No reverse.
+}
+run = experiment.create_run(params)
+run.model
+```
+
+Do you feel this method is unnecessary? This method is prepared for [hyperparameter tuning](../tuning).
+
+
+In some case, you may want to change a part of list. Use *0-indexed dot-notation*.
+
+```python
+params = {"hidden_sizes.1": 5}
+run = experiment.create_run(params)
+run.model
+```
+
+### Duplicated parameter name
+
+Duplicated parameters with the same name are updated together.
 
 ```python
 run = experiment.create_run(patience=5)
 run.scheduler.patience, run.early_stopping.patience
 ```
 
-**Scoping by dots**
+This behavior is natural to update the parameters with the same meaning. But in the above example, the patience of early stopping becomes equal to that of scheduler, so the scheduler doesn't work at all.
 
-To specify an individual parameter, use scoping by dots. In this case, pass a dictionary with string type keys with dots to the first argument.
+### Scoping by dots
+
+To specify an individual parameter even if there are other parameters with the same name, use scoping by dots, or *parameter fullname*.
 
 ```python
-update = {'scheduler.patience': 8, 'early_stopping.patience': 20}
-run = experiment.create_run(update)
+params = {'scheduler.patience': 8, 'early_stopping.patience': 20}
+run = experiment.create_run(params)
 run.scheduler.patience, run.early_stopping.patience
 ```
 
-**Object type**
+### Object type
 
 Parameters are not limited to a literal such as `int`, `float`, or `str`. For example,
 
@@ -142,7 +175,9 @@ run.optimizer
 
 This means that you can compare optimizer algorithms easily through multiple runs with minimul effort.
 
-In the previous examples, we created runs using the `experiment.create_run()` method. In addtion, you can do the same thing by `client.create_run()` with an experiment name as the first argument. The following code blocks are qeuivalent.
+### Creating a run from a client
+
+In the above examples, we created runs using the `experiment.create_run()` method. In addtion, you can do the same thing by `client.create_run()` with an experiment name as the first argument. The following code blocks are equivalent.
 
 #Code
 ~~~python
@@ -154,20 +189,3 @@ run = experiment.create_run(fold=3)
 ~~~python
 run = client.create_run('torch', fold=3)
 ~~~
-
-## Task for multiple runs
-
-Ivory implements a special run type called **Task** which controls multiple nested runs. A task is useful for parameter search or cross validation.
-
-```python
-# task = experiment.create_task()  #  Alternative method.
-task = client.create_task('torch')
-task
-```
-
-The `Task` class has two methods to generate multiple runs: `prodcut()` and `chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library.
-
-```python
-runs = task.product(fold=range(2), lr=[1e-4, 1e-3])
-runs
-```

@@ -1,16 +1,16 @@
 # Model Structure
 
+{{ ## cache:clear }}
+
 ## Model
 
 We have prepared a `DataLoaders` instance for PyTorch. Now define a MLP model that works with the `DataLoaders`.
 
 The model is defined in `rectangle/torch.py`
 
-#File rectangle/torch.py {%=examples/rectangle/torch.py%}
+#File rectangle/torch.py {%=/examples/rectangle/torch.py%}
 
 We again use Ivory's [instance creation system](../instance).
-
-{{ # cache:clear }}
 
 ```python
 import yaml

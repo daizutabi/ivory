@@ -1,16 +1,16 @@
 # Set of Data classes
 
+{{ ## cache:clear }}
+
 Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`.
 
 In this tutorial, we use the following Python module to explain about them.
 
-#File rectangle/data.py {%=examples/rectangle/data.py%}
+#File rectangle/data.py {%=/examples/rectangle/data.py%}
 
 ## Data
 
 First import the module and check the basic behavior.
-
-{{ # cache:clear }}
 
 ```python
 import rectangle.data

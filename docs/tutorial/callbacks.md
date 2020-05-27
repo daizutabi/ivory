@@ -1,12 +1,12 @@
 # Callbacks
 
+{{ ## cache:clear }}
+
 ## Base System
 
 Ivory implements a simple but powerful callback system.
 
 Here is the list of callback functions:
-
-{{ # cache:clear }}
 
 ```python
 import ivory.core.base

@@ -1,10 +1,10 @@
 # Training a Model
 
+{{ ## cache:clear }}
+
 ## Example Preparation
 
 First, create data and model set. For more details about the following code, see [Creating Instance section](../instance).
-
-{{ # cache:clear }}
 
 ```python
 import yaml

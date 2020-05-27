@@ -172,7 +172,9 @@ class Task(Run):
 
 
 class Study(Task):
-    def optimize(self, suggest_name: str, **kwargs):
+    def optimize(self, suggest_name: str = "", **kwargs):
+        if not suggest_name:
+            suggest_name = list(self.objective.suggests.keys())[0]
         study_name = ".".join([self.experiment_name, suggest_name, self.name])
         mode = self.create_instance("monitor").mode
         study = self.tuner.create_study(study_name, mode)
@@ -180,10 +182,10 @@ class Study(Task):
             self.tracking.set_tags(self.id, {"study_name": study_name})
             study.set_user_attr("run_id", self.id)
         has_pruning = self.tuner.pruner is not None
-        keys = inspect.signature(study.optimize).parameters.keys()
+        optimize_args = inspect.signature(study.optimize).parameters.keys()
         params = {}
         for key in list(kwargs.keys()):
-            if key not in keys:
+            if key not in optimize_args:
                 params[key] = kwargs.pop(key)
         create_run = functools.partial(self.create_run, **params)
         objective = self.objective(suggest_name, create_run, has_pruning)
@@ -191,8 +193,8 @@ class Study(Task):
         self.terminate()
         return study
 
-    def optimize_params(self, params: Dict[str, Any], **kwargs):
-        if self.tracking:
-            self.tracking.set_tags(self.id, params)
-        suggest_name = self.objective.create_suggest(params)
-        self.optimize(suggest_name, **kwargs)
+    # def optimize_params(self, params: Dict[str, Iterable], **kwargs):
+    #     if self.tracking:
+    #         self.tracking.set_tags(self.id, params)
+    #     suggest_name = self.objective.create_suggest(params)
+    #     self.optimize(suggest_name, **kwargs)

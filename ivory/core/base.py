@@ -134,5 +134,8 @@ class Experiment(Creator):
     def create_task(self):
         return self.create_run(name="task")
 
-    def create_study(self):
-        return self.create_run(name="study")
+    def create_study(self, args=None, **suggests):
+        study = self.create_run(name="study")
+        if args or suggests:
+            study.objective.update(args, **suggests)
+        return study

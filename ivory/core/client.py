@@ -68,7 +68,9 @@ class Client(Base):
         else:
             return self.load_run_by_name(name, task=run_number)  # type:ignore
 
-    def create_study(self, name: str, run_number: Optional[int] = None) -> Study:
+    def create_study(
+        self, name: str, args=None, run_number: Optional[int] = None, **suggests
+    ) -> Study:
         """Creates a `Study`.
 
         Args:
@@ -77,7 +79,7 @@ class Client(Base):
                 one.
         """
         if run_number is None:
-            study = self.create_experiment(name).create_study()
+            study = self.create_experiment(name).create_study(args, **suggests)
         else:
             study = self.load_run_by_name(name, study=run_number)
         if self.tuner and "storage" not in study.params["study"]["tuner"]:

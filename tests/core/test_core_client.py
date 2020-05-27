@@ -85,7 +85,7 @@ def test_create_study(client):
     study = client.create_study("rfr")
     study.create_run({"fold": 1})
     assert len(list(client.search_run_ids("rfr", parent_only=True))) == 3
-    assert client.create_study("rfr", -1).name == study.name
+    assert client.create_study("rfr", run_number=-1).name == study.name
 
 
 def test_set_terminated_all(client):

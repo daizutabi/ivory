@@ -1,5 +1,7 @@
 # Quickstart
 
+{{ ## cache:clear }}
+
 ## Installation
 
 Install Ivory using `pip`.
@@ -51,7 +53,7 @@ A `Tuner` instance connects Ivory to [Optuna: A hyperparameter optimization fram
 
 We can customize these objects with a YAML file named `client.yml` under the woking directory.  In our case, the file just contains the minimum settings.
 
-#File client.yml {%=examples/client.yml%}
+#File client.yml {%=/examples/client.yml%}
 
 !!! note
     A YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and without a tuner.
@@ -125,7 +127,7 @@ import rectangle.torch
 
 Ivory configures a run using a YAML file. Here is a full example.
 
-#File torch.yaml {%=examples/torch.yml%}
+#File torch.yaml {%=/examples/torch.yml%}
 
 Let's create a run by `Client.create_run()`
 
