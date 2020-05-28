@@ -2,8 +2,6 @@
 
 {{ ## cache:clear }}
 
-## Example Preparation
-
 First, create data and model set. For more details about the following code, see [Creating Instance section](../instance).
 
 ```python
@@ -33,13 +31,12 @@ run:
     patience: 4
   results:
   metrics:
-    criterion:
-      def: torch.nn.functional.mse_loss
   monitor:
     metric: val_loss
   early_stopping:
     patience: 10
   trainer:
+    loss: torch.nn.functional.mse_loss
     epochs: 10
     verbose: 2
 """)
@@ -84,13 +81,6 @@ The role of `Metrics` class is to record a set of metric for evaluation of model
 ```python
 run.metrics  # Now, metrics are empty.
 ```
-
-The `Metrics` class for PyTorch has a `criterion` callable object to calculate loss.
-
-```python
-run.metrics.criterion
-```
-
 
 ### Monitor
 
@@ -144,7 +134,7 @@ run.metrics  # Show metrics at current epoch.
 ```
 
 ```python
-run.metrics.history.val_loss  # Totally, trained for 15 epochs.
+run.metrics.history.val_loss  # Metrics history.
 ```
 
 ```python

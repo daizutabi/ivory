@@ -7,5 +7,4 @@ def create_model(hidden_sizes):
     for hidden_size in hidden_sizes[1:]:
         layers.append(Dense(hidden_size, activation="relu"))
     layers.append(Dense(1))
-
     return keras.Sequential(layers)

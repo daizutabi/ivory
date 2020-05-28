@@ -64,13 +64,13 @@ We can customize these objects with a YAML file named `client.yml` under the wok
 
 In this quickstart, we try to predict rectangles area from thier width and height using [PyTorch](https://pytorch.org/). First, prepare the data as [NumPy](https://numpy.org/) arrays. In `rectangle/data.py` under the working directory, a `create_data()` function is defined. The `ivory.create_client()` function automatically inserts the working directory to `sys.path`, so that we can import the module regardless of the current directory.
 
-Let's check the `create_data()` function definition and an example output:
+Let's check the `create_data()` function defined in `rectangle/data.py` and an example output:
 
 ```python hide
 import rectangle.data
 ```
 
-#Code rectangle.data.create_data {{ rectangle.data.create_data # inspect }}
+#File rectangle/data.py {%=/examples/rectangle/data.py%}
 
 ```python
 import rectangle.data
@@ -87,9 +87,7 @@ z
 
 Ivory defines a set of Data classes (`Data`, `Dataset`, `Datasets`, `DataLoaders`). But now, we use the `Data` class only.
 
-#Code rectangle.data.Data {{ rectangle.data.Data # inspect }}
-
-Here, `kfold_split` function creates a fold-array.
+In the above file, the `kfold_split()` function creates a fold array.
 
 ```python
 import numpy as np
@@ -97,8 +95,6 @@ from ivory.utils.fold import kfold_split
 
 kfold_split(np.arange(10), n_splits=3)
 ```
-
-In Ivory, fold number = `-1` means their samples are test data.
 
 Now, we can get a `Data` instance.
 
@@ -121,7 +117,7 @@ We use a simple MLP model here.
 import rectangle.torch
 ```
 
-#Code rectangle.torch.Model {{ rectangle.torch.Model # inspect }}
+#File rectangle/torch.py {%=/examples/rectangle/torch.py%}
 
 ## Parameter file for Run
 
@@ -157,10 +153,10 @@ print(yaml.dump(run.params, sort_keys=False))
 This is similar to the YAML file we read before, but is slightly changed by the Ivory Client.
 
 * Run and experiment sections are inserted.
-* ExperimentID and RunID are assigned by the MLFlow Tracking.
-* Default classes are specified, for example `ivory.torch.trainer.Trainer` for a trainer instance.
+* ExperimentID and RunID are assigned by MLFlow Tracking.
+* Default classes are specified, for example `ivory.torch.trainer.Trainer` for a `trainer` instance.
 
-The `Client.create_run()` method takes keyword arguments to modify these parameters:
+The `Client.create_run()` method can take keyword arguments to modify these parameters:
 
 ```python
 run = client.create_run(
@@ -188,6 +184,10 @@ The history of metrics is saved as the `history` attribute of a `run.metrics` in
 run.metrics.history
 ```
 
+```python
+run.metrics.history.val_loss
+```
+
 Also the model output and target are automatically collected in a `run.results` instance.
 
 ```python
@@ -204,7 +204,7 @@ run.results.val.target[:5]
 
 ## Test a model
 
-Testing a model is as simple as training. Just call `run.start('test')` instead of (default) `'train'`.
+Testing a model is as simple as training. Just call `run.start('test')` instead of a (default) `'train'` argument.
 
 ```python
 run.start('test')
@@ -232,14 +232,14 @@ task = client.create_task('torch')
 task
 ```
 
-The `Task` class has two methods to generate multiple runs: `prodcut()` and `chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library. Let's try to perform cross validation.
+The `Task` class has two methods to generate multiple runs: `Task.prodcut()` and `Task.chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library. Let's try to perform cross validation.
 
 ```python
 runs = task.product(fold=range(4), verbose=0, epochs=3)
 runs
 ```
 
-Like `itertools`'s functions, `Task.prodcut()` and `Task.chain()` return a generator, which yields runs that are configured by different parameters you specified. In this case, this generator will yield 4 runs with a fold number ranging from 0 to 4 for each. A `task` instance doesn't start any training by itself. In addtion, you can pass fixed parameters to update the original parameters in the YAML file.
+Like `itertools`'s functions, `Task.prodcut()` and `Task.chain()` return a generator, which yields runs that are configured by different parameters you specify. In this case, this generator will yield 4 runs with a fold number ranging from 0 to 4 for each. A `task` instance doesn't start any training by itself. In addtion, you can pass fixed parameters to update the original parameters in the YAML file.
 
 Then start 4 runs by a `for` loop including `run.start('both')`. Here `'both'` means execution of test after training.
 
@@ -250,10 +250,10 @@ for run in runs:
 
 ## Collect runs
 
-Our client has a `Tracker` instance. It stores the state of runs in background using the MLFlow Tracking. The `Client` class provides several methods to access the stored runs. For example, `Client.search_run_ids()` returns a generator which yields RunID created by the MLFlow Tracking.
+Our client has a `Tracker` instance. It stores the state of runs in background using MLFlow Tracking. The `Client` class provides several methods to access the stored runs. For example, `Client.search_run_ids()` returns a generator which yields RunID created by MLFlow Tracking.
 
 ```python
-# A helper function
+# A helper function.
 def print_run_info(run_ids):
     for run_id in run_ids:
         print(run_id[:5], client.get_run_name(run_id))
@@ -293,10 +293,10 @@ print_run_info(run_ids)
 
 ## Load runs and results
 
-The Ivory `Client` class can load runs. First select RunID(s) to load. We want to perform cross validation here, so that we need a run collection created by the `task#0`. In this case, we can use `Client.get_nested_run_ids()`. Why don't we use `Client.search_run_ids()` as we did above? Because we don't have an easy way to get a very long RunID after we restart a Python session and lose the `Task` instance. On the ohter hand, a run name is easy to manage and write.
+An Ivory `Client` instance can load runs. First select RunID(s) to load. We want to perform cross validation here, so that we need a run collection created by the `task#0`. In this case, we can use `Client.get_nested_run_ids()`. Why don't we use `Client.search_run_ids()` as we did above? Because we don't have an easy way to get a very long RunID after we restart a Python session and lose the `Task` instance. On the ohter hand, a run name is easy to manage and write.
 
 ```python
-# Assume that we restart a session so we have no run instances.
+# Assume that we restart a session so we have no run instances now.
 run_ids = list(client.get_nested_run_ids('torch', task=0))
 print_run_info(run_ids)
 ```
@@ -316,7 +316,7 @@ As you expected, the fold number is 3.
 run.dataloaders.fold
 ```
 
-By loading a run, we obtained the trained model.
+By loading a run, we obtained the *pretrained* model.
 
 ```python
 run.model.eval()
@@ -342,11 +342,11 @@ results
 ```
 
 ```python
-for mode in ['train', 'val', 'test']:
+for mode in results:  # Yield a mode.
     print(mode, results[mode].output.shape)
 ```
 
-For cross validation, we need 4 runs. To load multiple run's results, the Ivory `Client` provides a convenient method.
+For cross validation, we need 4 runs. In order to load multiple run's results at the same time, the Ivory `Client` provides a convenient method.
 
 ```python
 results = client.load_results(run_ids, verbose=False)  # No progress bar.
@@ -354,8 +354,8 @@ results
 ```
 
 ```python
-for mode in ['val', 'test']:
-    print(mode, results[mode].output.shape)
+for mode, result in results.items():  # Yield a (mode, result).
+    print(mode, result.output.shape)
 ```
 
 !!! note
@@ -369,15 +369,15 @@ import numpy as np
 len(np.unique(results.val.index)), len(np.unique(results.test.index))
 ```
 
-Usually, duplicated samples are averaged for ensembling. `Results.mean()` method performs this *mean reduction* and returns a newly created `Rusults` instance.
+Usually, duplicated samples in test data are averaged for ensembling. `Results.mean()` method performs this *mean reduction* and returns a newly created `Rusults` instance.
 
 ```python
 reduced_results = results.mean()
-for mode in ['val', 'test']:
-    print(mode, reduced_results[mode].output.shape)
+for mode, result in reduced_results.items():
+    print(mode, result.output.shape)
 ```
 
-Compare the results.
+Compare these results.
 
 ```python
 index = results.test.index
@@ -401,8 +401,8 @@ results
 ```
 
 ```python
-for mode in ['val', 'test']:
-    print(mode, results[mode].output.shape)
+for mode, result in results.items():
+    print(mode, result.output.shape)
 ```
 
 A cross validation (CV) score can be calculated as follows:

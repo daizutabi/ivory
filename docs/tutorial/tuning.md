@@ -16,7 +16,7 @@ To optimize a set of hyperparameters, define a *suggest function*. Here are  exa
 
 #File rectangle/suggest.py {%=/examples/rectangle/suggest.py%}
 
-A suggest function must take a `trial` (an instance of [`Trial`](https://optuna.readthedocs.io/en/latest/reference/trial.html#)) as the first argument but you can add arbitrary arguments if you need. For more details about what the `Trial` can do, see [the Optuna offical documentation]( https://optuna.readthedocs.io/en/latest/tutorial/configurations.html).
+A suggest function must take a `trial` (an instance of [`Trial`](https://optuna.readthedocs.io/en/latest/reference/trial.html#)) as the first argument but you can add arbitrary arguments if you need. For more details about what the `Trial` can do, see [the offical Optuna documentation]( https://optuna.readthedocs.io/en/latest/tutorial/configurations.html).
 
 !!! note
     In the `suggest_hidden_sizes()` function, we use [*0-indexed colon-notation*](../core#list), because Optuna doesn't suggest a list itself but its element.
@@ -35,7 +35,7 @@ hidden_sizes = partial(suggest_hidden_sizes, max_num_layers=3)
 
 ## Study
 
-Ivory implements a special run type called **Study** which controls hyperparameter tuning using [Optuna](https://preferred.jp/en/projects/optuna/).
+Ivory implements a special run type called **Study** which controls hyperparameter tuning using Optuna.
 
 ```python
 import ivory
@@ -46,12 +46,12 @@ study_hs = client.create_study('torch', hidden_sizes=hidden_sizes)
 study_lr
 ```
 
-In the `client.create_study()` function, you can pass keyword arguments in which a key is a suggest names and a value is a pure suggest functions.
+In the `client.create_study()` function, you can pass a keyword argument in which the key is a suggest name and the value is a *pure* suggest function.
 
 
 ## Objective
 
-The `ivory.core.objective.Objective` class provides *objective functions* that return a score to minimize or maximize. But you don't need to know about the `Objective` class in details. Ivory builds an objective function from a suggest function and provides it to Optuna so that Optuna can optimize the parameters.
+The `ivory.core.objective.Objective` class provides *objective functions* that return a score to minimize or maximize. But you don't need to know about the `Objective` class in details. Ivory builds an objective function from a suggest function and sends it to Optuna so that Optuna can optimize the parameters.
 
 A `Study` instance has an `Objective` instance.
 
@@ -123,7 +123,7 @@ You may have a question. How does Optuna optimize the parameters without any sco
 
 #File torch.yml {%=/examples/torch.yml%}
 
-The `Monitor` instance monitors `val_loss` and the default mode is `min` (smaller is better). If your monitor  is accuracy, for example, set the monitor like this:
+The `Monitor` instance monitors `val_loss` (actually this is the default value, so that you can delete this line) and the default mode is `min` (smaller is better). If your monitor  is accuracy, for example, set the monitor like this:
 
 ~~~yaml
 monitor:
@@ -137,7 +137,7 @@ Again read the suggest functions.
 
 #File rectangle/suggest.py {%=/examples/rectangle/suggest.py%}
 
-The `suggest_hidden_sizes()` function has some logic but the `suggest_lr()` function is too simple to define a function. You may not want to write such a function. Ivory can do that for you. You can pass iterable(s) to the `client.create_study()` function instead of a callable
+The `suggest_hidden_sizes()` function has some logic but the `suggest_lr()` function is too simple to define a function. You may not want to write such a function. Ivory can do that for you. You can pass key-iterable pairs to the `client.create_study()` function instead of key-callable pairs.
 
 ### tuple, range, Range
 
@@ -208,7 +208,7 @@ optuna_study.study_name
 
 ## Study from YAML file
 
-As a normal `Run`, a `Study` instance also can be created from a YAML file. For this, pass an extra keyword argument to the `client.create_experiment()` function. The key is the instance name (in this case `study`) and value is a YAML file name without the extension.
+As a normal `Run`, a `Study` instance also can be created from a YAML file. Pass an extra keyword argument to the `client.create_experiment()` function. The key is the instance name (in this case `study`) and value is a YAML file name without its extension.
 
 ```python
 experiment = client.create_experiment('torch', study='study')
@@ -219,7 +219,7 @@ Here is the contents of `study.yml` file.
 
 #File study.yml {%=/examples/study.yml[3:]%}
 
-Suggest functions should be callable, `hidden_sizes` uses `def` keyword. On the other hand, `lr` is just one line. If a suggest funtion can be called without additional parameters, you can omit the `def` keyword. Using this experiment, create `Study` instances.
+Suggest functions should be callable, `hidden_sizes` uses `def` keyword to create a callable. On the other hand, `lr` is just one line. If a suggest funtion can be called without additional parameters, you can omit the `def` keyword. Using this experiment, we can create `Study` instances with a suggest function.
 
 ```python
 study_lr = client.create_study('torch', 'lr')
@@ -249,7 +249,7 @@ Here is the updated contents of `study.yml` file.
 
 #File study.yml {%=/examples/study.yml%}
 
-The `Tuner` instance has Optuna's `MedianPruner`. (Off course, you can use [other pruners](https://optuna.readthedocs.io/en/latest/reference/pruners.html).) A `Study` instance give an `ivory.callbacks.Pruning` instance to a run when the run is created, then with Ivory's [callback system](../callbacks), the `Pruning` instance communicates with Optuna.
+The `Tuner` instance has Optuna's `MedianPruner`. (Off course, you can use [other pruners](https://optuna.readthedocs.io/en/latest/reference/pruners.html).) A `Study` instance give an `ivory.callbacks.Pruning` instance to a run when the run is created, then with Ivory's [callback system](../callbacks), the `Pruning` instance communicates with Optuna in order to determine pruning.
 
 
 !!! note

@@ -4,10 +4,11 @@ datasets:
     class: rectangle.data.Data
     n_splits: 4
   dataset:
+  batch_size: 10
   fold: 0
 model:
   call: rectangle.tf.create_model
-  hidden_sizes: [100, 100]
+  hidden_sizes: [10, 20]
 optimizer:
   class: tensorflow.keras.optimizers.SGD
   lr: 1e-3
@@ -23,6 +24,5 @@ early_stopping:
   patience: 10
 trainer:
   loss: mse
-  batch_size: 10
   epochs: 10
   verbose: 2

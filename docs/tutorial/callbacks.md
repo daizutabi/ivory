@@ -1,8 +1,8 @@
-# Callbacks
+# Callback System
 
 {{ ## cache:clear }}
 
-## Base System
+## Basics
 
 Ivory implements a simple but powerful callback system.
 
@@ -19,7 +19,7 @@ Any class that defines these functions can be a callback instance.
 ```python
 class SimpleCallback:  # No base class is needed.
     # You don't have to define all of the callback functions
-    def  on_fit_begin(self, run):  # Must have a `run` argument.
+    def on_fit_begin(self, run):  # Must have an only `run` argument.
         print(f'on_fit_begin is called from id={id(run)}')
         # Do something with `run`.
 ```
@@ -31,7 +31,7 @@ caller = ivory.core.base.CallbackCaller(simple=SimpleCallback())
 caller
 ```
 
-The number of registerd objects is 1.
+The number of registered instances is 1.
 
 
 ```python
@@ -45,26 +45,26 @@ caller.create_callbacks()
 caller
 ```
 
-The number of objects increased up to 13.
+The number of instances increased up to 13.
 
 ```python
 list(caller)
 ```
 
-Callback functions are added to the caller instance. Inspect each callback funtion.
+Callback functions are added to the caller instance. Let's inspect some callback funtions.
 
 ```python
 caller.on_init_begin
 ```
 
-This is an empty callback because the caller has no objects that define the `on_init_begin()` function. On the other hand,
+This is an empty callback because the caller has no instances that define the `on_init_begin()` function. On the other hand,
 
 
 ```python
 caller.on_fit_begin
 ```
 
-The `simple` object is registerd as a receiver for the `on_fit_begin()` function. We can call this.
+The `simple` instance is registered as a receiver of the `on_fit_begin()` function. We can call this.
 
 ```python
 caller.on_fit_begin()
@@ -74,13 +74,13 @@ caller.on_fit_begin()
 id(caller)
 ```
 
-This caller-receiver network among arbitrary object collection builds a complex machine learning workflow.
+This caller-receiver network among arbitrary instance collection builds a complex machine learning workflow.
 
 The `Run` class is a subclass of the `CallbackCaller` class and performs more library-specific process. We uses this `Run` class below.
 
-## Example Preparation
+## Example Callback: Results
 
-To work with the callbacks, we create data and model set that we have used. For more details about the following code, see [Creating Instance](../instance) section.
+To work with the `Results` callback, we create data and model set. For more details about the following code, see [Creating Instance](../instance) section.
 
 ```python
 import yaml
@@ -106,9 +106,6 @@ model:
 dataloaders = create(doc, 'dataloaders')
 model = create(doc, 'model')
 ```
-
-
-## Results
 
 The `Results` callback stores index, output, and target data. To save memory, a `Results` instance ignores input data.
 

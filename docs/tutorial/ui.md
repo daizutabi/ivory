@@ -4,8 +4,6 @@ Ivory uses [MLFlow Tracking](https://mlflow.org/docs/latest/tracking.html) for t
 
 {{ ## cache:clear }}
 
-## Creating Runs
-
 First create several runs for demonstration.
 
 ```python hide

@@ -27,11 +27,9 @@ client
 list(client)
 ```
 
-The first object is a `Tracker` instance which connects Ivory to [MLFlow Tracking](https://mlflow.org/docs/latest/tracking.html).
+The first object is a `Tracker` instance which connects Ivory to [MLFlow Tracking](https://mlflow.org/docs/latest/tracking.html). The second objects is named `tuner`. A `Tuner` instance connects Ivory to [Optuna](https://preferred.jp/en/projects/optuna/).
 
-The second objects is named `tuner`. A `Tuner` instance connects Ivory to [Optuna: A hyperparameter optimization framework](https://preferred.jp/en/projects/optuna/).
-
-Show the files in the working directory `examples`.
+Show files in the working directory `examples`.
 
 ```python
 import os
@@ -39,7 +37,7 @@ import os
 os.listdir('examples')
 ```
 
-`rectangle` is a Python package that contains our examples. YAML files with extension of `.yml` or possibly `.yaml` are parameter files to define a machine learning workflow. Basically, one YAML file is corresponding to one `Experiment` as discussed later, except the `client.yml` file. A YAML file name without the extension becomes an experiment name. `mlruns` is a directory automatically created by the MLFlow Tracking in which our trained model and callbacks instances are saved.
+`rectangle` is a Python package that contains our examples. YAML files with extension of `.yml` or possibly `.yaml` are parameter files to define a machine learning workflow. Basically, one YAML file is corresponding to one `Experiment` as discussed later, except the `client.yml` file. A YAML file name without the extension becomes an experiment name. `mlruns` is a directory automatically created by MLFlow Tracking in which our trained model and callbacks instances are saved.
 
 The `client.yml` is a configuration file for a `Client` instance. In our case, the file just contains the minimum settings.
 
@@ -52,14 +50,14 @@ The `client.yml` is a configuration file for a `Client` instance. In our case, t
 
 ## Experiment
 
-The `Client.create_experiment()` function creates an `Experiment` instance. If the `Client` instance has a `tracker`, an experiment of the MLFlow Tracking is also created at the same time if it hasn't existed yet. By cliking an icon (<i class="far fa-eye-slash" style="font-size:0.8rem; color: #ff8888;"></i>) in the below cell, you can see the log.
+The `Client.create_experiment()` function creates an `Experiment` instance. If the `Client` instance has a `tracker`, an experiment of MLFlow Tracking is also created at the same time if it hasn't existed yet. By cliking an icon (<i class="far fa-eye-slash" style="font-size:0.8rem; color: #ff8888;"></i>) in the below cell, you can see the log.
 
 ```python
 experiment = client.create_experiment('torch')  # Read torch.yml as params.
 experiment
 ```
 
-The ID for this experiment was given by the MLFlow Tracking. The `Client.create_experiment()` function loads a corresponding YAML file to the first argument from the working directory.
+The ID for this experiment was given by MLFlow Tracking. The `Client.create_experiment()` function loads a corresponding YAML file to the first argument from the working directory.
 
 #File torch.yml {%=/examples/torch.yml%}
 
@@ -72,7 +70,7 @@ experiment.params
 This is similar to the YAML file, but is slightly changed by the Ivory Client.
 
 * Run and experiment sections are inserted.
-* ExperimentID and RunID are assigned by the MLFlow Tracking.
+* ExperimentID and RunID are assigned by MLFlow Tracking.
 * Default classes are specified, for example `ivory.torch.trainer.Trainer` for a trainer instance.
 
 ## Run
@@ -88,7 +86,7 @@ run = experiment.create_run()
 run
 ```
 
-Here, the ID for this run was given by the MLFlow Tracking. On the other hand, the name is given by Ivory as a form of "`(run class name in lower case)#(run number)`".
+Here, the ID for this run is given by MLFlow Tracking. On the other hand, the name is given by Ivory as a form of "`(run class name in lower case)#(run number)`".
 
 ### Simple literal (int, float, str)
 
@@ -108,7 +106,7 @@ run.dataloaders.fold
 
 ### List
 
-A list parameter can be overwritten by passing a new list. Off course you can change the lengh of the list. The original `hidden_sizes` was `[100, 100]`.
+A list parameter can be overwritten by passing a new list. Off course you can change the lengh of the list. The original `hidden_sizes` was `[10, 20]`.
 
 ```python
 run = experiment.create_run(hidden_sizes=[2, 3, 4])

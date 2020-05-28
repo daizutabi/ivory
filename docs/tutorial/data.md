@@ -2,13 +2,11 @@
 
 {{ ## cache:clear }}
 
-Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`.
-
-In this tutorial, we use the following Python module to explain about them.
+Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`. In this tutorial, we use the following Python module to explain them.
 
 #File rectangle/data.py {%=/examples/rectangle/data.py%}
 
-## Data
+## Data Class
 
 First import the module and check the basic behavior.
 
@@ -52,7 +50,7 @@ ivory.core.data.Dataset(data, 'val', 1)  # Another mode is `test`.
 
 As the `Data` class, the `Dataset` class has a `init()` method without any arguments and no returned value.  You can define any code to modify data.
 
-To get sample from an dataset. use normal indexing
+To get data from an dataset. use normal indexing
 
 ```python
 dataset[0]  # Integer index.
@@ -62,17 +60,17 @@ dataset[0]  # Integer index.
 dataset[[0, 10, 20]]  # Array-like index. list or np.ndarray
 ```
 ```python
-index, *_ = dataset[:]
+index, *_ = dataset[:]  # Get all data.
 print(len(index))
 index[:10]
 ```
 
 These data come from a subset of the `data` instance according to the mode and fold.
 
-The `Dataset` class takes an opptional argument: `transform`.
+The `Dataset` class takes an opptional and callable argument: `transform`.
 
 ```python
-def transform(mode:str, input, target):
+def transform(mode: str, input, target):
     if mode == 'train':
         input = input * 2
         target = target * 2
@@ -86,7 +84,7 @@ dataset_transformed[0]
 [2 * dataset[0][1], 2 * dataset[0][2]]
 ```
 
-Usually, we don't instantiate the `Dataset` object directly. Instead, the next `Datasets` class manages the dataset.
+Usually, we don't instantiate the `Dataset` class directly. Instead, the `Datasets` class create dataset instances.
 
 ## Datasets
 
@@ -100,13 +98,11 @@ datasets
 ```
 
 !!! note
-    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function.
-
-A `Datasets` instance is a dict-like object:
+    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function that returns a `Dataset` instance.
 
 ```python
-for dataset in datasets.items():
-  print(dataset)
+for mode, dataset in datasets.items():
+    print(mode, dataset)
 ```
 
 Each dataset can be accessed by indexing or attributes.
@@ -130,11 +126,11 @@ dataloaders
 ```
 
 !!! note
-    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function.
+    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function that returns a `Dataset` instance.
 
 ```python
-for dataloader in dataloaders.items():
-  print(dataloader)
+for mode, dataloader in dataloaders.items():
+  print(mode, dataloader)
 ```
 
 As you can see an `ivory.torch.data.DataLoaders` instance creates PyTorch's DataLoader. Check the samples.
@@ -143,4 +139,4 @@ As you can see an `ivory.torch.data.DataLoaders` instance creates PyTorch's Data
 next(iter(dataloaders.train))
 ```
 
-Returned samples are `torch.Tensor` instead of `np.ndarray`. We can use these tensors as inputs of a model.
+Returned samples are `torch.Tensor` instead of `np.ndarray`. We can use these tensors as inputs for a PyTorch model.

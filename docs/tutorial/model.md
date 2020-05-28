@@ -60,7 +60,7 @@ optimizer = torch.optim.SGD(params=model.parameters(), lr=1e-3)
 optimizer
 ```
 
-Now try to describe this optimizer in a dictionary style. However, the argument `params` is not a simple literal but an iterable of learnable parameters. Ivory provides "**`$`-notation**" to tackle this problem.
+Now try to describe this optimizer in a dictionary style. However, the first argument `params` is not a simple literal but an iterable of learnable parameters. Ivory provides "**`$`-notation**" to tackle this problem.
 
 
 ```python
@@ -74,12 +74,12 @@ optimizer = create(doc, 'optimizer', globals={'model': model})
 optimizer
 ```
 
-A "**`$`**" is a starting point to refer other instance stored in a `globals` dictionary. In this case, `$.model` is replaced by the `model` instance in `globals`, then `.parameters()` invokes a call of the `model.parameters()` method.
+A "**`$`**" is a starting point to refer other instance stored in the `globals` dictionary. In this case, `$.model` is replaced by the `model` instance in `globals`, then `.parameters()` invokes a call of the `model.parameters()` method.
 
 
 ## Scheduler
 
-A Scheduler controls the learning rate of an optimizer.
+A scheduler controls the learning rate of an optimizer.
 
 ```python
 doc = """
@@ -93,9 +93,15 @@ scheduler = create(doc, 'scheduler', globals={'optimizer': optimizer})
 scheduler
 ```
 
-If a `$`-notation has no suffix, the value becomes its key itself. The following two example are equivalent:
+If a `$`-notation has no suffix, the value becomes its key itself. The following two examples are equivalent:
 
-    optimizer: $
-    optimizer: $.optimizer
+
+~~~yaml
+optimizer: $
+~~~
+
+~~~yaml
+optimizer: $.optimizer
+~~~
 
 Now we have had both data and model.

@@ -22,7 +22,7 @@ task = client.create_task('torch')  # Or, experiment.create_task()
 task
 ```
 
-The `Task` class has two methods to generate multiple runs: `prodcut()` and `chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library.
+The `Task` class has two methods to generate multiple runs: `Task.prodcut()` and `Task.chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library.
 
 ### Product
 
@@ -37,7 +37,7 @@ runs
 
 ```python
 for run in runs:
-  pass  # Do somthing, for example, run.start()
+    pass  # Do somthing, for example, run.start()
 ```
 
 You can specify other parameters which don't change during iteration.
@@ -46,7 +46,7 @@ You can specify other parameters which don't change during iteration.
 task = client.create_task('torch')
 runs = task.product(fold=range(2), factor=[0.5, 0.7], lr=1e-4, verbose=0)
 for run in runs:
-  pass  # Do somthing, for example, run.start()
+    pass  # Do somthing, for example, run.start()
 ```
 
 
@@ -68,7 +68,7 @@ runs
 
 ```python
 for run in runs:
-  pass  # Do somthing, for example, run.start()
+    pass  # Do somthing, for example, run.start()
 ```
 
 The `use_best_param` keyword argument is useful for dynamic updating of parameters. If `True` (default), the parameter which got the best score is used during the following iterations.
@@ -82,8 +82,8 @@ runs = task.chain(
     use_best_param=True,
     verbose=0)
 for run in runs:
-  pass  # Do somthing, for example, run.start()
-  # We do nothing, so the first values are used.
+    pass  # Do somthing, for example, run.start()
+    # We do nothing, so the first values are used.
 ```
 
 ## Range
