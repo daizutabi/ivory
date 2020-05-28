@@ -7,15 +7,12 @@ from ivory.utils.tqdm import tqdm
 
 
 class Trainer(ivory.core.estimator.Estimator):
-    def __init__(self, model, epoch=-1, epochs=1, verbose=1, batch_size=32, **kwargs):
-        super().__init__(model.fit, **kwargs)
-        if self.params:
-            model.compile(**self.params)
-        self.model = model
+    def __init__(self, epoch=-1, epochs=1, verbose=1, batch_size=32, **kwargs):
         self.epoch = epoch
         self.epochs = epochs
         self.verbose = verbose
         self.batch_size = batch_size
+        self.kwargs = kwargs
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -23,17 +20,23 @@ class Trainer(ivory.core.estimator.Estimator):
 
     def on_init_begin(self, run):
         if not run.model._is_compiled:
-            pass
+            super().__init__(run.model.fit, **self.kwargs)
+            if run.optimizer:
+                self.params.update(optimizer=run.optimizer)
+            if self.params:
+                run.model.compile(**self.params)
 
     def train(self, run: Run):
         run.on_fit_begin()
         callbacks = [Callback(run)]
+        if run.scheduler:
+            callbacks.insert(0, run.scheduler)
         if "callbacks" in self.kwargs:
             callbacks = self.kwargs.pop("callbacks") + callbacks
         train_input, train_target = run.datasets.train[:][1:]
         val_input, val_target = run.datasets.val[:][1:]
         try:
-            self.model.fit(
+            run.model.fit(
                 train_input,
                 train_target,
                 batch_size=self.batch_size,
@@ -52,13 +55,10 @@ class Trainer(ivory.core.estimator.Estimator):
     def test(self, run: Run):
         run.on_test_begin()
         index, input, *target = run.datasets.test[:]
-        output = self.model.predict(input, callbacks=[Callback(run)])
+        output = run.model.predict(input, callbacks=[Callback(run)])
         if run.results:
             run.results.step(index, output, *target)
         run.on_test_end()
-
-    # def predict(self, input):
-    #     return self.model.predict(input)
 
     def log(self, run: Run, early_stopped=False, pruned=False):
         msg = message(run, early_stopped, pruned)
