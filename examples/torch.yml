@@ -20,12 +20,11 @@ scheduler:
   patience: 4
 results:
 metrics:
-  criterion:
-    def: torch.nn.functional.mse_loss
 monitor:
   metric: val_loss
 early_stopping:
   patience: 10
 trainer:
+  loss: torch.nn.functional.mse_loss
   epochs: 10
   verbose: 2

@@ -132,7 +132,10 @@ class Datasets(ivory.core.collections.Dict):
     def __post_init__(self):
         super().__post_init__()
         for mode in ["train", "val", "test"]:
-            self[mode] = self.dataset(self.data, mode, self.fold)
+            self[mode] = self.get_dataset(mode)
+
+    def get_dataset(self, mode):
+        return self.dataset(self.data, mode, self.fold)
 
 
 @dataclass

@@ -22,11 +22,7 @@ monitor:
 early_stopping:
   patience: 10
 trainer:
-  model: $
-  optimizer: $
   loss: mse
-  metrics: [accuracy]
-  callbacks: [$.scheduler]
   batch_size: 10
   epochs: 10
   verbose: 2

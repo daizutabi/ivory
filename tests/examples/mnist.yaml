@@ -3,6 +3,7 @@ datasets:
   data:
     class: mnist.Data
   dataset:
+  batch_size: 32
   fold: 0
 model:
   call: mnist.create_model
