@@ -136,6 +136,9 @@ class Experiment(Creator):
 
     def create_study(self, args=None, **suggests):
         study = self.create_run(name="study")
+        if isinstance(args, str) and args in study.objective:
+            study.objective.suggests = {args: study.objective.suggests[args]}
+            return study
         if args or suggests:
             study.objective.update(args, **suggests)
         return study

@@ -10,11 +10,15 @@ We creates a `DataLoaders` described in [the previous section](../data).
 
 A syntax to create an instance is similar to a dictionary.
 
-    example = ExampleCalss(arg1=123, arg2='abc')
+~~~python
+example = ExampleCalss(arg1=123, arg2='abc')
+~~~
 
 can be equivalently written as
 
-    {'example': {'class': 'ExampleCalss', 'args1': 123, 'arg2': 'abc'}}
+~~~python
+{'example': {'class': 'ExampleCalss', 'args1': 123, 'arg2': 'abc'}}
+~~~
 
 Ivory excactly uses this relationship. We call this dictionary `params`.
 
@@ -116,4 +120,23 @@ dataloaders:
   batch_size: 4
 """
 create(doc, 'dataloaders')
+```
+
+## Default Value
+
+If a callable has parameters with default value, you can use `__default__` to get default values from the callable signature.
+
+```python
+doc = """
+library: torch
+dataloaders:
+  data:
+    class: rectangle.data.Data
+    n_splits: __default__
+  dataset:
+  fold: 0
+  batch_size: 15
+"""
+dataloaders = create(doc, 'dataloaders')
+dataloaders.data.n_splits
 ```

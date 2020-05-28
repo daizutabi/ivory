@@ -192,9 +192,3 @@ class Study(Task):
         study.optimize(objective, **kwargs)
         self.terminate()
         return study
-
-    # def optimize_params(self, params: Dict[str, Iterable], **kwargs):
-    #     if self.tracking:
-    #         self.tracking.set_tags(self.id, params)
-    #     suggest_name = self.objective.create_suggest(params)
-    #     self.optimize(suggest_name, **kwargs)

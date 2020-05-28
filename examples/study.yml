@@ -1,0 +1,10 @@
+tuner:
+  pruner:
+    class: optuna.pruners.MedianPruner
+objective:
+  lr: rectangle.suggest.suggest_lr
+  hidden_sizes:
+    def: rectangle.suggest.suggest_hidden_sizes
+    max_num_layers: 3
+    min_size: __default__
+    max_size: __default__

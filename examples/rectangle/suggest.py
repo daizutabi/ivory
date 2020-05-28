@@ -1,4 +1,4 @@
-def suggest_lr(trial, min, max):
+def suggest_lr(trial, min=1e-5, max=1e-3):
     trial.suggest_loguniform("lr", min, max)
 
 

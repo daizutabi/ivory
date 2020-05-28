@@ -21,6 +21,10 @@ class Trainer(ivory.core.estimator.Estimator):
         class_name = self.__class__.__name__
         return f"{class_name}()"
 
+    def on_init_begin(self, run):
+        if not run.model._is_compiled:
+            pass
+
     def train(self, run: Run):
         run.on_fit_begin()
         callbacks = [Callback(run)]
@@ -53,8 +57,8 @@ class Trainer(ivory.core.estimator.Estimator):
             run.results.step(index, output, *target)
         run.on_test_end()
 
-    def predict(self, input):
-        return self.model.predict(input)
+    # def predict(self, input):
+    #     return self.model.predict(input)
 
     def log(self, run: Run, early_stopped=False, pruned=False):
         msg = message(run, early_stopped, pruned)

@@ -1,0 +1,32 @@
+library: tensorflow
+datasets:
+  data:
+    class: rectangle.data.Data
+    n_splits: 4
+  dataset:
+  fold: 0
+model:
+  call: rectangle.tf.create_model
+  hidden_sizes: [100, 100]
+optimizer:
+  class: tensorflow.keras.optimizers.SGD
+  lr: 1e-3
+scheduler:
+  class: tensorflow.keras.callbacks.ReduceLROnPlateau
+  factor: 0.5
+  patience: 4
+results:
+metrics:
+monitor:
+  metric: val_loss
+early_stopping:
+  patience: 10
+trainer:
+  model: $
+  optimizer: $
+  loss: mse
+  metrics: [accuracy]
+  callbacks: [$.scheduler]
+  batch_size: 10
+  epochs: 10
+  verbose: 2

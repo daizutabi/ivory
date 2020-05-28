@@ -48,7 +48,8 @@ class Tracking:
     def log_params(self, run_id: str, params: Dict[str, Any]):
         params_list = []
         for key, value in params.items():
-            params_list.append(Param(key, to_str(value)))
+            if key != 'verbose':
+                params_list.append(Param(key, to_str(value)))
         self.client.log_batch(run_id, metrics=[], params=params_list, tags=[])
 
     def log_metrics(self, run_id: str, metrics: Dict[str, float], step: int = 0):
@@ -71,7 +72,8 @@ class Tracking:
 
     def set_tags(self, run_id: str, tags: Dict[str, Any]):
         for key, value in tags.items():
-            self.client.set_tag(run_id, key, to_str(value))
+            if key != 'verbose':
+                self.client.set_tag(run_id, key, to_str(value))
 
     def set_parent_run_id(self, run_id: str, parent_run_id: str):
         self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)

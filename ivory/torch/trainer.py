@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from typing import Callable, Optional
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import ivory.core.trainer
+from ivory.core import instance
 from ivory.torch import utils
 
 try:
@@ -14,10 +16,15 @@ except ImportError:
 
 @dataclass
 class Trainer(ivory.core.trainer.Trainer):
+    loss: Optional[Callable] = None
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
     scheduler_step_mode: str = "epoch"
+
+    def __post_init__(self):
+        if isinstance(self.loss, str):
+            self.loss = instance.get_attr(self.loss)
 
     def on_fit_begin(self, run):
         if self.gpu:
@@ -37,7 +44,8 @@ class Trainer(ivory.core.trainer.Trainer):
         output = self.forward(run.model, input)
         if run.results:
             run.results.step(index, output, target)
-        loss = run.metrics.step(input, output, target)
+        loss = self.loss(output, target)
+        run.metrics.step(loss.item())
         optimizer = run.optimizer
         optimizer.zero_grad()
         if self.gpu and self.precision == 16:
@@ -60,7 +68,8 @@ class Trainer(ivory.core.trainer.Trainer):
         output = self.forward(run.model, input)
         if run.results:
             run.results.step(index, output, target)
-        run.metrics.step(input, output, target)
+        loss = self.loss(output, target)
+        run.metrics.step(loss.item())
 
     def on_epoch_end(self, run):
         if run.scheduler and self.scheduler_step_mode == "epoch":

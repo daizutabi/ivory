@@ -61,7 +61,10 @@ class Estimator(State):
         index, input, *target = run.datasets[mode][:]
         if mode == "train" and training:
             self.fit(input, *target)
-        output = self.predict(input)
+        if run.model:
+            output = run.model.predict(input)
+        else:
+            output = self.predict(input)
         if run.results:
             run.results.step(index, output, *target)
 

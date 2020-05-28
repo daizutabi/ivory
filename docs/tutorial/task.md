@@ -86,57 +86,19 @@ for run in runs:
   # We do nothing, so the first values are used.
 ```
 
-
-## Tracking
-
-If the `Client` instace has a `Tracker` instance, the multiple runs created by the tasks can be tracked. The `client.search_parent_run_ids()` method makes an iterator that returns RunIDs of runs that have nested runs. In this case, parent runs are some tasks we made above.
-
-
-```python
-# A helper function
-def print_run_info(run_ids):
-    for run_id in run_ids:
-        print(run_id[:5], client.get_run_name(run_id))
-
-run_ids = client.search_parent_run_ids('torch')
-print_run_info(run_ids)
-```
-
-!!! note
-    `task#0` that we made first hasn't yielded any runs yet, so that the task has not been a parent run.
-
-
-The `client.get_run_ids()` makes an iterator that returns RunIDs of runs you select by run names.
-
-```python
-run_ids = client.get_run_ids('torch', task=range(2,4))
-print_run_info(run_ids)
-```
-
-The `client.get_nested_run_ids()` makes an iterator that returns RunIDs of runs that have a parent you select by run names.
-
-```python
-run_ids = client.get_nested_run_ids('torch', task=range(3, 5))
-print_run_info(run_ids)
-```
-
-On the other hand, the `client.get_parent_run_id()` returns a RunID of a run that is refered by a nested run.
-
-```python
-run_id = client.get_parent_run_id('torch', run=14)
-print_run_info([run_id])
-```
-
 ## Range
 
-Ivory provides the `ivory.utils.range.Range` class for parameter setting. This
-class can be used as the standard `range`, but more flexible, expecially for float type.
+Ivory provides the `ivory.utils.range.Range` class for parameter ranging. This
+class can be used as the standard `range`, but more flexible, especially for the float type.
 
 ```python
 from ivory.utils.range import Range
 
-# Normal usage
-list(Range(3, 6))  # The stop value is included.
+list(Range(6))  # The stop value is included.
+```
+
+```python
+list(Range(3, 6))  # Start and stop.
 ```
 
 ```python
@@ -156,7 +118,24 @@ list(Range(0.0, 1.0, 0.25))  # float type.
 list(Range(0.0, 1.0, num=5))  # Sampling size
 ```
 
-
 ```python
 list(Range(1e-3, 1e2, num=6, log=True))  # Log scale
+```
+
+A `Range` instance can be created from a string.
+
+```python
+list(Range('3-7'))  # <start>-<stop>
+```
+
+```python
+list(Range('3-7-2')) # <start>-<stop>-<step>
+```
+
+```python
+list(Range('0.0-1.0:5')) # <start>-<stop>:<num>
+```
+
+```python
+list(Range('1e-3_1e2:6.log'))  # '_' instead of '-', log scale
 ```

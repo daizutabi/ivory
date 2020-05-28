@@ -45,7 +45,7 @@ class Dict:
     def __repr__(self):
         class_name = self.__class__.__name__
         args = ", ".join(f"{key!r}" for key in self.keys())
-        return f"{class_name}({args})"
+        return f"{class_name}([{args}])"
 
     def __call__(self, **kwargs):
         self.set(**kwargs)

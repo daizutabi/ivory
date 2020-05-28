@@ -1,8 +1,15 @@
+import ast
+import re
+
 import numpy as np
 
 
 class Range:
-    def __init__(self, start, stop, step=1, num: int = 0, log: bool = False):
+    def __init__(self, start, stop=None, step=1, num: int = 0, log: bool = False):
+        if isinstance(start, str):
+            start, stop, step, num, log = parse(start)
+        elif stop is None:
+            start, stop = 0, start
         self.start = start
         self.stop = stop
         self.step = step
@@ -26,6 +33,8 @@ class Range:
             s += f", {self.step}"
         if self.num >= 2:
             s += f", n={self.num}"
+        if self.log:
+            s += f", log={self.log}"
         return s + ")"
 
     def __iter__(self):
@@ -55,3 +64,57 @@ class Range:
 
     def __len__(self):
         return len(list(iter(self)))
+
+
+def parse(value: str):
+    """
+    Examples:
+        >>> parse('2-3')
+        (2, 3, 1, 0, False)
+        >>> parse('2-4-2')
+        (2, 4, 2, 0, False)
+        >>> parse('2-4:3')
+        (2, 4, 1, 3, False)
+        >>> parse('0-1-0.2')
+        (0, 1, 0.2, 0, False)
+        >>> parse('0-1:5')
+        (0, 1, 1, 5, False)
+        >>> parse('0-1.log')
+        (0, 1, 1, 0, True)
+        >>> parse('1e-3_1e-2.log')
+        (0.001, 0.01, 1, 0, True)
+    """
+    num = 0
+    log = False
+    if value.endswith(".log"):
+        value = value[:-4]
+        log = True
+    if ":" in value:
+        value, num_str = value.split(":")
+        num = int(num_str)
+    sep = "_" if "_" in value else "-"
+    match = re.match(f"(.+){sep}(.+)", value)
+    if not match:
+        raise ValueError(f"Invalid string for Range: {value}")
+    if sep in match.group(1):
+        if num != 0:
+            raise ValueError(f"Invalid string for Range: {value}")
+        start, stop = match.group(1).split(sep)
+        step = match.group(2)
+    else:
+        start = match.group(1)
+        stop = match.group(2)
+        step = "1"
+    start = literal_eval(start)
+    stop = literal_eval(stop)
+    step = literal_eval(step)
+    if all(isinstance(x, (int, float)) for x in [start, stop, step]):
+        return start, stop, step, num, log
+    raise ValueError(f"Invalid string for Range: {value}")
+
+
+def literal_eval(value):
+    try:
+        return ast.literal_eval(value)
+    except ValueError:
+        return value

@@ -1,4 +1,4 @@
-from ivory.core.objective import Objective
+from ivory.core.objective import create_suggest
 from ivory.utils.range import Range
 
 
@@ -7,19 +7,18 @@ def test_objective(objective):
         assert name in objective.suggests
         assert callable(objective.suggests[name])
 
-    assert repr(objective).startswith("Objective(suggests=['lr',")
+    assert repr(objective).startswith("Objective(['lr',")
 
 
 def test_create_suggest():
-    objective = Objective()
     params = {"a": Range(1, 4)}
-    objective.create_suggest(params)
-    assert "a" in objective.suggests
+    suggest = create_suggest(params)
+    assert callable(suggest)
 
     params = {"b": Range(0.1, 0.3)}
-    objective.create_suggest(params)
-    assert "b" in objective.suggests
+    suggest = create_suggest(params)
+    assert callable(suggest)
 
     params = {"c": Range(0.1, 0.3, num=10), "d": ["a", "b", "c"]}
-    objective.create_suggest(params)
-    assert "c.d" in objective.suggests
+    suggest = create_suggest(params)
+    assert callable(suggest)

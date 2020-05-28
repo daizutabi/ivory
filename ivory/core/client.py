@@ -25,23 +25,40 @@ class Client(Base):
         tuner (Tuner, optional): A Tuner instance for hyperparameter tuning.
     """
 
-    def create_experiment(self, name: str) -> Experiment:
+    def __init__(self, params=None, **objects):
+        super().__init__(params, **objects)
+        self.experiments: Dict[str, Experiment] = {}
+
+    def create_experiment(self, name: str, *args, **kwargs) -> Experiment:
         """Creates an `Experiment` according to the YAML file specified by `name`.
 
         Args:
             name: Experiment name.
+            *args: Additional parameters.
+            **kwargs: Additional parameters.
         """
-        basename = name.split(".")[0]
-        params, source_name = utils.path.load_params(basename, self.source_name)
+        if name in self.experiments and not args and not kwargs:
+            return self.experiments[name]
+
+        params, source_name = utils.path.load_params(name, self.source_name)
         if "run" not in params:
             params = {"run": params}
         if "experiment" not in params:
             params.update(default.get("experiment"))
         if "name" not in params["experiment"]:
             params["experiment"]["name"] = name
+        for value in args:
+            option, _ = utils.path.load_params(value, self.source_name)
+            params.update(option)
+        for key, value in kwargs.items():
+            option, _ = utils.path.load_params(value, self.source_name)
+            if key not in option:
+                option = {key: option}
+            params.update(option)
         experiment = instance.create_base_instance(params, "experiment", source_name)
         if self.tracker:
             experiment.set_tracker(self.tracker)
+        self.experiments[name] = experiment
         return experiment
 
     def create_run(self, name: str, args=None, **kwargs) -> Run:
