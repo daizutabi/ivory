@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, Tuple, Optional, Union
 
 import numpy as np
 
@@ -60,9 +60,9 @@ class Data:
     def get_target(self, index: Index) -> Value:
         return self.target[index]
 
-    def get(self, index: Union[int, np.ndarray]) -> List[Value]:
+    def get(self, index: Union[int, np.ndarray]) -> Tuple[Index, Value, Value]:
         """Returns a tuple of (index, input, target) according to the index."""
-        return [self.index[index], self.get_input(index), self.get_target(index)]
+        return self.index[index], self.get_input(index), self.get_target(index)
 
 
 @dataclass
@@ -104,7 +104,7 @@ class Dataset:
             index, input, *target = self.get(index)
         if self.transform:
             input, *target = self.transform(self.mode, input, *target)
-        return [index, input, *target]
+        return (index, input, *target)
 
     def __iter__(self):
         for index in range(len(self)):
@@ -121,7 +121,7 @@ class Dataset:
         if frac:
             n = int(len(index) * frac)
         idx = np.random.permutation(len(index))[:n]
-        return [x[idx] for x in [index, input, *target]]
+        return tuple([x[idx] for x in [index, input, *target]])
 
 
 @dataclass
