@@ -1,5 +1,4 @@
 import ast
-import re
 from typing import Any, Dict, Iterable, List
 
 from ivory.utils.range import Range
@@ -39,26 +38,10 @@ def parse_value(value) -> Iterable[Any]:
         for v in value.split(","):
             values.extend(parse_value(v))
         return values
-    if ":" in value:
-        value, n_str = value.split(":")
-        n = int(n_str)
-    else:
-        n = 0
-    match = re.match(r"(.+)-(.+)", value)
-    if match:
-        if "-" in match.group(1):
-            start, stop = match.group(1).split("-")
-            step = match.group(2)
-        else:
-            start = match.group(1)
-            stop = match.group(2)
-            step = "1"
-        start = literal_eval(start)
-        stop = literal_eval(stop)
-        step = literal_eval(step)
-        if all(isinstance(x, (int, float)) for x in [start, stop, step]):
-            return Range(start, stop, step, n)
-    return [literal_eval(value)]
+    try:
+        return Range(value)
+    except ValueError:
+        return [literal_eval(value)]
 
 
 def literal_eval(value):

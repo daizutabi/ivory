@@ -24,12 +24,13 @@ def test_optimize():
         result = runner.invoke(main.cli, ["optimize", "example", "lr", "-v"])
     assert result.exit_code == 0
 
-# def test_optimize_params():
-#     runner = CliRunner()
-#     with ivory.utils.path.chdir("tests/examples/a"):
-#         args = ["optimize", "example", "lr.log=0.01-0.03", "fold=2", "-q"]
-#         result = runner.invoke(main.cli, args)
-#     assert result.exit_code == 0
+
+def test_optimize_params():
+    runner = CliRunner()
+    with ivory.utils.path.chdir("tests/examples/a"):
+        args = ["optimize", "example", "lr=0.01-0.03.log", "fold=2", "-q"]
+        result = runner.invoke(main.cli, args)
+    assert result.exit_code == 0
 
 
 # def test_optimize_params_for_pruning():

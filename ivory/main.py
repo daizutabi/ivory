@@ -7,6 +7,7 @@ from logzero import logger
 
 import ivory
 from ivory.core import parser
+
 # from ivory.utils.range import Range
 
 if "." not in sys.path:
@@ -55,23 +56,21 @@ def run(name, args, repeat, number, quiet, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode.", callback=loglevel)
 def optimize(name, args, number, quiet, verbose):
     client = ivory.create_client()
-    study = client.create_study(name, number and int(number))
+    run_number = number and int(number)
     if "=" not in args[0]:
+        study = client.create_study(name, run_number=run_number)
         suggest_name = args[0]
         params = parser.parse_args(args[1:])
         kwargs = {key: values[0] for key, values in params.items()}
         if "n_trials" not in kwargs and "timeout" not in kwargs:
-            kwargs["n_trials"] = 3
+            kwargs["n_trials"] = 3  # FIXME
         study.optimize(suggest_name, **kwargs)
-    # else:
-    #     params = parser.parse_args(args)
-    #     kwargs = {}
-    #     for key in list(params.keys()):
-    #         if not isinstance(params[key], Range) and len(params[key]) == 1:
-    #             kwargs[key] = params.pop(key)[0]
-    #     if "n_trials" not in kwargs and "timeout" not in kwargs:
-    #         kwargs["n_trials"] = 3
-    #     study.optimize_params(params, **kwargs)
+    else:
+        params = parser.parse_args(args)  # FIXME: exclude len(params)==1
+        params = list(zip(*params.items()))
+        params = {params[0]: params[1]}
+        study = client.create_study(name, params, run_number=run_number)
+        study.optimize(n_trials=3)  # FIXME
 
 
 @cli.command(help="Kill the last run to prune.")
