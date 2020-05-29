@@ -421,4 +421,4 @@ results.test.output[:5]
 
 ## Summary
 
-In this quickstart, we learned how to use the Ivory library to perform machine learning workflow. For more details see the tutorial section.
+In this quickstart, we learned how to use the Ivory library to perform machine learning workflow. For more details see the Tutorial.

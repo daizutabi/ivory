@@ -32,6 +32,7 @@ nav:
     - tutorial/ui.md
     - tutorial/tracking.md
     - tutorial/library.md
+    - tutorial/cli.md
     # - tutorial/run.md
   # - Python API:
   #   - api/data.md
