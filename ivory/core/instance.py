@@ -61,11 +61,16 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
         if isinstance(params[k], str) and params[k].startswith("$"):
             if isinstance(value, (int, float, str, list, tuple, dict)):
                 params[k] = value
+    positional = []
+    if "_" in args:
+        positional = [args.pop("_")]
+    if "__" in args:
+        positional.extend(args.pop("__"))
     if key != "def":
-        return attr(**args, **kwargs)
+        return attr(*positional, **args, **kwargs)
     else:
         if args or kwargs:
-            return partial(attr, **args, **kwargs)  # **args is correct.
+            return partial(attr, *positional, **args, **kwargs)
         else:
             return attr
 

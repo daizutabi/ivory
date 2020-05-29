@@ -137,3 +137,47 @@ datasets:
 datasets = create(doc, 'datasets')
 datasets.data.n_splits
 ```
+
+## Positional Arguments
+
+Do you know the name of the first argument of the `numpy.array()` function?
+
+```python
+import numpy as np
+
+print(np.array.__doc__[:200])
+```
+
+It's `object`. But do you want to write like this?
+
+```python
+doc = """
+x:
+  class: numpy.array  # Or `call` instead of `class`.
+  object: [1, 2, 3]
+"""
+create(doc, 'x')
+```
+
+This is inconvinient and ugly. Use **underscore-notation**:
+
+
+```python
+doc = """
+x:
+  class: numpy.array
+  _: [1, 2, 3]
+"""
+create(doc, 'x')
+```
+
+The second argument of `numpy.array()` is `dtype`. You can also use **double underscore**, which is unpacked.
+
+```python
+doc = """
+x:
+  call: numpy.array
+  __: [[1, 2, 3], 'float']
+"""
+create(doc, 'x')
+```
