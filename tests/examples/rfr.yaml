@@ -1,10 +1,11 @@
+library: sklearn
 include: data.yaml
 datasets:
   fold: 0
   data:
   dataset:
 estimator:
-  class: ivory.sklearn.estimator.RandomForestRegressor
+  model: sklearn.ensemble.RandomForestRegressor
   n_estimators: 5
   max_depth: 3
 results:

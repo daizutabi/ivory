@@ -15,6 +15,7 @@ class Callback(tensorflow.keras.callbacks.Callback):
     def __init__(self, run: Run):
         self.run = run
         self.trainer = run.trainer
+        self.predict = run.model.predict
 
     def on_epoch_begin(self, epoch, logs=None):
         """Calls `run.on_epoch_begin()` and `run.on_train_begin()`."""
@@ -24,13 +25,13 @@ class Callback(tensorflow.keras.callbacks.Callback):
 
     def on_test_begin(self, logs=None):
         """Calls `run.on_train_end()` and `run.on_val_begin()`."""
-        self.trainer.step(self.run, "train", training=False)
+        self.trainer.step(self.run, "train", training=False, predict=self.predict)
         self.run.on_train_end()
         self.run.on_val_begin()
 
     def on_test_end(self, logs=None):
         """Calls `run.on_val_end()`."""
-        self.trainer.step(self.run, "val")
+        self.trainer.step(self.run, "val", predict=self.predict)
         self.run.on_val_end()
 
     def on_epoch_end(self, epoch, logs=None):

@@ -1,38 +1,9 @@
-import inspect
-from typing import Callable, Optional
-
 from ivory.core.run import Run
 from ivory.core.state import State
 from ivory.utils.tqdm import tqdm
 
 
 class Estimator(State):
-    def __init__(self, estimator_factory: Optional[Callable] = None, **kwargs):
-        self.estimator_factory = estimator_factory
-        self.params = {}
-        self.kwargs = {}
-        if self.estimator_factory:
-            keys = inspect.signature(self.estimator_factory).parameters.keys()
-            for key, value in kwargs.items():
-                if key in keys:
-                    self.kwargs[key] = value
-                else:
-                    self.params[key] = value
-        else:
-            self.kwargs.update(kwargs)
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        kwargs = ", ".join(f"{key}={value!r}" for key, value in self.kwargs.items())
-        if self.params and self.kwargs:
-            return f"{class_name}(params={self.params}, {kwargs})"
-        elif self.params:
-            return f"{class_name}(params={self.params})"
-        elif self.kwargs:
-            return f"{class_name}({kwargs})"
-        else:
-            return f"{class_name}()"
-
     def start(self, run: Run):
         if run.mode == "train":
             self.train(run)
@@ -57,14 +28,12 @@ class Estimator(State):
         self.step(run, "test")
         run.on_test_end()
 
-    def step(self, run: Run, mode: str, training: bool = True):
+    def step(self, run: Run, mode: str, training: bool = True, predict=None):
         index, input, *target = run.datasets[mode][:]
         if mode == "train" and training:
             self.fit(input, *target)
-        if run.model:
-            output = run.model.predict(input)
-        else:
-            output = self.predict(input)
+        predict = predict or self.predict
+        output = predict(input)
         if run.results:
             run.results.step(index, output, *target)
 

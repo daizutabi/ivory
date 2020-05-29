@@ -7,11 +7,11 @@ from ivory.utils.fold import kfold_split
 
 
 def create_data(num_samples=1000):
-    xy = 4 * np.random.rand(num_samples, 2) + 1
+    x = np.linspace(0, 1, num_samples)
+    y = np.linspace(1, 0, num_samples)
+    xy = np.vstack((x, y)).T
     xy = xy.astype(np.float32)
-    dx = 0.1 * (np.random.rand(num_samples) - 0.5)
-    dy = 0.1 * (np.random.rand(num_samples) - 0.5)
-    z = ((xy[:, 0] + dx) * (xy[:, 1] + dy)).astype(np.float32)
+    z = (xy[:, 0] * xy[:, 1]).astype(np.float32)
     return xy, z
 
 

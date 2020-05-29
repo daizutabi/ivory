@@ -1,4 +1,5 @@
 import ivory.core.estimator
+from ivory.core import instance
 from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 from ivory.core.trainer import message
@@ -20,12 +21,10 @@ class Trainer(ivory.core.estimator.Estimator):
 
     def on_init_begin(self, run):
         if not run.model._is_compiled:
-            super().__init__(run.model.fit, **self.kwargs)
+            params, self.kwargs = instance.filter_params(run.model.fit, **self.kwargs)
             if run.optimizer:
-                self.params.update(optimizer=run.optimizer)
-            if self.params:
-                run.model.compile(**self.params)
-            del self.params
+                params.update(optimizer=run.optimizer)
+            run.model.compile(**params)
 
     def train(self, run: Run):
         run.on_fit_begin()

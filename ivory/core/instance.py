@@ -3,12 +3,14 @@ import inspect
 import re
 import types
 from functools import partial
-from typing import Any, Dict, Iterable, Iterator
+from typing import Any, Callable, Dict, Iterable, Iterator, Tuple
 
 from ivory.core.default import update_class
 
 
-def get_attr(path: str):
+def get_attr(path):
+    if not isinstance(path, str):
+        return path
     if "." not in path:
         raise ValueError("module path not included")
     module_path, _, name = path.rpartition(".")
@@ -135,15 +137,13 @@ def create_instances(params: Dict[str, Any], names: Iterable[str]) -> Iterator[A
         globals[name] = instance
 
 
-
-# def split_params()        self.params = {}
-#         self.kwargs = {}
-#         if self.estimator_factory:
-#             keys = inspect.signature(self.estimator_factory).parameters.keys()
-#             for key, value in kwargs.items():
-#                 if key in keys:
-#                     self.kwargs[key] = value
-#                 else:
-#                     self.params[key] = value
-#         else:
-#             self.kwargs.update(kwargs)
+def filter_params(func: Callable, **kwargs) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    params = {}
+    kwargs_ = {}
+    parameters = inspect.signature(func).parameters.keys()
+    for key, value in kwargs.items():
+        if key in parameters:
+            kwargs_[key] = value
+        else:
+            params[key] = value
+    return params, kwargs_

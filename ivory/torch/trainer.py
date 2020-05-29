@@ -20,17 +20,17 @@ except ImportError:
 class Trainer(ivory.core.trainer.Trainer):
     loss: Optional[Callable] = None
     batch_size: int = 32
+    shuffle: bool = True
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
     scheduler_step_mode: str = "epoch"
 
     def __post_init__(self):
-        if isinstance(self.loss, str):
-            self.loss = instance.get_attr(self.loss)
+        self.loss = instance.get_attr(self.loss)
 
     def get_dataloader(self, run: Run, mode: str):
-        shuffle = True if mode == "train" else False
+        shuffle = self.shuffle if mode == "train" else False
         return torch.utils.data.DataLoader(
             run.datasets[mode], batch_size=self.batch_size, shuffle=shuffle
         )
