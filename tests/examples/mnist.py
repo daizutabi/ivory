@@ -31,7 +31,7 @@ class Data(ivory.core.data.Data):
 def create_model():
     layers = [
         keras.layers.Flatten(input_shape=(28, 28)),
-        keras.layers.Dense(18, activation="relu"),
+        keras.layers.Dense(128, activation="relu"),
         keras.layers.Dense(10, activation="softmax"),
     ]
     return keras.Sequential(layers)
