@@ -85,7 +85,7 @@ z
 
 ## Set of Data classes
 
-Ivory defines a set of Data classes (`Data`, `Dataset`, `Datasets`, `DataLoaders`). But now, we use the `Data` class only.
+Ivory defines a set of Data classes (`Data`, `Dataset`, `Datasets`). But now, we use the `Data` class only.
 
 In the above file, the `kfold_split()` function creates a fold array.
 
@@ -163,8 +163,8 @@ run = client.create_run(
   'torch', batch_size=20, hidden_sizes=[40, 50, 60],
 )
 
-print('[dataloaders]')
-print(yaml.dump(run.params['run']['dataloaders'], sort_keys=False))
+print('[datasets]')
+print(yaml.dump(run.params['run']['datasets'], sort_keys=False))
 print('[model]')
 print(yaml.dump(run.params['run']['model'], sort_keys=False))
 ```
@@ -313,7 +313,7 @@ Note that the `Client.load_run()` function doesn't require an experiment name be
 As you expected, the fold number is 3.
 
 ```python
-run.dataloaders.fold
+run.datasets.fold
 ```
 
 By loading a run, we obtained the *pretrained* model.
@@ -325,13 +325,13 @@ run.model.eval()
 ```python
 import torch
 
-index, input, target = next(iter(run.dataloaders.val))
+index, input, target = next(iter(run.datasets.val[:5]))
 with torch.no_grad():
-    output = run.model(input)
+    output = run.model(torch.tensor(input))
 print('[output]')
-print(output[:5])
+print(output)
 print('[target]')
-print(target[:5])
+print(target)
 ```
 
 If you don't need a whole run instance, `Client.load_instance()` is a better choice to save time and memory.

@@ -16,7 +16,7 @@ class Range:
         self.num = num
         self.log = log
         if log and step != 1:
-            raise ValueError(f"Invalid step.")
+            raise ValueError("Invalid step.")
 
     @property
     def is_integer(self):

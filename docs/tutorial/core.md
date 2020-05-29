@@ -1,6 +1,6 @@
 # Ivory Core Entities
 
-{{ ## cache:clear }}
+{{ # cache:clear }}
 
 ## Client
 
