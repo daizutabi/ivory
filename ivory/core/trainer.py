@@ -64,7 +64,9 @@ class Trainer(State):
             raise pruned
 
     def get_dataloader(self, run: Run, mode: str):
-        dataloader = run.dataloaders[mode]
+        raise NotImplementedError
+
+    def tqdm(self, dataloader, mode):
         if self.verbose == 1:
             mode = "%-5s" % (mode[0].upper() + mode[1:])
             dataloader = tqdm(dataloader, desc=mode, leave=False)
@@ -72,20 +74,23 @@ class Trainer(State):
 
     def train_loop(self, run: Run):
         run.on_train_begin()
-        for index, input, target in self.get_dataloader(run, "train"):
+        dataloader = self.tqdm(self.get_dataloader(run, "train"), "train")
+        for index, input, target in dataloader:
             self.global_step += 1
             self.train_step(run, index, input, target)
         run.on_train_end()
 
     def val_loop(self, run: Run):
         run.on_val_begin()
-        for index, input, target in self.get_dataloader(run, "val"):
+        dataloader = self.tqdm(self.get_dataloader(run, "val"), "val")
+        for index, input, target in dataloader:
             self.val_step(run, index, input, target)
         run.on_val_end()
 
     def test_loop(self, run: Run):
         run.on_test_begin()
-        for index, input, *target in self.get_dataloader(run, "test"):
+        dataloader = self.tqdm(self.get_dataloader(run, "test"), "test")
+        for index, input, *target in dataloader:
             self.test_step(run, index, input, *target)
         run.on_test_end()
 

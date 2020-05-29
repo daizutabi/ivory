@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import re
+import types
 from functools import partial
 from typing import Any, Dict, Iterable, Iterator
 
@@ -35,7 +36,13 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
     else:
         raise ValueError("dict-key must include one of (class, call, def)")
 
-    attr = get_attr(params[key])
+    if key == "class" and "," in params[key]:
+        paths = [path.strip() for path in params[key].split(",")]
+        bases = [get_attr(path) for path in paths]
+        name = paths[0].split(".")[-1]
+        attr = types.new_class(name, bases)
+    else:
+        attr = get_attr(params[key])
     try:
         signature = inspect.signature(attr)
     except ValueError:
@@ -126,3 +133,17 @@ def create_instances(params: Dict[str, Any], names: Iterable[str]) -> Iterator[A
         instance = create_instance(params, name, globals)
         yield instance
         globals[name] = instance
+
+
+
+# def split_params()        self.params = {}
+#         self.kwargs = {}
+#         if self.estimator_factory:
+#             keys = inspect.signature(self.estimator_factory).parameters.keys()
+#             for key, value in kwargs.items():
+#                 if key in keys:
+#                     self.kwargs[key] = value
+#                 else:
+#                     self.params[key] = value
+#         else:
+#             self.kwargs.update(kwargs)

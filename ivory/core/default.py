@@ -26,7 +26,6 @@ DEFAULT_CLASS["core"] = {
     "study": "ivory.core.run.Study",
     "dataset": "ivory.core.data.Dataset",
     "datasets": "ivory.core.data.Datasets",
-    "dataloaders": "ivory.core.data.DataLoaders",
     "results": "ivory.callbacks.results.Results",
     "metrics": "ivory.callbacks.metrics.Metrics",
     "monitor": "ivory.callbacks.monitor.Monitor",
@@ -36,7 +35,6 @@ DEFAULT_CLASS["core"] = {
 DEFAULT_CLASS["torch"] = {
     "run": "ivory.torch.run.Run",
     "dataset": "ivory.torch.data.Dataset",
-    "dataloaders": "ivory.torch.data.DataLoaders",
     "results": "ivory.torch.results.Results",
     "metrics": "ivory.torch.metrics.Metrics",
     "trainer": "ivory.torch.trainer.Trainer",
@@ -44,8 +42,6 @@ DEFAULT_CLASS["torch"] = {
 
 DEFAULT_CLASS["tensorflow"] = {
     "run": "ivory.tensorflow.run.Run",
-    "dataset": "ivory.tensorflow.data.Dataset",
-    "datasets": "ivory.tensorflow.data.Datasets",
     "trainer": "ivory.tensorflow.trainer.Trainer",
 }
 

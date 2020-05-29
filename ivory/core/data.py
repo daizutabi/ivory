@@ -99,8 +99,9 @@ class Dataset:
 
     def __getitem__(self, index):
         if index == slice(None, None, None):
-            index = None
-        index, input, *target = self.get(index)
+            index, input, *target = self.get()
+        else:
+            index, input, *target = self.get(index)
         if self.transform:
             input, *target = self.transform(self.mode, input, *target)
         return [index, input, *target]
@@ -132,20 +133,4 @@ class Datasets(ivory.core.collections.Dict):
     def __post_init__(self):
         super().__post_init__()
         for mode in ["train", "val", "test"]:
-            self[mode] = self.get_dataset(mode)
-
-    def get_dataset(self, mode):
-        return self.dataset(self.data, mode, self.fold)
-
-
-@dataclass
-class DataLoaders(Datasets):
-    batch_size: int
-
-    def __post_init__(self):
-        super().__post_init__()
-        for mode in ["train", "val", "test"]:
-            self[mode] = self.get_dataloader(self[mode], mode)
-
-    def get_dataloader(self, dataset, mode):
-        raise NotImplementedError
+            self[mode] = self.dataset(self.data, mode, self.fold)

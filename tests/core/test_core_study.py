@@ -6,7 +6,7 @@ def test_optimize_lr(study, client):
     assert "run_id" in trials[0].user_attrs
     run_id = trials[0].user_attrs["run_id"]
     params = client.load_params(run_id)
-    assert params["run"]["dataloaders"]["fold"] == 2
+    assert params["run"]["datasets"]["fold"] == 2
 
 
 def test_optimize_hidden_sizes(study, client):

@@ -54,17 +54,17 @@ def objective(study):
 
 @pytest.fixture(scope="session")
 def data(run):
-    yield run.dataloaders.data
+    yield run.datasets.data
 
 
 @pytest.fixture(scope="session")
 def dataset(run):
-    yield run.dataloaders.dataset
+    yield run.datasets.dataset
 
 
 @pytest.fixture(scope="session")
-def dataloaders(run):
-    yield run.dataloaders
+def datasets(run):
+    yield run.datasets
 
 
 @pytest.fixture(scope="session")

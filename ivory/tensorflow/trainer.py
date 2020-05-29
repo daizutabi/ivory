@@ -7,9 +7,10 @@ from ivory.utils.tqdm import tqdm
 
 
 class Trainer(ivory.core.estimator.Estimator):
-    def __init__(self, epoch=-1, epochs=1, verbose=1, **kwargs):
+    def __init__(self, epoch=-1, epochs=1, batch_size=32, verbose=1, **kwargs):
         self.epoch = epoch
         self.epochs = epochs
+        self.batch_size = batch_size
         self.verbose = verbose
         self.kwargs = kwargs
 
@@ -33,12 +34,13 @@ class Trainer(ivory.core.estimator.Estimator):
             callbacks.insert(0, run.scheduler)
         if "callbacks" in self.kwargs:
             callbacks = self.kwargs.pop("callbacks") + callbacks
-        train_dataset = run.datasets.train.dataset
-        val_dataset = run.datasets.val.dataset
+        train_dataset = run.datasets.train[:][1:]
+        val_dataset = run.datasets.val[:][1:]
         try:
             run.model.fit(
-                train_dataset,
+                *train_dataset,
                 validation_data=val_dataset,
+                batch_size=self.batch_size,
                 initial_epoch=self.epoch + 1,
                 epochs=self.epoch + self.epochs + 1,
                 callbacks=callbacks,
@@ -78,7 +80,7 @@ class Trainer(ivory.core.estimator.Estimator):
     def on_loop_begin(self, run: Run, mode: str):
         if self.verbose == 1:
             dataset = run.datasets[mode]
-            total = len(dataset) // dataset.batch_size
+            total = len(dataset) // self.batch_size
             mode = "%-5s" % (mode[0].upper() + mode[1:])
             self.batch_bar = tqdm(total=total, desc=mode, leave=False)
 

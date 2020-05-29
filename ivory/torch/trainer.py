@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 import torch
+import torch.utils.data
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import ivory.core.trainer
 from ivory.core import instance
+from ivory.core.run import Run
 from ivory.torch import utils
 
 try:
@@ -17,6 +19,7 @@ except ImportError:
 @dataclass
 class Trainer(ivory.core.trainer.Trainer):
     loss: Optional[Callable] = None
+    batch_size: int = 32
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
@@ -25,6 +28,12 @@ class Trainer(ivory.core.trainer.Trainer):
     def __post_init__(self):
         if isinstance(self.loss, str):
             self.loss = instance.get_attr(self.loss)
+
+    def get_dataloader(self, run: Run, mode: str):
+        shuffle = True if mode == "train" else False
+        return torch.utils.data.DataLoader(
+            run.datasets[mode], batch_size=self.batch_size, shuffle=shuffle
+        )
 
     def on_fit_begin(self, run):
         if self.gpu:

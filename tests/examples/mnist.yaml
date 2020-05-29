@@ -3,7 +3,6 @@ datasets:
   data:
     class: mnist.Data
   dataset:
-  batch_size: 32
   fold: 0
 model:
   call: mnist.create_model
@@ -23,5 +22,6 @@ trainer:
     - class: mnist.CallbackMetric
       datasets: $
       metrics: $
+  batch_size: 32
   epochs: 5
   verbose: 1

@@ -25,17 +25,3 @@ def test_dataset_transform(data):
     assert index == 0
     assert np.allclose(input, data.input[0] * 2)
     assert np.allclose(target, data.target[0] / 2)
-
-
-def test_dataloaders(dataloaders, data, dataset):
-    train_loader, val_loader = dataloaders.train, dataloaders.val
-    assert len(train_loader) == 1000 * 3 // 5 // 10
-    assert len(val_loader) == 1000 * 1 // 5 // 10
-    assert train_loader.dataset.mode == "train"
-    assert val_loader.dataset.mode == "val"
-
-
-def test_dataloaders_test(dataloaders, data, dataset):
-    test_loader = dataloaders.test
-    assert len(test_loader) == 1000 * 1 // 5 // 10
-    assert test_loader.dataset.mode == "test"

@@ -4,6 +4,5 @@ data:
 dataset:
   def: example.Dataset
   dummy: '5.0'
-dataloaders:
-  batch_size: 10
+datasets:
   fold: 0

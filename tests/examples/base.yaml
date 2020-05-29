@@ -1,6 +1,6 @@
 library: torch
 include: data.yaml
-dataloaders:
+datasets:
   data:
   dataset:
 model:
@@ -22,4 +22,5 @@ early_stopping:
 trainer:
   loss: torch.nn.functional.mse_loss
   epochs: 10
+  batch_size: 10
   verbose: 2

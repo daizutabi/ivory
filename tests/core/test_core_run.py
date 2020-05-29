@@ -9,7 +9,7 @@ def test_start(run):
     run.start()
     assert run.id
     run.start("test")
-    assert run.dataloaders.test
+    assert run.datasets.test
 
 
 def test_state_dict(run):
