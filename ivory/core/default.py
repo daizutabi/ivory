@@ -48,6 +48,7 @@ DEFAULT_CLASS["tensorflow"] = {
 
 DEFAULT_CLASS["sklearn"] = {
     "estimator": "ivory.sklearn.estimator.Estimator",
+    "metrics": "ivory.sklearn.metrics.Metrics",
 }
 
 
@@ -72,7 +73,13 @@ def update_class(params: Dict[str, Any], library: str = "core"):
                 attr = DEFAULT_CLASS[library][key]
             elif key in DEFAULT_CLASS["core"]:
                 attr = DEFAULT_CLASS["core"][key]
-            value[kind] = attr
+            else:
+                attr = None
+            if attr:
+                value[kind] = attr
+            else:
+                params[key] = None
+                break
 
         from ivory.core import instance
 

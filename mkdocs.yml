@@ -24,13 +24,14 @@ nav:
     - tutorial/data.md
     - tutorial/instance.md
     - tutorial/model.md
-    - tutorial/callbacks.md
-    - tutorial/trainer.md
+    - tutorial/callback.md
+    - tutorial/training.md
     - tutorial/core.md
     - tutorial/task.md
     - tutorial/tuning.md
     - tutorial/ui.md
     - tutorial/tracking.md
+    - tutorial/library.md
     # - tutorial/run.md
   # - Python API:
   #   - api/data.md

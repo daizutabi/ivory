@@ -1,9 +1,5 @@
-from dataclasses import dataclass
-
-
-@dataclass(repr=False)
 class Dict:
-    def __post_init__(self):
+    def __init__(self):
         self.dict = {}
 
     def __bool__(self):
@@ -71,9 +67,8 @@ class Dict:
         return self.dict.copy()
 
 
-@dataclass(repr=False)
 class List:
-    def __post_init__(self):
+    def __init__(self):
         self.list = []
 
     def __bool__(self):

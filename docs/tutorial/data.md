@@ -2,7 +2,7 @@
 
 {{ ## cache:clear }}
 
-Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`. In this tutorial, we use the following Python module to explain them.
+Ivory uses four classes for data presentation: `Data`, `Dataset`, and `Datasets`. In this tutorial, we use the following Python module to explain them.
 
 #File rectangle/data.py {%=/examples/rectangle/data.py%}
 
@@ -24,7 +24,8 @@ In the `Data.init()` method, we need to define 4 attributes:
 * `target`: Target data.
 * `fold`: Fold number.
 
-A `Data.get()` method returns a list of [`index`, `input`, `target`]. This method is called from the `Dataset` instance when the dataset is indexed.
+A `Data.get()` method returns a tuple of (`index`, `input`, `target`). This method is called from the `Dataset` instance when the dataset is indexed.
+
 ```python
 data.get(0)  # Integer index.
 ```
@@ -81,7 +82,7 @@ dataset_transformed[0]
 ```
 
 ```python
-[2 * dataset[0][1], 2 * dataset[0][2]]
+2 * dataset[0][1], 2 * dataset[0][2]
 ```
 
 Usually, we don't instantiate the `Dataset` class directly. Instead, the `Datasets` class create dataset instances.
@@ -112,31 +113,3 @@ datasets['train'], datasets.val
 ```
 
 Using the `Datasets` class, we can easily split a whole data stored in a `Data` instance into three train, validation, and test dataset.
-
-
-## DataLoaders
-
-The last class is the `DataLoaders`. This class is prepared for loading batches from a dataset. For example, assume that we are going to use PyTorch.
-
-```python
-from ivory.torch.data import DataLoaders
-
-dataloaders = DataLoaders(data, Dataset, fold=0, batch_size=4)
-dataloaders
-```
-
-!!! note
-    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function that returns a `Dataset` instance.
-
-```python
-for mode, dataloader in dataloaders.items():
-  print(mode, dataloader)
-```
-
-As you can see an `ivory.torch.data.DataLoaders` instance creates PyTorch's DataLoader. Check the samples.
-
-```python
-next(iter(dataloaders.train))
-```
-
-Returned samples are `torch.Tensor` instead of `np.ndarray`. We can use these tensors as inputs for a PyTorch model.

@@ -1,6 +1,6 @@
 # Tracking Runs with Ivory
 
-{{ # cache:clear }}
+{{ ## cache:clear }}
 
 First create several runs for demonstration.
 

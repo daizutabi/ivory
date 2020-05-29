@@ -1,0 +1,14 @@
+library: sklearn
+datasets:
+  data:
+    class: rectangle.data.Data
+    n_splits: 4
+  dataset:
+    transform: rectangle.data.transform
+  fold: 0
+estimator:
+  model: sklearn.linear_model.Ridge
+results:
+metrics:
+  mse:
+  mse_2: rectangle.metrics.mean_squared_error

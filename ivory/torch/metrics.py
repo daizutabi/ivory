@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import List
 
 import numpy as np
@@ -6,10 +5,7 @@ import numpy as np
 import ivory.callbacks.metrics
 from ivory.core.run import Run
 
-# import torch
 
-
-@dataclass(repr=False)
 class Metrics(ivory.callbacks.metrics.Metrics):
     def on_epoch_begin(self, run: Run):
         self.epoch = run.trainer.epoch

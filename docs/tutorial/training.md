@@ -10,12 +10,11 @@ import yaml
 params = yaml.safe_load("""
 library: torch
 run:
-  dataloaders:
+  datasets:
     data:
       class: rectangle.data.Data
       n_splits: 4
     dataset:
-    batch_size: 10
     fold: 0
   model:
     class: rectangle.torch.Model
@@ -37,6 +36,7 @@ run:
     patience: 10
   trainer:
     loss: torch.nn.functional.mse_loss
+    batch_size: 10
     epochs: 10
     verbose: 2
 """)

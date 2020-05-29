@@ -1,0 +1,14 @@
+library: sklearn
+datasets:
+  data:
+    class: rectangle.data.Data
+    n_splits: 4
+  dataset:
+    transform: rectangle.data.transform
+  fold: 0
+estimator:
+  model: sklearn.ensemble.RandomForestRegressor
+  n_estimators: 5
+  max_depth: 3
+results:
+metrics:

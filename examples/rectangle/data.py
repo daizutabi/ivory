@@ -34,3 +34,7 @@ class Data(ivory.core.data.Data):
         self.target[is_test] = np.nan  # Delete target for test data.
 
         self.target = self.target.reshape(-1, 1)  # (sample, class)
+
+
+def transform(mode, input, target):
+    return input, target.reshape(-1)

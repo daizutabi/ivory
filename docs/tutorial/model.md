@@ -22,18 +22,17 @@ def create(doc, name, **kwargs):
 
 doc = """
 library: torch
-dataloaders:
+datasets:
   data:
     class: rectangle.data.Data
     n_splits: 5
   dataset:
   fold: 0
-  batch_size: 4
 model:
   class: rectangle.torch.Model
   hidden_sizes: [3, 4, 5]
 """
-dataloaders = create(doc, 'dataloaders')
+datasets = create(doc, 'datasets')
 model = create(doc, 'model')
 model
 ```
@@ -41,12 +40,14 @@ model
 We can uses this model as usual.
 
 ```python
-index, input, target = next(iter(dataloaders.train))
+import torch
+
+index, input, target = datasets.train[:5]
 input
 ```
 
 ```python
-model(input)
+model(torch.tensor(input))
 ```
 
 ## Optimizer

@@ -1,18 +1,20 @@
 """Metrics to record scores while training."""
-from dataclasses import dataclass
 from typing import Any, Dict
 
 import ivory.core.collections
+from ivory.core import instance
 from ivory.core.run import Run
 from ivory.core.state import State
 
 
-@dataclass
 class Metrics(ivory.core.collections.Dict, State):
     """Metrics object."""
 
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.metrics_fn = {}
+        for key, value in kwargs.items():
+            self.metrics_fn[key] = get_metric_function(key, value)
         self.history = ivory.core.collections.Dict()
 
     def __str__(self):
@@ -45,4 +47,23 @@ class Metrics(ivory.core.collections.Dict, State):
 
     def metrics_dict(self, run: Run) -> Dict[str, Any]:
         """Returns an extra custom metrics dictionary."""
-        return {}
+        pred = run.results.val.output.reshape(-1)
+        true = run.results.val.target.reshape(-1)
+        metrics_dict = {}
+        for key, func in self.metrics_fn.items():
+            metrics_dict[key] = func(true, pred)
+        return metrics_dict
+
+
+METRICS = {"mse": "sklearn.metrics.mean_squared_error"}
+
+
+def get_metric_function(key, value):
+    if value is None:
+        if key not in METRICS:
+            raise ValueError(f"Unkown metric: {key}")
+        value = METRICS[key]
+    if isinstance(value, str) and "." not in value:
+        value = f"sklearn.metrics.{value}"
+
+    return instance.get_attr(value)

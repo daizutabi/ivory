@@ -26,7 +26,7 @@ class Estimator(ivory.core.estimator.Estimator):
 
 
 class Regressor(Estimator):
-    def __init__(self, objective="regression", metric="rmse", **kwargs):
+    def __init__(self, objective="regression", metric="mse", **kwargs):
         super().__init__(objective=objective, metric=metric, **kwargs)
 
 

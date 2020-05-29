@@ -1,6 +1,6 @@
 # Ivory Core Entities
 
-{{ # cache:clear }}
+{{ ## cache:clear }}
 
 ## Client
 
@@ -94,14 +94,14 @@ Passing key-value pairs, you can change the parameters.
 
 ```python
 run = experiment.create_run(fold=1)
-run.dataloaders.fold
+run.datasets.fold
 ```
 
 But the type of parameter must be equal, otherwise a `ValueError` is raised.
 
 ```python
 run = experiment.create_run(fold=0.5)
-run.dataloaders.fold
+run.datasets.fold
 ```
 
 ### List

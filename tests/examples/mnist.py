@@ -37,7 +37,6 @@ def create_model():
     return keras.Sequential(layers)
 
 
-@dataclass
 class Metrics(ivory.tensorflow.metrics.Metrics):
     def metrics_dict(self, run):
         pred = run.results.val["output"].argmax(axis=1)

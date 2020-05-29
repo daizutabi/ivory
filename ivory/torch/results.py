@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 import ivory.callbacks.results
 from ivory.torch import utils
@@ -12,7 +13,9 @@ class Results(ivory.callbacks.results.Results):
         self.targets = []
 
     def step(self, index, output, target=None):
-        self.indexes.append(index.numpy())
+        if torch.is_tensor(index):
+            index = index.numpy()
+        self.indexes.append(index)
 
         output = output.detach()
         if output.device.type != "cpu":
@@ -20,9 +23,11 @@ class Results(ivory.callbacks.results.Results):
         self.outputs.append(output.numpy())
 
         if target is not None:
-            if target.device.type != "cpu":
-                target = utils.cpu(target)
-            self.targets.append(target.numpy())
+            if torch.is_tensor(target):
+                if target.device.type != "cpu":
+                    target = utils.cpu(target)
+                target = target.numpy()
+            self.targets.append(target)
 
     def result_dict(self):
         index = np.concatenate(self.indexes)

@@ -84,6 +84,7 @@ To work with the `Results` callback, we create data and model set. For more deta
 
 ```python
 import yaml
+from ivory.core.instance import create_instance
 
 # A helper function.
 def create(doc, name, **kwargs):
@@ -92,18 +93,17 @@ def create(doc, name, **kwargs):
 
 doc = """
 library: torch
-dataloaders:
+datasets:
   data:
     class: rectangle.data.Data
     n_splits: 5
   dataset:
   fold: 0
-  batch_size: 4
 model:
   class: rectangle.torch.Model
   hidden_sizes: [3, 4, 5]
 """
-dataloaders = create(doc, 'dataloaders')
+datasets = create(doc, 'datasets')
 model = create(doc, 'model')
 ```
 
@@ -121,14 +121,13 @@ results
 import ivory.core.run
 
 run = ivory.core.run.Run(
-    dataloaders=dataloaders,
+    datasets=datasets,
     model=model,
     results=results
 )
 run.create_callbacks()
 run
 ```
-
 
 ```python
 # A helper function
@@ -143,19 +142,23 @@ print_callbacks(results)
 Let's play with the `Results` callback. The `Results.step()` method records the current index, output, and target.
 
 ```python
+import torch
+
 # For simplicity, just one epoch with some batches.
 run.on_train_begin()
-data_iter = iter(run.dataloaders.train)
-for _ in range(3):
-    index, input, target = next(data_iter)
-    output = model(input)
+dataset = run.datasets.train
+for k in range(3):
+    index, input, target = dataset[4 * k : 4 * (k + 1)]
+    input, target = torch.tensor(input), torch.tensor(target)
+    output = run.model(input)
     run.results.step(index, output, target)
     # Do something for example parameter update or early stopping.
 run.on_train_end()
 run.on_val_begin()  # Can call even if there is no callback.
-data_iter = iter(run.dataloaders.val)
-for _ in range(2):
-    index, input, target = next(data_iter)
+dataset = run.datasets.val
+for k in range(2):
+    index, input, target = dataset[4 * k : 4 * (k + 1)]
+    input, target = torch.tensor(input), torch.tensor(target)
     output = run.model(input)
     run.results.step(index, output, target)
 run.on_val_end()
@@ -171,15 +174,15 @@ results.train
 ```
 
 ```python
-results.train.index  # Shuffled. The length is batch_size (4) x 3.
+results.train.index  # The length is 4 x 3.
 ```
 
 ```python
-results.val.index  # Not shuffled. The length is batch_size (4) x 2.
+results.val.index  # The length is 4 x 2.
 ```
 
 ```python
-results.val.output  # Actually, no learning.
+results.val.output
 ```
 
 ```python
@@ -188,4 +191,4 @@ results.val.target
 
 ## Other Callback
 
-There are several callback such as `Metrics`, `Monitor`, *etc*. We will learn about them in next ['Training a Model'](../trainer) section.
+There are several callback such as `Metrics`, `Monitor`, *etc*. We will learn about them in next [Training a Model](../training) tutorial.

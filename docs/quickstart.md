@@ -107,7 +107,7 @@ data
 data.get(0)  # get data of index = 0.
 ```
 
-This returned value is a list of [index, input, target]. Ivory always keeps data index so that we can know where a sample comes from.
+This returned value is a tuple of (index, input, target). Ivory always keeps data index so that we can know where a sample comes from.
 
 ## Define a model
 
@@ -160,7 +160,7 @@ The `Client.create_run()` method can take keyword arguments to modify these para
 
 ```python
 run = client.create_run(
-  'torch', batch_size=20, hidden_sizes=[40, 50, 60],
+  'torch', fold=3, hidden_sizes=[40, 50, 60],
 )
 
 print('[datasets]')
@@ -325,11 +325,11 @@ run.model.eval()
 ```python
 import torch
 
-index, input, target = next(iter(run.datasets.val[:5]))
+index, input, target = run.datasets.val[:5]
 with torch.no_grad():
     output = run.model(torch.tensor(input))
 print('[output]')
-print(output)
+print(output.numpy())
 print('[target]')
 print(target)
 ```

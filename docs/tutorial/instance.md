@@ -28,7 +28,7 @@ data = create_instance(params, 'data')
 data
 ```
 
-Here, the `create_instance()` function requires the second parameter `name` to specify a key because the first argument `params` can have multiple keys. Note that we added a `n_splits` parameter which is different from the default value 5. Let's see unique values of fold.
+Here, the `create_instance()` function requires the second argument `name` to specify a key because the first argument `params` can have multiple keys. Note that we added a `n_splits` parameter which is different from the default value 5. Let's see unique values of fold.
 
 ```python
 import numpy as np
@@ -71,28 +71,27 @@ dataset:
 create(doc, 'dataset')
 ```
 
-As you can see, Ivory can treat this hierarchal structure correctly. Next, create a `DataLoaders` instance for PyTorch.
+As you can see, Ivory can treat this hierarchal structure correctly. Next, create a `Datasets` instance.
 
 ```python
 doc = """
-dataloaders:
-  class: ivory.torch.data.DataLoaders
+datasets:
+  class: ivory.core.data.Datasets
   data:
     class: rectangle.data.Data
     n_splits: 5
   dataset:
     def: ivory.core.data.Dataset
   fold: 0
-  batch_size: 4
 """
-create(doc, 'dataloaders')
+create(doc, 'datasets')
 ```
 
-Remember that the argument `dataset` for the `DataLoaders` class is not an instance but a callable that returns a `Dataset` instance (See [the previous section](../data#dataloaders)). To describe this behavior, we use a new `def` key instead of `class` to create a callable.
+Remember that the argument `dataset` for the `Datasets` class is not an instance but a callable that returns a `Dataset` instance (See [the previous section](../data#datasets)). To describe this behavior, we use a new `def` key instead of `class` to create a callable.
 
 ## Default Class
 
-In the above example, the two lines using a class of Ivory seems to be verbose a little bit. Ivory adds a default class if the `class` or `def` key is missing.
+In the above example, the two lines using an Ivory's original class seems to be verbose a little bit. Ivory adds a default class if the `class` or `def` key is missing.
 Here is the list of default classes prepared by Ivory:
 
 ```python
@@ -107,34 +106,34 @@ for library, values in DEFAULT_CLASS.items():
 Therefore, we can omit the lines using default classes like below. Here, the `library` key is used to overload the default classes of the `ivory.core` package by the specific library.
 
 ```python
+import torch.utils.data
+
 doc = """
-library: torch
-dataloaders:
+library: torch  # Use default class for PyTorch.
+datasets:
   data:
     class: rectangle.data.Data
     n_splits: 5
   dataset:
   fold: 0
-  batch_size: 4
 """
-create(doc, 'dataloaders')
+datasets  = create(doc, 'datasets')
+isinstance(datasets.train, torch.utils.data.Dataset)
 ```
 
 ## Default Value
 
-If a callable has parameters with default value, you can use `__default__` to get default values from the callable signature.
+If a callable has arguments with default value, you can use `__default__` to get default values from the callable signature.
 
 ```python
 doc = """
-library: torch
-dataloaders:
+datasets:
   data:
     class: rectangle.data.Data
     n_splits: __default__
   dataset:
   fold: 0
-  batch_size: 15
 """
-dataloaders = create(doc, 'dataloaders')
-dataloaders.data.n_splits
+datasets = create(doc, 'datasets')
+datasets.data.n_splits
 ```

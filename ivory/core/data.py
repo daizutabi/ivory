@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, Tuple, Optional, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
 import ivory.core.collections
+from ivory.core import instance
 
 Index = Union[int, np.ndarray]
 Value = Union[np.ndarray, Dict[str, np.ndarray]]
@@ -86,6 +87,8 @@ class Dataset:
         if self.mode == "test":
             self.fold = -1
         self.init()
+        if self.transform:
+            self.transform = instance.get_attr(self.transform)
 
     def init(self):
         pass
@@ -131,6 +134,6 @@ class Datasets(ivory.core.collections.Dict):
     fold: int
 
     def __post_init__(self):
-        super().__post_init__()
+        super().__init__()
         for mode in ["train", "val", "test"]:
             self[mode] = self.dataset(self.data, mode, self.fold)

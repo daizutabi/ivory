@@ -137,11 +137,11 @@ Again read the suggest functions.
 
 #File rectangle/suggest.py {%=/examples/rectangle/suggest.py%}
 
-The `suggest_hidden_sizes()` function has some logic but the `suggest_lr()` function is too simple to define a function. You may not want to write such a function. Ivory can do that for you. You can pass key-iterable pairs to the `client.create_study()` function instead of key-callable pairs.
+The `suggest_hidden_sizes()` function has some logic but the code of the `suggest_lr()` function is too simple to define a function. You may not want to write such a function. Ivory can do that for you. You can pass key-iterable pairs to the `client.create_study()` function instead of key-callable pairs.
 
 ### tuple, range, Range
 
-A tuple, range, or [Range](../task#range) instance represent parameter ranges.
+A tuple, range, or [Range](../task#range) instance represents parameter range.
 
 ```python
 study = client.create_study('torch', lr=(1e-3, 1e-2))
@@ -198,7 +198,7 @@ optuna_study = study.optimize(n_trials=10, epochs=1, verbose=0)
 
 
 !!! note
-    You may feel that "`params = {'hidden_sizes.1': hidden_sizes, 'lr': Range(1e-4, 1e-3)}`" must be better, but the above style is intentional.
+    You may feel that "`params = {'hidden_sizes.1': hidden_sizes, 'lr': Range(1e-4, 1e-3)}`" is better, but the above style is intentional.
 
 In parametric optimization, the name of Optuna's `Study` instance is *dot-joint style*:
 
@@ -219,7 +219,7 @@ Here is the contents of `study.yml` file.
 
 #File study.yml {%=/examples/study.yml[3:]%}
 
-Suggest functions should be callable, `hidden_sizes` uses `def` keyword to create a callable. On the other hand, `lr` is just one line. If a suggest funtion can be called without additional parameters, you can omit the `def` keyword. Using this experiment, we can create `Study` instances with a suggest function.
+Suggest functions should be callable, `hidden_sizes` uses `def` keyword to create a callable. On the other hand, `lr` is just one line. If a suggest funtion can be called without additional arguments, you can omit the `def` keyword. Using this experiment, we can create `Study` instances with a suggest function.
 
 ```python
 study_lr = client.create_study('torch', 'lr')
@@ -249,7 +249,7 @@ Here is the updated contents of `study.yml` file.
 
 #File study.yml {%=/examples/study.yml%}
 
-The `Tuner` instance has Optuna's `MedianPruner`. (Off course, you can use [other pruners](https://optuna.readthedocs.io/en/latest/reference/pruners.html).) A `Study` instance give an `ivory.callbacks.Pruning` instance to a run when the run is created, then with Ivory's [callback system](../callbacks), the `Pruning` instance communicates with Optuna in order to determine pruning.
+The `Tuner` instance has Optuna's `MedianPruner`. (Off course, you can use [other pruners](https://optuna.readthedocs.io/en/latest/reference/pruners.html).) A `Study` instance give an `ivory.callbacks.Pruning` instance to a run when the run is created, then with Ivory's [callback system](../callback), the `Pruning` instance communicates with Optuna in order to determine the step of pruning.
 
 
 !!! note
