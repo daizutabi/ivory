@@ -38,7 +38,7 @@ class Trainer(ivory.core.estimator.Estimator):
         try:
             run.model.fit(
                 *train_dataset,
-                validation_data=val_dataset,
+                validation_data=tuple(val_dataset),
                 batch_size=self.batch_size,
                 initial_epoch=self.epoch + 1,
                 epochs=self.epoch + self.epochs + 1,
