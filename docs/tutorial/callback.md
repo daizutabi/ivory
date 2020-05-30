@@ -6,7 +6,7 @@
 
 Ivory implements a simple but powerful callback system.
 
-Here is the list of callback functions:
+Here is the list of callback functions in the order of invocation:
 
 ```python
 import ivory.core.base
@@ -32,7 +32,6 @@ caller
 ```
 
 The number of registered instances is 1.
-
 
 ```python
 list(caller)
@@ -80,7 +79,7 @@ The `Run` class is a subclass of the `CallbackCaller` class and performs more li
 
 ## Example Callback: Results
 
-To work with the `Results` callback, we create data and model set. For more details about the following code, see [Creating Instance](../instance) section.
+To work with the `Results` callback, we create a set of data and a model. For more details about the following code, see [Creating Instance](../instance) section.
 
 ```python
 import yaml

@@ -119,4 +119,21 @@ run_id = client.get_parent_run_id('torch', run=5)
 print_run_info([run_id])
 ```
 
-Once you got RunID(s), you can load a run, a member of a run, or results collection. See [the quickstart](../../quickstart#load-runs-and-results).
+### Set method
+
+Sometimes, you may want to change a parent for nested runs. Use the `client.set_parent_run_id()` method.
+
+```python
+run_ids = client.get_nested_run_ids('torch', task=2)
+print_run_info(run_ids)
+```
+
+```python
+client.set_parent_run_id('torch', run=(0, 2, 3), task=2)
+run_ids = client.get_nested_run_ids('torch', task=2)
+print_run_info(run_ids)
+```
+
+## Next Step
+
+Once you got RunID(s), you can load a run, a member of a run, or collect results of multiple runs for an ensemble. See [the quickstart](../../quickstart#load-runs-and-results).

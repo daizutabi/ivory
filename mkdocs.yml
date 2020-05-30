@@ -7,7 +7,11 @@ site_dir: ../ivory-site/site
 repo_url: https://github.com/daizutabi/ivory/
 edit_uri: ""
 
-theme: ivory
+theme:
+  name: ivory
+  highlightjs: true
+  hljs_languages:
+    - yaml
 
 plugins:
   - search
@@ -33,10 +37,10 @@ nav:
     - tutorial/tracking.md
     - tutorial/library.md
     - tutorial/cli.md
-    # - tutorial/run.md
-  # - Python API:
-  #   - api/data.md
-  #   - Data: api/data.md
+  - Python API:
+    - ivory.core:
+      - api/ivory.core.data.md
+      - api/ivory.core.client.md
 
 markdown_extensions:
   - admonition

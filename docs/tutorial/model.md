@@ -4,7 +4,7 @@
 
 ## Model
 
-We have prepared a `DataLoaders` instance for PyTorch. Now define a MLP model that works with the `DataLoaders`.
+We have prepared a `Datasets` instance for PyTorch. Now define a MLP model that works with this `Datasets`.
 
 The model is defined in `rectangle/torch.py`
 
@@ -61,7 +61,7 @@ optimizer = torch.optim.SGD(params=model.parameters(), lr=1e-3)
 optimizer
 ```
 
-Now try to describe this optimizer in a dictionary style. However, the first argument `params` is not a simple literal but an iterable of learnable parameters. Ivory provides "**`$`-notation**" to tackle this problem.
+Now try to describe this optimizer in a dictionary style. However, the first argument `params` is neigher a simple literal nor an other instance. It is an iterable of learnable parameters obtained from a model. Ivory provides "**`$`-notation**" to tackle this problem.
 
 
 ```python

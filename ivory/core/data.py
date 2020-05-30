@@ -1,18 +1,52 @@
+"""
+Ivory uses three classes for data presentation: `Data`, `Dataset`, and `Datasets`.
+
+Basically, you only need to define a class that is a subclass of `Data`
+and use original `Dataset` and `Datasets`. An example parameter YAML file is:
+
+    datasets:
+      data:
+        class: your.Data  # a subclass of ivory.core.data.Data
+      dataset:
+      fold: 0
+
+But if you need, you can define your `Dataset` and/or `Datasets`.
+
+    datasets:
+      class: your.Datasets
+      data:
+        class: your.Data  # a subclass of ivory.core.data.Data
+      dataset:
+        def: your.Dataset
+      fold: 0
+
+Note:
+    Use a `'def'` key for `dataset` instead of `'class'`.
+    See [Tutorial](/tutorial/data)
+"""
+
+
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
 import ivory.core.collections
 from ivory.core import instance
 
-Index = Union[int, np.ndarray]
-Value = Union[np.ndarray, Dict[str, np.ndarray]]
-
 
 @dataclass
 class Data:
-    """Base class to provide data to `Dataset`. """
+    """Base class to provide data to a `Dataset` instance.
+
+    To make a subclass, you need to assign the following attributes in
+    the `Data.init()` method:
+
+    * `index`: Index of samples.
+    * `input`: Input data.
+    * `target`: Target data.
+    * `fold`: Fold number.
+    """
 
     def __post_init__(self):
         self.fold = None
@@ -31,17 +65,36 @@ class Data:
             return f"{cls_name}(train_size={num_train}, test_size={num_test})"
 
     def init(self):
-        """Initializes `fold`, `index`, `input`, `target`."""
+        """Initializes `index`, `input`, `target`, and `fold` attributes.
+
+        The fold number of test data must be `-1`.
+
+        Examples:
+            For regression
+
+                def init(self):
+                    self.index = np.range(100)
+                    self.input = np.random.randn(100, 5)
+                    self.target = np.random.randn(100)
+                    self.fold = np.random.randint(5)
+                    self.fold[80:] = -1
+
+            For classification
+
+                def init(self):
+                    self.index = np.range(100)
+                    self.input = np.random.randn(100, 5)
+                    self.target = np.random.randint(100, 10)
+                    self.fold = np.random.randint(5)
+                    self.fold[80:] = -1
+        """
 
     def get_index(self, mode: str, fold: int) -> np.ndarray:
-        """Returns index according to the mode and fold for `Dataset`.
+        """Returns index according to the mode and fold.
 
         Args:
-            mode: `train`, `val`, or `test`.
-            fold: fold number
-
-        Returns:
-            data index array.
+            mode: Mode name: `'train'`, `'val'`, or `'test'`.
+            fold: Fold number.
         """
         index = np.arange(len(self.fold))
         if mode == "train":
@@ -51,30 +104,49 @@ class Data:
         else:
             return index[self.fold == -1]
 
-    def get_input(self, index: Index) -> Value:
-        """
+    def get_input(self, index):
+        """Returns input data.
+
+        By default, this method returns `self.input[index]`. You can override this
+        behavior in a subclass.
+
         Args:
-            index: Index
+            index (int or 1D-array): Index.
         """
         return self.input[index]
 
-    def get_target(self, index: Index) -> Value:
+    def get_target(self, index):
+        """Returns target data.
+
+        By default, this method returns `self.target[index]`. You can override this
+        behavior in a subclass.
+
+        Args:
+            index (int or 1D-array): Index.
+        """
         return self.target[index]
 
-    def get(self, index: Union[int, np.ndarray]) -> Tuple[Index, Value, Value]:
-        """Returns a tuple of (index, input, target) according to the index."""
+    def get(self, index) -> Tuple:
+        """Returns a tuple of (`index`, `input`, `target`) according to the index.
+
+        Args:
+            index (int or 1D-array): Index.
+        """
         return self.index[index], self.get_input(index), self.get_target(index)
 
 
 @dataclass
 class Dataset:
-    """Dataset class which implements `__len__()`, `__getitem__()`, `__iter__()`.
+    """Dataset class represents a set of data for a mode and fold.
 
     Args:
-        data: data from which to load the data.
-        mode: `train`, `val`, or `test`.
-        fold: fold number.
-        transform: callable to transform the data.
+        data: `Data` instance that provides data to `Dataset` instance.
+        mode: Mode name: `'train'`, `'val'`, or `'test'`.
+        fold: Fold number.
+        transform (callable, optional): Callable to transform the data.
+
+    The `transform` must take 2 or 3 arguments: (`mode`, `input`, optional
+    `target`) and return a tuple of (`input`, optional `target`).
     """
 
     data: Data
@@ -86,11 +158,12 @@ class Dataset:
         self.index = self.data.get_index(self.mode, self.fold)
         if self.mode == "test":
             self.fold = -1
-        self.init()
         if self.transform:
             self.transform = instance.get_attr(self.transform)
+        self.init()
 
     def init(self):
+        """Called at initialization. You can add any process in a subclass."""
         pass
 
     def __repr__(self):
@@ -113,13 +186,26 @@ class Dataset:
         for index in range(len(self)):
             yield self[index]
 
-    def get(self, index=None):
+    def get(self, index=None) -> Tuple:
+        """Returns a tuple of (`index`, `input`, `target`) according to the index.
+
+        If index is `None`, reutrns all of the data.
+
+        Args:
+            index (int or 1D-array, optional): Index.
+        """
         if index is None:
             return self.data.get(self.index)
         else:
             return self.data.get(self.index[index])
 
-    def sample(self, n: int = 0, frac: float = 0.0):
+    def sample(self, n: int = 0, frac: float = 0.0) -> Tuple:
+        """Returns a tuple of (`index`, `input`, `target`) randomly sampled.
+
+        Args:
+            n: Size of sampling.
+            frac: Ratio of sampling.
+        """
         index, input, *target = self[:]
         if frac:
             n = int(len(index) * frac)
@@ -129,6 +215,19 @@ class Dataset:
 
 @dataclass
 class Datasets(ivory.core.collections.Dict):
+    """Dataset class represents a collection of `Dataset` for a fold.
+
+    Args:
+        data: `Data` instance that provides data to `Dataset` instance.
+        dataset: Dataset factory.
+        fold: Fold number.
+
+    Attributes:
+        train (Dataset): Train dataset.
+        val (Dataset): Validation dataset.
+        test (Dataset): Test dataset.
+        fold: Fold number.
+    """
     data: Data
     dataset: Callable
     fold: int

@@ -2,7 +2,7 @@
 
 {{ ## cache:clear }}
 
-Ivory uses four classes for data presentation: `Data`, `Dataset`, and `Datasets`. In this tutorial, we use the following Python module to explain them.
+Ivory uses three classes for data presentation: `Data`, `Dataset`, and `Datasets`. In this tutorial, we use the following Python module to explain them.
 
 #File rectangle/data.py {%=/examples/rectangle/data.py%}
 

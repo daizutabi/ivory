@@ -1,6 +1,17 @@
 """
 This module provides the Ivory Client class which is one of the main classes of
 Ivory library.
+
+To create an `Client` instance:
+
+    import ivory
+
+    client = ivory.create_client()
+
+Here, the current directory becomes the working directory in which experiment
+YAML files exist. If you want to refer other directory, use:
+
+    client = ivory.create_client('path/to/working_directory')
 """
 import os
 import re
@@ -18,11 +29,11 @@ from ivory.utils.tqdm import tqdm
 
 
 class Client(Base):
-    """The Ivory client class.
+    """The Ivory Client class.
 
     Attributes:
-        tracker (Tracker, optional): A Tracker instance for tracking run process.
-        tuner (Tuner, optional): A Tuner instance for hyperparameter tuning.
+        tracker (Tracker): A Tracker instance for tracking run process.
+        tuner (Tuner): A Tuner instance for hyperparameter tuning.
     """
 
     def __init__(self, params=None, **objects):
@@ -34,8 +45,39 @@ class Client(Base):
 
         Args:
             name: Experiment name.
-            *args: Additional parameters.
-            **kwargs: Additional parameters.
+            *args: Additional parameter files.
+            **kwargs: Additional parameter files.
+
+        A YAML file named `<name>.yml` or `<name>.yaml` should exist under the
+        working directory.
+
+        Any additionanl parameter files are added through `*args` and/or `**kwargs`.
+
+        Examples:
+            **Positional argument style**:
+
+                experiment = client.create_experiment('example', 'study')
+
+            In this case, `study.yml` is like this:
+
+                study:
+                  tuner:
+                    pruner:
+                    class: optuna.pruners.MedianPruner
+                  objective:
+                    lr: example.suggest_lr
+
+            **Keyword argument style**:
+
+                experiment = client.create_experiment('example', study='study')
+
+            In this case, `study.yml` is like this:
+
+                tuner:
+                  pruner:
+                    class: optuna.pruners.MedianPruner
+                objective:
+                  lr: example.suggest_lr
         """
         if name in self.experiments and not args and not kwargs:
             return self.experiments[name]
@@ -69,16 +111,28 @@ class Client(Base):
             args (dict, optional): Parameter dictionary to update the default values
                 of `Experiment`.
             **kwargs: Additional parameters.
+
+        Examples:
+            To update a fold number:
+
+                run = client.create_run('example', fold=3)
+
+            To update a model class:
+
+                run = client.create_run('example', {'model.class': 'your.new.Model'})
         """
         return self.create_experiment(name).create_run(args, **kwargs)
 
     def create_task(self, name: str, run_number: Optional[int] = None) -> Task:
-        """Creates a `Task`.
+        """Creates a `Task` for multiple runs.
 
         Args:
             name: Experiment name.
-            run_number: If specified, load an existing task instead of creating a new
-                one.
+            run_number (int, optional): If specified, load an existing task instead of
+                creating a new one.
+
+        See Also:
+            [Multiple Runs](/tutorial/task)
         """
         if run_number is None:
             return self.create_experiment(name).create_task()
@@ -88,12 +142,30 @@ class Client(Base):
     def create_study(
         self, name: str, args=None, run_number: Optional[int] = None, **suggests
     ) -> Study:
-        """Creates a `Study`.
+        """Creates a `Study` for hyperparameter tuning.
 
         Args:
             name: Experiment name.
-            run_number: If specified, load an existing study instead of creating a new
-                one.
+            args (str or dict): Suggest name (str) or parametric optimization (dict).
+            run_number (int, optional): If specified, load an existing study instead of
+                creating a new one.
+            **suggests: Parametric optimization.
+
+        Examples:
+            To use a suggest function:
+
+                study = client.create_study('example', 'lr')
+
+            For parametric optimization:
+
+                study = client.create_study('example', lr=(1e-5, 1e-3))
+
+            If a parameter includes dots:
+
+                study = client.create_study('example', {'hidden_sizes.0': range(5, 20)})
+
+        See Also:
+            [Hyperparameter Tuning](/tutorial/tuning)
         """
         if run_number is None:
             study = self.create_experiment(name).create_study(args, **suggests)
@@ -108,8 +180,15 @@ class Client(Base):
 
         Args:
             name: Experiment name.
-            **kwargs: Run name. If you want to get a run with name of 'run#5',
-                **kwargs shoud be `run=5`.
+
+        Examples:
+            To get a RunID of run#4.
+
+                client.get_run_id('example', run=4)
+
+            To get a RunID of task#10.
+
+                client.get_run_id('example', task=10)
         """
         run_name = list(kwargs)[0]
         run_number = kwargs[run_name]
@@ -120,6 +199,20 @@ class Client(Base):
             return self.tracker.get_run_id(experiment_id, run_name, run_number)
 
     def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        """Returns an iterator that yields RunIDs.
+
+        Args:
+            name: Experiment name.
+
+        Examples:
+            To get an iterator that yields RunIDs for Runs.
+
+                client.get_run_id('example', run=[1, 2, 3])
+
+            To get an iterator that yields RunIDs for Tasks.
+
+                client.get_run_id('example', task=range(3, 8))
+        """
         for run_name, run_numbers in kwargs.items():
             if isinstance(run_numbers, int):
                 run_numbers = [run_numbers]
@@ -127,25 +220,73 @@ class Client(Base):
                 yield self.get_run_id(name, **{run_name: run_number})
 
     def get_parent_run_id(self, name: str, **kwargs) -> str:
+        """Returns a parent RunID of a nested run.
+
+        Args:
+            name: Experiment name.
+
+        Examples:
+            To get a prarent RunID of run#5.
+
+                client.get_parent_run_id('example', run=5)
+        """
         run_id = self.get_run_id(name, **kwargs)
         return self.tracker.get_parent_run_id(run_id)
 
     def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
+        """Returns an iterator that yields nested RunIDs of parent runs.
+
+        Args:
+            name: Experiment name.
+
+        Examples:
+            To get an iterator that yields RunIDs of runs whose parent is task#2.
+
+                client.get_nested_run_ids('example', task=2)
+
+            Multiple parents can be specified.
+
+                client.get_nested_run_ids('example', task=range(3, 8))
+        """
         run_name = list(kwargs)[0]
         run_numbers = kwargs.pop(run_name)
         parent_run_ids = self.get_run_ids(name, **{run_name: run_numbers})
         yield from self.search_run_ids(name, parent_run_id=parent_run_ids, **kwargs)
 
     def set_parent_run_id(self, name: str, **kwargs):
+        """Sets parent RunID to runs.
+
+        Args:
+            name: Experiment name.
+
+        Examples:
+            To set task#2 as a parant for run#4.
+
+                client.set_parent_run_id('example', task=2, run=4)
+
+            Multiple nested runs can be specified.
+
+                client.set_parent_run_id('example', task=2, run=range(3))
+        """
         parent = {name: number for name, number in kwargs.items() if name != "run"}
         parent_run_id = self.get_run_id(name, **parent)
         for run_id in self.get_run_ids(name, run=kwargs["run"]):
             self.tracker.set_parent_run_id(run_id, parent_run_id)
 
     def get_run_name(self, run_id: str) -> str:
+        """Returns a run name (`run#XXX`, `task#XXX`, *etc*.) for RunID.
+
+        Args:
+            run_id: RunID
+        """
         return self.tracker.get_run_name(run_id)
 
     def get_run_name_tuple(self, run_id: str) -> Tuple[str, int]:
+        """Returns a run name as a tuple of (run class name, run number).
+
+        Args:
+            run_id: RunID
+        """
         return self.tracker.get_run_name_tuple(run_id)
 
     def search_run_ids(
@@ -159,20 +300,18 @@ class Client(Base):
         best_score_limit: Optional[float] = None,
         **query,
     ) -> Iterator[str]:
-        """Yields matching run id.
+        """Returns an iterator that yields matching RunIDs.
 
         Args:
             name: Experiment name pattern for filtering.
             run_name: Run name pattern for filtering.
-            parent_run_id: If specified, search from runs which have the parent id.
+            parent_run_id (str or iterable of str): If specified, search from runs
+                which have the parent id(s).
             parent_only: If True, search from parent runs.
             nested_only: If True, search from nested runs.
             exclude_parent: If True, skip parent runs.
             best_score_limit: Yields runs with the best score better than this value.
             **query: Key-value pairs for filtering.
-
-        Yields:
-            run_id
         """
         for experiment in self.tracker.list_experiments():
             if name and not re.match(name, experiment.name):
@@ -189,30 +328,107 @@ class Client(Base):
             )
 
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
+        """Returns an iterator that yields matching parent RunIDs.
+
+        Args:
+            name: Experiment name pattern for filtering.
+            **query: Key-value pairs for filtering.
+        """
         yield from self.search_run_ids(name, parent_only=True, **query)
 
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
+        """Returns an iterator that yields matching nested RunIDs.
+
+        Args:
+            name: Experiment name pattern for filtering.
+            **query: Key-value pairs for filtering.
+        """
         yield from self.search_run_ids(name, nested_only=True, **query)
 
     def set_terminated(self, name: str, status: Optional[str] = None, **kwargs):
+        """Sets runs' status to terminated.
+
+        Args:
+            status: A string value of
+                [`mlflow.entities.RunStatus`](https://mlflow.org/docs/latest/python_api/mlflow.entities.html#mlflow.entities.RunStatus).
+                Defaults to “FINISHED”.
+
+        Examples:
+            To terminate a run:
+
+                client.set_terminated('example', run=5)
+
+            To kill multiple runs:
+
+                client.set_terminated('example', 'KILLED', run=[3, 5, 7])
+        """
         for run_id in self.get_run_ids(name, **kwargs):
             self.tracker.client.set_terminated(run_id, status=status)
 
     def set_terminated_all(self, name: str = ""):
+        """Sets all runs' status to terminated.
+
+        Args:
+            status: A string value of
+                [`mlflow.entities.RunStatus`](https://mlflow.org/docs/latest/python_api/mlflow.entities.html#mlflow.entities.RunStatus).
+                Defaults to “FINISHED”.
+
+        Examples:
+            To terminate all of the runs of the `example` experiment:
+
+                client.set_terminated_all('example')
+
+            To terminate all of the runs globally:
+
+                client.set_terminated_all()
+        """
         for run_id in self.search_run_ids(name):
             self.tracker.client.set_terminated(run_id)
 
     def load_params(self, run_id: str) -> Dict[str, Any]:
+        """Returns a parameter dictionary loaded from MLFlow Tracking.
+
+        Args:
+            run_id: RunID for a run to be loaded.
+        """
         return self.tracker.load_params(run_id)
 
     def load_run(self, run_id: str, mode: str = "test") -> Run:
+        """Returns a `Run` instance created using parameters loaded from MLFlow
+        Tracking.
+
+        Args:
+            run_id: RunID for a run to be loaded.
+            mode: Mode name: `'current'`, `'best'`, or `'test'`.
+                Default is `'{default}'`.
+        """
         return self.tracker.load_run(run_id, mode)
 
     def load_run_by_name(self, name: str, mode: str = "test", **kwargs) -> Run:
+        """Returns a `Run` instance created using parameters loaded from MLFlow
+        Tracking.
+
+        Args:
+            name: Experiment name pattern for filtering.
+            mode: Mode name: `'current'`, `'best'`, or `'test'`.
+
+        Examples:
+            To load run#4 of the `example` experiment.
+
+                client.load_run_by_name('example', run=4)
+        """
         run_id = self.get_run_id(name, **kwargs)
         return self.load_run(run_id, mode)
 
     def load_instance(self, run_id: str, instance_name: str, mode: str = "test") -> Any:
+        """Returns a member of a `Run` created using parameters loaded from MLFlow
+        Tracking.
+
+        Args:
+            run_id: RunID for a run to be loaded.
+            instance_name: Instance name.
+            mode: Mode name: `'current'`, `'best'`, or `'test'`.
+        """
         return self.tracker.load_instance(run_id, instance_name, mode)
 
     def load_results(
@@ -227,7 +443,7 @@ class Client(Base):
         Args:
             run_ids: Multiple run ids to load.
             callback (callable): Callback function for each run. This function must take
-                a `(index, output, target)` and return the same signature.
+                a `(index, output, target)` and return a tuple with the same signature.
             verbose: If `True`, tqdm progress bar is displayed.
 
         Returns:
@@ -260,7 +476,7 @@ class Client(Base):
         """Removes deleted runs from a local file system.
 
         Args:
-            name: A regex pattern of experiment name for filtering.
+            name: Experiment name pattern for filtering.
 
         Returns:
             Number of removed runs.
@@ -276,7 +492,7 @@ class Client(Base):
 def create_client(
     directory: str = "", name: str = "client", tracker: bool = True
 ) -> Client:
-    """Creates an Ivory client.
+    """Creates an Ivory Client instance.
 
     Args:
         directory: A working directory. If a YAML file specified by the `name`
@@ -290,7 +506,7 @@ def create_client(
 
     Note:
         If `tracker` is True (default value), a `mlruns` directory is made under the
-        working directory by the MLFlow Tracking.
+        working directory by MLFlow Tracking.
     """
     if directory:
         path = os.path.abspath(directory)

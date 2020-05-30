@@ -46,7 +46,7 @@ params
 !!! note
     Key-order in the `params` dictionary is meaningful, because the callback functions are called by this order. For example, `Monitor` uses the results of `Metrics` so that `Monitor` should appear later than `Metrics`.
 
-The `ivory.core.instance.create_base_instance()` function is more useful to create a run from a dictionary than the `ivory.core.instance.create_instance()` function because it can create multiple objects by one step.
+The `ivory.core.instance.create_base_instance()` function is more useful to create a run from a dictionary than the `ivory.core.instance.create_instance()` function because it can create multiple objects by one step processing **`$`-notation** properly.
 
 ```python
 import ivory.core.instance

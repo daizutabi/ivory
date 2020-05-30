@@ -239,7 +239,7 @@ runs = task.product(fold=range(4), verbose=0, epochs=3)
 runs
 ```
 
-Like `itertools`'s functions, `Task.prodcut()` and `Task.chain()` return a generator, which yields runs that are configured by different parameters you specify. In this case, this generator will yield 4 runs with a fold number ranging from 0 to 4 for each. A `task` instance doesn't start any training by itself. In addtion, you can pass fixed parameters to update the original parameters in the YAML file.
+Like `itertools`'s functions, `Task.prodcut()` and `Task.chain()` return a generator, which yields runs that are configured by different parameters you specify. In this case, this generator will yield 4 runs with a fold number ranging from 0 to 3 for each. A `task` instance doesn't start any training by itself. In addtion, you can pass fixed parameters to update the original parameters in the YAML file.
 
 Then start 4 runs by a `for` loop including `run.start('both')`. Here `'both'` means execution of test after training.
 
@@ -293,7 +293,7 @@ print_run_info(run_ids)
 
 ## Load runs and results
 
-An Ivory `Client` instance can load runs. First select RunID(s) to load. We want to perform cross validation here, so that we need a run collection created by the `task#0`. In this case, we can use `Client.get_nested_run_ids()`. Why don't we use `Client.search_run_ids()` as we did above? Because we don't have an easy way to get a very long RunID after we restart a Python session and lose the `Task` instance. On the ohter hand, a run name is easy to manage and write.
+The `Client` instance can load runs. First select RunID(s) to load. We want to perform cross validation here, so that we need a run collection created by the `task#0`. In this case, we can use `Client.get_nested_run_ids()`. Why don't we use `Client.search_run_ids()` as we did above? Because we don't have an easy way to get a very long RunID after we restart a Python session and lose the `Task` instance. On the ohter hand, a run name is easy to manage and write.
 
 ```python
 # Assume that we restart a session so we have no run instances now.
@@ -316,7 +316,7 @@ As you expected, the fold number is 3.
 run.datasets.fold
 ```
 
-By loading a run, we obtained the *pretrained* model.
+By loading a run, we obtain the *pretrained* model.
 
 ```python
 run.model.eval()
@@ -334,7 +334,7 @@ print('[target]')
 print(target)
 ```
 
-If you don't need a whole run instance, `Client.load_instance()` is a better choice to save time and memory.
+If you don't need a whole run instance, the `Client.load_instance()` function is a better choice to save time and memory.
 
 ```python
 results = client.load_instance(run_ids[0], 'results')
@@ -369,7 +369,7 @@ import numpy as np
 len(np.unique(results.val.index)), len(np.unique(results.test.index))
 ```
 
-Usually, duplicated samples in test data are averaged for ensembling. `Results.mean()` method performs this *mean reduction* and returns a newly created `Rusults` instance.
+Usually, duplicated samples in test data are averaged for ensembling. The `Results.mean()` function performs this *mean reduction* and returns a newly created `Rusults` instance.
 
 ```python
 reduced_results = results.mean()
@@ -393,7 +393,7 @@ print('[reduced_results]')
 print(x)
 ```
 
-For convenience, `Client.load_results()` has a `reduction` keyword argument.
+For convenience, The `Client.load_results()` function has a `reduction` keyword argument.
 
 ```python
 results = client.load_results(run_ids, reduction='mean', verbose=False)
@@ -408,9 +408,9 @@ for mode, result in results.items():
 A cross validation (CV) score can be calculated as follows:
 
 ```python
-pred = results.val.output
 true = results.val.target
-np.mean(np.sqrt((pred - true) ** 2))  # Use any function for your metric.
+pred = results.val.output
+np.mean(np.sqrt((true - pred) ** 2))  # Use any function for your metric.
 ```
 
 And we got a prediction for the test data using 4 MLP models.
