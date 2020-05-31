@@ -1,5 +1,7 @@
 """Metrics to record scores while training."""
-from typing import Any, Dict
+from typing import Any, Dict, List
+
+import numpy as np
 
 import ivory.core.collections
 from ivory.core import instance
@@ -53,6 +55,26 @@ class Metrics(ivory.core.collections.Dict, State):
         for key, func in self.metrics_fn.items():
             metrics_dict[key] = func(true, pred)
         return metrics_dict
+
+
+class BatchMetrics(Metrics):
+    def on_epoch_begin(self, run: Run):
+        self.epoch = run.trainer.epoch
+
+    def on_train_begin(self, run: Run):
+        self.losses: List[float] = []
+
+    def step(self, loss: float):
+        self.losses.append(loss)
+
+    def on_train_end(self, run: Run):
+        self["loss"] = np.mean(self.losses)
+
+    def on_val_begin(self, run: Run):
+        self.losses = []
+
+    def on_val_end(self, run: Run):
+        self["val_loss"] = np.mean(self.losses)
 
 
 METRICS = {"mse": "sklearn.metrics.mean_squared_error"}

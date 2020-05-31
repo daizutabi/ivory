@@ -1,4 +1,4 @@
-library: tensorflow
+library: nnabla
 datasets:
   data:
     class: rectangle.data.Data
@@ -6,15 +6,11 @@ datasets:
   dataset:
   fold: 0
 model:
-  call: rectangle.tf.create_model
+  class: rectangle.nnabla.Model
   hidden_sizes: [20, 30]
 optimizer:
-  class: tensorflow.keras.optimizers.SGD
+  class: nnabla.solvers.Sgd
   lr: 1e-3
-scheduler:
-  class: tensorflow.keras.callbacks.ReduceLROnPlateau
-  factor: 0.5
-  patience: 4
 results:
 metrics:
 monitor:

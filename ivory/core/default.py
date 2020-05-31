@@ -45,6 +45,12 @@ DEFAULT_CLASS["tensorflow"] = {
     "trainer": "ivory.tensorflow.trainer.Trainer",
 }
 
+DEFAULT_CLASS["nnabla"] = {
+    "results": "ivory.callbacks.results.BatchResults",
+    "metrics": "ivory.nnabla.metrics.Metrics",
+    "trainer": "ivory.nnabla.trainer.Trainer",
+}
+
 
 DEFAULT_CLASS["sklearn"] = {
     "estimator": "ivory.sklearn.estimator.Estimator",
@@ -53,7 +59,7 @@ DEFAULT_CLASS["sklearn"] = {
 
 
 def update_class(params: Dict[str, Any], library: str = "core"):
-    if 'library' in params:
+    if "library" in params:
         library = params.pop("library")
     for key, value in params.items():
         if value is None:

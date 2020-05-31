@@ -1,89 +1,83 @@
-"""
-NNabla Trainer module.
-"""
-# from dataclasses import dataclass
-#
-# import nnabla as nn
-# from nnabla.ext_utils import get_extension_context
-# from nnabla.logger import logger
-#
-# import ivory.core.trainer
+"""The `ivory.nnabla.trainer` module provides the `Trainer` class for nnable."""
+from dataclasses import dataclass
+from typing import Callable, Optional
 
-# context = get_extension_context("cudnn")
-# context.backend[0]
-# get_extension_context()
+import nnabla as nn
+from nnabla.ext_utils import get_extension_context
+
+import ivory.core.trainer
+import ivory.nnabla.data
+import ivory.nnabla.functions
+from ivory.core import instance
+from ivory.core.run import Run
 
 
-# @dataclass
-# class Trainer(ivory.core.trainer.Trainer):
-#     context_name: str = "cpu"
-#     device_id: str = "0"
-#     type_config: str = "float"
-#     scheduler_step_mode: str = "epoch"
-#
-#     def on_fit_begin(self, run):
-#         context = get_extension_context(
-#             self.context, device_id=self.device_id, type_config=self.type_config
-#         )
-#         logger.info(f"Running in {context.backend[0]}")
-#         nn.set_default_context(context)
-#
-#         run.dataloaders
-#
-#
-#     def on_train_begin(self, run):
-#         run.model.train()
-#
-#     def train_step(self, run, index, input, target):
-#         if self.gpu:
-#             input = utils.cuda(input)
-#             target = utils.cuda(target)
-#         output = self.forward(run.model, input)
-#         if run.results:
-#             run.results.step(index, output, target)
-#         loss = run.metrics.step(input, output, target)
-#         optimizer = run.optimizer
-#         optimizer.zero_grad()
-#         if self.gpu and self.precision == 16:
-#             with amp.scale_loss(loss, optimizer) as scaled_loss:
-#                 scaled_loss.backward()
-#         else:
-#             loss.backward()
-#         optimizer.step()
-#         if run.sheduler and self.scheduler_step_mode == "batch":
-#             run.scheduler.step()
-#
-#     def on_val_begin(self, run):
-#         run.model.eval()
-#
-#     @torch.no_grad()
-#     def val_step(self, run, index, input, target):
-#         if self.gpu:
-#             input = utils.cuda(input)
-#             target = utils.cuda(target)
-#         output = self.forward(run.model, input)
-#         if run.results:
-#             run.results.step(index, output, target)
-#         run.metrics.step(input, output, target)
-#
-#     def on_epoch_end(self, run):
-#         if run.scheduler and self.scheduler_step_mode == "epoch":
-#             if isinstance(run.scheduler, ReduceLROnPlateau):
-#                 run.scheduler.step(run.monitor.score)
-#             else:
-#                 run.scheduler.step()
-#
-#     def on_test_begin(self, run):
-#         self.on_fit_begin(run)
-#         run.model.eval()
-#
-#     @torch.no_grad()
-#     def test_step(self, run, index, input, *target):
-#         if self.gpu:
-#             input = utils.cuda(input)
-#         output = self.forward(run.model, input)
-#         if run.results:
-#             run.results.step(index, output, *target)
-#
-#     def forward(self, model, input):
-#         return model(input)
+@dataclass
+class Trainer(ivory.core.trainer.Trainer):
+    loss: Optional[Callable] = None
+    batch_size: int = 32
+    shuffle: bool = True
+    gpu: bool = False
+    precision: int = 32  # Full precision (32), half precision (16).
+    amp_level: str = "O1"
+
+    def __post_init__(self):
+        if isinstance(self.loss, str) and "." not in self.loss:
+            self.loss = getattr(ivory.nnabla.functions, self.loss)
+        else:
+            self.loss = instance.get_attr(self.loss)
+
+    def on_init_begin(self, run):
+        if self.gpu:
+            context = "cudnn"
+        else:
+            context = "cpu"
+        if self.precision == 32:
+            type_config = "float"
+        elif self.precision == 16:
+            type_config = "half"
+        else:
+            raise ValueError(f"Unknown precision: {self.precision}")
+
+        context = get_extension_context(context, type_config=type_config)
+        nn.set_default_context(context)
+
+        if not run.model.parameters():
+            run.model.build(self.loss, run.datasets.train, self.batch_size)
+            run.optimizer.set_parameters(run.model.parameters())
+
+        if not run.dataloaders:
+            dataloaders = ivory.nnabla.data.DataLoaders(
+                run.datasets, self.batch_size, self.shuffle
+            )
+            run.set(dataloaders=dataloaders)
+
+    def on_train_begin(self, run):
+        run.model.train()
+
+    def train_step(self, run, index, input, target):
+        optimizer = run.optimizer
+        optimizer.zero_grad()
+        output, loss = run.model(input, target)
+        run.results.step(index, output, target)
+        run.metrics.step(loss)
+        run.model.backward()
+        optimizer.update()
+
+    def on_val_begin(self, run):
+        run.model.eval()
+
+    def val_step(self, run, index, input, target):
+        output, loss = run.model(input, target)
+        run.results.step(index, output, target)
+        run.metrics.step(loss)
+
+    def on_epoch_end(self, run):
+        pass
+
+    def on_test_begin(self, run):
+        run.model.eval()
+
+    def test_step(self, run, index, input, *target):
+        output = run.model(input)
+        run.results.step(index, output, target)

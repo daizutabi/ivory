@@ -6,8 +6,9 @@ import torch.utils.data
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import ivory.core.trainer
+import ivory.torch.data
+import ivory.torch.functions
 from ivory.core import instance
-from ivory.core.run import Run
 from ivory.torch import utils
 
 try:
@@ -27,21 +28,23 @@ class Trainer(ivory.core.trainer.Trainer):
     scheduler_step_mode: str = "epoch"
 
     def __post_init__(self):
-        self.loss = instance.get_attr(self.loss)
+        if isinstance(self.loss, str) and "." not in self.loss:
+            self.loss = getattr(ivory.torch.functions, self.loss)
+        else:
+            self.loss = instance.get_attr(self.loss)
 
-    def get_dataloader(self, run: Run, mode: str):
-        shuffle = self.shuffle if mode == "train" else False
-        return torch.utils.data.DataLoader(
-            run.datasets[mode], batch_size=self.batch_size, shuffle=shuffle
-        )
-
-    def on_fit_begin(self, run):
+    def on_init_begin(self, run):
         if self.gpu:
             run.model.cuda()
             if self.precision == 16:
                 run.model, run.optimizer = amp.initialize(
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
+        if not run.dataloaders:
+            dataloaders = ivory.torch.data.DataLoaders(
+                run.datasets, self.batch_size, self.shuffle
+            )
+            run.set(dataloaders=dataloaders)
 
     def on_train_begin(self, run):
         run.model.train()
@@ -50,9 +53,8 @@ class Trainer(ivory.core.trainer.Trainer):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
-        output = self.forward(run.model, input)
-        if run.results:
-            run.results.step(index, output, target)
+        output = run.model(input)
+        run.results.step(index, output, target)
         loss = self.loss(output, target)
         run.metrics.step(loss.item())
         optimizer = run.optimizer
@@ -74,7 +76,7 @@ class Trainer(ivory.core.trainer.Trainer):
         if self.gpu:
             input = utils.cuda(input)
             target = utils.cuda(target)
-        output = self.forward(run.model, input)
+        output = run.model(input)
         if run.results:
             run.results.step(index, output, target)
         loss = self.loss(output, target)
@@ -88,16 +90,12 @@ class Trainer(ivory.core.trainer.Trainer):
                 run.scheduler.step()
 
     def on_test_begin(self, run):
-        self.on_fit_begin(run)
         run.model.eval()
 
     @torch.no_grad()
     def test_step(self, run, index, input, *target):
         if self.gpu:
             input = utils.cuda(input)
-        output = self.forward(run.model, input)
+        output = run.model(input)
         if run.results:
             run.results.step(index, output, *target)
-
-    def forward(self, model, input):
-        return model(input)

@@ -26,7 +26,7 @@ Note:
 """
 
 
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from typing import Callable, Optional, Tuple
 
 import numpy as np
@@ -228,6 +228,7 @@ class Datasets(ivory.core.collections.Dict):
         test (Dataset): Test dataset.
         fold: Fold number.
     """
+
     data: Data
     dataset: Callable
     fold: int
@@ -236,3 +237,27 @@ class Datasets(ivory.core.collections.Dict):
         super().__init__()
         for mode in ["train", "val", "test"]:
             self[mode] = self.dataset(self.data, mode, self.fold)
+
+
+class DataLoaders(ivory.core.collections.Dict):
+    """DataLoaders class represents a collection of `DataLoader`.
+
+    Args:
+        datasets: `Datasets` instance.
+        batch_size: Batch_size
+        shuffle: If True, train dataset is shuffled.
+
+    Attributes:
+        train (Dataset): Train dataset.
+        val (Dataset): Validation dataset.
+        test (Dataset): Test dataset.
+    """
+
+    def __init__(self, datasets: Datasets, batch_size: int, shuffle: bool):
+        super().__init__()
+        for mode in ["train", "val", "test"]:
+            self[mode] = self.get_dataloader(datasets[mode], batch_size, shuffle)
+            shuffle = False
+
+    def get_dataloader(self, dataset, batch_size, shuffle):
+        raise NotImplementedError

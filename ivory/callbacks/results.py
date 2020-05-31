@@ -74,6 +74,30 @@ class Results(ivory.core.collections.Dict, State):
         return results
 
 
+class BatchResults(Results):
+    def reset(self):
+        super().reset()
+        self.indexes = []
+        self.outputs = []
+        self.targets = []
+
+    def step(self, index, output, target=None):
+        self.indexes.append(index)
+        self.outputs.append(output)
+        if target is not None:
+            self.targets.append(target)
+
+    def result_dict(self):
+        index = np.concatenate(self.indexes)
+        output = np.concatenate(self.outputs)
+        if self.targets:
+            target = np.concatenate(self.targets)
+        else:
+            target = None
+        super().step(index, output, target)
+        return super().result_dict()
+
+
 def stack(x: List[np.ndarray]) -> np.ndarray:
     if x[0].ndim == 1:
         return np.hstack(x)

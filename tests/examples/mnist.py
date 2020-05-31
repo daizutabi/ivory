@@ -5,8 +5,8 @@ from tensorflow import keras
 from tensorflow.keras.callbacks import Callback
 
 import ivory
+import ivory.callbacks.metrics
 import ivory.core.data
-import ivory.tensorflow.metrics
 from ivory.utils.fold import stratified_kfold_split
 
 fashion_mnist = keras.datasets.fashion_mnist
@@ -37,7 +37,7 @@ def create_model():
     return keras.Sequential(layers)
 
 
-class Metrics(ivory.tensorflow.metrics.Metrics):
+class Metrics(ivory.callbacks.metrics.Metrics):
     def metrics_dict(self, run):
         pred = run.results.val["output"].argmax(axis=1)
         true = run.results.val["target"]

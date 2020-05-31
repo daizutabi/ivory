@@ -24,7 +24,8 @@ monitor:
 early_stopping:
   patience: 10
 trainer:
-  loss: torch.nn.functional.mse_loss
+  loss: mse
   batch_size: 10
   epochs: 10
+  shuffle: true
   verbose: 2
