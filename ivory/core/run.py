@@ -1,3 +1,26 @@
+"""
+This module provides the `Run` class which is one of the main classes of
+Ivory library. In addition, `Task` and `Study` classes are defined, which manages
+multiple runs for cross validation, hyperparameter tuning, and so on.
+
+To create an `Run` instance:
+
+    import ivory
+
+    client = ivory.create_run('example')
+
+The argument `example` is an experiment name in which the created run is included.
+Ivory assumes that `example.yml` or `example.yaml` file exists under the client's
+working directory.
+
+You can comfirm the client's working directory by:
+
+    os.path.dirname(client.source_name)
+
+One you got a `Run` instance. call `Run.start()` method to start training. For test,
+call `Run.start('test')` instead. Also, you can perform traing and test by one step
+with `Run.start('both')`.
+"""
 import functools
 import gc
 import inspect
@@ -15,7 +38,18 @@ from ivory.utils.tqdm import tqdm
 
 
 class Run(CallbackCaller):
+    """Run class, which is one of the main classes of Ivory library."""
+
     def set_tracker(self, tracker, name: str):
+        """Sets tracker for tracking.
+
+        By setting a tracker, a `Run` instance can be a run of MLFlow Tracking
+        at the same time. MLFlow Tracking gives the Run ID and name for this
+        instance.
+
+        Args:
+            tracker (Tracker): Tracker instance.
+        """
         if not self.id:
             self.name, self.id = tracker.create_run(
                 self.experiment_id, name, self.source_name
@@ -32,6 +66,11 @@ class Run(CallbackCaller):
         self.on_init_end()
 
     def start(self, mode: str = "train"):
+        """Starts traing and/or test.
+
+        Args:
+            mode: Mode name: `'train'`, `'test'`, or `'both'`.
+        """
         if mode == "both":
             self.start("train")
             if self.tracker:
@@ -43,7 +82,8 @@ class Run(CallbackCaller):
                 if hasattr(obj, "start") and callable(obj.start):
                     obj.start(self)
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
+        """Returns a state dictionary for all of member instances."""
         state_dict = {}
         for name, obj in self.items():
             if hasattr(obj, "state_dict") and callable(obj.state_dict):
@@ -53,12 +93,22 @@ class Run(CallbackCaller):
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
+        """Loads a state dictionary to all of member instances.
+
+        Args:
+            state_dict (dict): state dictionary for all of member instances.
+        """
         for name in state_dict:
             with warnings.catch_warnings():  # for torch LambdaLR scheduler
                 warnings.simplefilter("ignore")
                 self[name].load_state_dict(state_dict[name])
 
     def save(self, directory: str):
+        """Saves member instances.
+
+        Args:
+            directory: Directory where member instances are saved.
+        """
         for name, state_dict in self.state_dict().items():
             path = os.path.join(directory, name)
             if hasattr(self[name], "save") and callable(self[name].save):
@@ -72,6 +122,11 @@ class Run(CallbackCaller):
         raise NotImplementedError
 
     def load(self, directory: str) -> Dict[str, Any]:
+        """Loads member instances.
+
+        Args:
+            directory: Directory where member instances have been saved.
+        """
         state_dict = {}
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
@@ -90,7 +145,18 @@ class Run(CallbackCaller):
 
 
 class Task(Run):
-    def create_run(self, args, **kwargs):
+    """Task class creates a parent run that generates multiple runs."""
+
+    def create_run(self, args, **kwargs) -> Run:  # type:ignore
+        """Create a nested run according to arguments
+
+        Args:
+            args (dict, optional): Update dictionary.
+            **kwargs: Additional update dictionary.
+
+        Returns:
+            Run: Created nested `Run` instance.
+        """
         run = super().create_run(args, **kwargs)
         run_name = colored(f"[{run.name}]", "green")
         msg = utils.params.to_str(args)
@@ -109,6 +175,19 @@ class Task(Run):
         repeat: int = 1,
         **kwargs,
     ) -> Iterator[Run]:
+        """Makes a product iterator.
+
+        This iterator returns runs from cartesian product of input parameters.
+
+        Args:
+            params (dict, optional): Parameter range. Key is a parameter name and
+                value is an iterable of parameter's value.
+            repeat: Number of repeatation.
+            **kwargs: Additional parameter range.
+
+        See Also:
+            [Product section](/tutorial/task#product) in Multiple Runs Tutorial
+        """
         params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
@@ -131,6 +210,23 @@ class Task(Run):
         use_best_param: bool = True,
         **kwargs,
     ) -> Iterator[Run]:
+        """Makes a chain iterator.
+
+        This iterator returns runs from the first input paramter until it is exhausted,
+        then proceeds to the next parameter, until all of the parameters are exhausted.
+        Other parameters have default values if they don't be specified by additional
+        key-value pairs.
+
+        Args:
+            params (dict, optional): Parameter range. Key is a parameter name and
+                value is an iterable of parameter's value.
+                use_best_param: If True (default), the parameter which got the best
+                score is used during the following iterations.
+            **kwargs: Additional parameter range.
+
+        See Also:
+            [Chain section](/tutorial/task#chain) in Multiple Runs Tutorial
+        """
         params, base_params = utils.params.split_params(params, **kwargs)
         if self.tracking:
             self.tracking.set_tags(self.id, params)
@@ -172,7 +268,19 @@ class Task(Run):
 
 
 class Study(Task):
+    """Study class create a parent run to manage hyperparameter tuning."""
+
     def optimize(self, suggest_name: str = "", **kwargs):
+        """Performs parameter optimizations using Optuna.
+
+        Args:
+            suggest_name: Name of suggest function.
+            **kwargs: Key-iterable pairs for parametric optimization.
+
+        See Also:
+            [Hyperparameter Tuning](/tutorial/tuning) in Tutorial
+        """
+
         if not suggest_name:
             suggest_name = list(self.objective.suggests.keys())[0]
         study_name = ".".join([self.experiment_name, suggest_name, self.name])

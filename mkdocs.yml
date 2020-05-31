@@ -40,7 +40,9 @@ nav:
   - Python API:
     - ivory.core:
       - api/ivory.core.data.md
+      - api/ivory.core.base.md
       - api/ivory.core.client.md
+      - api/ivory.core.run.md
 
 markdown_extensions:
   - admonition

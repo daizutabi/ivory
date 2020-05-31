@@ -58,7 +58,7 @@ class Client(Base):
 
                 experiment = client.create_experiment('example', 'study')
 
-            In this case, `study.yml` is like this:
+            In this case, `study.yml` is like this, including the instance name `study`:
 
                 study:
                   tuner:
@@ -71,7 +71,7 @@ class Client(Base):
 
                 experiment = client.create_experiment('example', study='study')
 
-            In this case, `study.yml` is like this:
+            In this case, `study.yml` is like this, omitting the instance name `study`:
 
                 tuner:
                   pruner:
@@ -117,14 +117,14 @@ class Client(Base):
 
                 run = client.create_run('example', fold=3)
 
-            To update a model class:
+            If a parameter name includes dots:
 
                 run = client.create_run('example', {'model.class': 'your.new.Model'})
         """
         return self.create_experiment(name).create_run(args, **kwargs)
 
     def create_task(self, name: str, run_number: Optional[int] = None) -> Task:
-        """Creates a `Task` for multiple runs.
+        """Creates a `Task` instance for multiple runs.
 
         Args:
             name: Experiment name.
@@ -132,7 +132,7 @@ class Client(Base):
                 creating a new one.
 
         See Also:
-            [Multiple Runs](/tutorial/task)
+            [Multiple Runs](/tutorial/task) in Tutorial
         """
         if run_number is None:
             return self.create_experiment(name).create_task()
@@ -142,7 +142,7 @@ class Client(Base):
     def create_study(
         self, name: str, args=None, run_number: Optional[int] = None, **suggests
     ) -> Study:
-        """Creates a `Study` for hyperparameter tuning.
+        """Creates a `Study` instance for hyperparameter tuning.
 
         Args:
             name: Experiment name.
@@ -160,12 +160,12 @@ class Client(Base):
 
                 study = client.create_study('example', lr=(1e-5, 1e-3))
 
-            If a parameter includes dots:
+            If a parameter name includes dots:
 
                 study = client.create_study('example', {'hidden_sizes.0': range(5, 20)})
 
         See Also:
-            [Hyperparameter Tuning](/tutorial/tuning)
+            [Hyperparameter Tuning](/tutorial/tuning) in Tutorial
         """
         if run_number is None:
             study = self.create_experiment(name).create_study(args, **suggests)

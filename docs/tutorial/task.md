@@ -52,7 +52,7 @@ for run in runs:
 
 ### Chain
 
-The `Task.chain()` maks an iterator that returns runs from the first input paramter until it is exhausted, then proceeds to the next parameter, until all of the parameters are exhausted. Other parameters have default values if they don't be specified by additional key-value pairs.
+The `Task.chain()` makes an iterator that returns runs from the first input paramter until it is exhausted, then proceeds to the next parameter, until all of the parameters are exhausted. Other parameters have default values if they don't be specified by additional key-value pairs.
 
 ```python
 task = client.create_task('torch')

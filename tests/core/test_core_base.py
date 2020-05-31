@@ -10,7 +10,7 @@ def test_base():
     assert base.id == "0"
     assert base.name == "abc"
     assert base.source_name == "path.yaml"
-    assert "num_objects=1" in repr(base)
+    assert "num_instances=1" in repr(base)
     assert "a" in base
     assert list(base) == ["a"]
     assert base["a"] == 1

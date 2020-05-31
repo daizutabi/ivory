@@ -5,7 +5,7 @@ from ivory.core.client import create_client
 
 
 def test_client_repr(client):
-    assert repr(client) == "Client(num_objects=2)"
+    assert repr(client) == "Client(num_instances=2)"
 
 
 def test_search_run_ids(client):
