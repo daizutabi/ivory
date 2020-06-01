@@ -18,7 +18,7 @@ can be equivalently written as
 {'example': {'class': 'ExampleCalss', 'args1': 123, 'arg2': 'abc'}}
 ~~~
 
-Ivory excactly uses this relationship.
+Ivory exactly uses this relationship.
 
 ```python
 from ivory.core.instance import create_instance
@@ -28,7 +28,7 @@ data = create_instance(params, 'data')
 data
 ```
 
-Here, the `create_instance()` function requires the second argument `name` to specify a key because the first argument `params` can have multiple keys. Note that we added a `n_splits` parameter which is different from the default value 5. Let's see unique values of fold.
+Here, the `create_instance()` requires the second argument `name` to specify a key because the first argument `params` can have multiple keys. Note that we added a `n_splits` parameter that is different from the default value 5. Let's see unique values of fold.
 
 ```python
 import numpy as np
@@ -36,7 +36,7 @@ import numpy as np
 np.unique(data.fold)  # 5-fold for train and 1-fold for test.
 ```
 
-For writing a dictionary easily, we use [PyYAML library](https://pyyaml.org/wiki/PyYAMLDocumentation).
+For writing a dictionary easily, we use [PyYAML library](https://pyyaml.org/wiki/PyYAMLDocumentation) in this tutorial.
 
 ```python
 import yaml
@@ -56,7 +56,7 @@ create(doc, 'data')
 
 ## Hierarchal Structure
 
-Next create a `Dataset` instance. The `Dataset` class requires a `Data` instance as the first argument so that the corresponding dictionary have hierarchal structure.
+Next create a `Dataset` instance. The `Dataset` class requires a `Data` instance as the first argument so that the corresponding dictionary have a hierarchal structure.
 
 ```python
 doc = """
@@ -87,7 +87,7 @@ datasets:
 create(doc, 'datasets')
 ```
 
-Remember that the argument `dataset` for the `Datasets` class is not an instance but a callable that returns a `Dataset` instance (See [the previous section](../data#datasets)). To describe this behavior, we use a new `def` key instead of `class` to create a callable.
+Remember that the argument `dataset` for the `Datasets` class is not an instance but a callable that returns a `Dataset` instance (See [the previous section](../data#datasets)). To describe this behavior, we use a new `def` key to create a callable instead of a `class` key.
 
 ## Default Class
 
@@ -123,7 +123,7 @@ isinstance(datasets.train, torch.utils.data.Dataset)
 
 ## Default Value
 
-If a callable has arguments with default value, you can use `__default__` to get default values from the callable signature.
+If a callable has arguments with default value, you can use `__default__` to get the default value from the callable signature.
 
 ```python
 doc = """
@@ -140,7 +140,7 @@ datasets.data.n_splits
 
 ## Positional Arguments
 
-Do you know the name of the first argument of the `numpy.array()` function?
+Do you know the name of the first argument of `numpy.array()`?
 
 ```python
 import numpy as np
@@ -159,7 +159,7 @@ x:
 create(doc, 'x')
 ```
 
-This is inconvinient and ugly. Use **underscore-notation**:
+This is inconvenient and ugly. Use **underscore-notation**:
 
 
 ```python

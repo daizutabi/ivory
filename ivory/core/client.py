@@ -1,5 +1,5 @@
 """
-This module provides the Ivory Client class which is one of the main classes of
+This module provides the Ivory Client class that is one of the main classes of
 Ivory library.
 
 To create an `Client` instance:
@@ -176,17 +176,17 @@ class Client(Base):
         return study
 
     def get_run_id(self, name: str, **kwargs) -> str:
-        """Returns a RunID.
+        """Returns a Run ID.
 
         Args:
             name: Experiment name.
 
         Examples:
-            To get a RunID of run#4.
+            To get a Run ID of run#4.
 
                 client.get_run_id('example', run=4)
 
-            To get a RunID of task#10.
+            To get a Run ID of task#10.
 
                 client.get_run_id('example', task=10)
         """
@@ -199,17 +199,17 @@ class Client(Base):
             return self.tracker.get_run_id(experiment_id, run_name, run_number)
 
     def get_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        """Returns an iterator that yields RunIDs.
+        """Returns an iterator that yields Run IDs.
 
         Args:
             name: Experiment name.
 
         Examples:
-            To get an iterator that yields RunIDs for Runs.
+            To get an iterator that yields Run IDs for Runs.
 
                 client.get_run_id('example', run=[1, 2, 3])
 
-            To get an iterator that yields RunIDs for Tasks.
+            To get an iterator that yields Run IDs for Tasks.
 
                 client.get_run_id('example', task=range(3, 8))
         """
@@ -220,13 +220,13 @@ class Client(Base):
                 yield self.get_run_id(name, **{run_name: run_number})
 
     def get_parent_run_id(self, name: str, **kwargs) -> str:
-        """Returns a parent RunID of a nested run.
+        """Returns a parent Run ID of a nested run.
 
         Args:
             name: Experiment name.
 
         Examples:
-            To get a prarent RunID of run#5.
+            To get a prarent Run ID of run#5.
 
                 client.get_parent_run_id('example', run=5)
         """
@@ -234,13 +234,13 @@ class Client(Base):
         return self.tracker.get_parent_run_id(run_id)
 
     def get_nested_run_ids(self, name: str, **kwargs) -> Iterator[str]:
-        """Returns an iterator that yields nested RunIDs of parent runs.
+        """Returns an iterator that yields nested Run IDs of parent runs.
 
         Args:
             name: Experiment name.
 
         Examples:
-            To get an iterator that yields RunIDs of runs whose parent is task#2.
+            To get an iterator that yields Run IDs of runs whose parent is task#2.
 
                 client.get_nested_run_ids('example', task=2)
 
@@ -254,7 +254,7 @@ class Client(Base):
         yield from self.search_run_ids(name, parent_run_id=parent_run_ids, **kwargs)
 
     def set_parent_run_id(self, name: str, **kwargs):
-        """Sets parent RunID to runs.
+        """Sets parent Run ID to runs.
 
         Args:
             name: Experiment name.
@@ -274,10 +274,10 @@ class Client(Base):
             self.tracker.set_parent_run_id(run_id, parent_run_id)
 
     def get_run_name(self, run_id: str) -> str:
-        """Returns a run name (`run#XXX`, `task#XXX`, *etc*.) for RunID.
+        """Returns a run name (`run#XXX`, `task#XXX`, *etc*.) for Run ID.
 
         Args:
-            run_id: RunID
+            run_id: Run ID
         """
         return self.tracker.get_run_name(run_id)
 
@@ -285,7 +285,7 @@ class Client(Base):
         """Returns a run name as a tuple of (run class name, run number).
 
         Args:
-            run_id: RunID
+            run_id: Run ID
         """
         return self.tracker.get_run_name_tuple(run_id)
 
@@ -300,13 +300,13 @@ class Client(Base):
         best_score_limit: Optional[float] = None,
         **query,
     ) -> Iterator[str]:
-        """Returns an iterator that yields matching RunIDs.
+        """Returns an iterator that yields matching Run IDs.
 
         Args:
             name: Experiment name pattern for filtering.
             run_name: Run name pattern for filtering.
             parent_run_id (str or iterable of str): If specified, search from runs
-                which have the parent id(s).
+                that have the parent id(s).
             parent_only: If True, search from parent runs.
             nested_only: If True, search from nested runs.
             exclude_parent: If True, skip parent runs.
@@ -328,7 +328,7 @@ class Client(Base):
             )
 
     def search_parent_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        """Returns an iterator that yields matching parent RunIDs.
+        """Returns an iterator that yields matching parent Run IDs.
 
         Args:
             name: Experiment name pattern for filtering.
@@ -337,7 +337,7 @@ class Client(Base):
         yield from self.search_run_ids(name, parent_only=True, **query)
 
     def search_nested_run_ids(self, name: str = "", **query) -> Iterator[str]:
-        """Returns an iterator that yields matching nested RunIDs.
+        """Returns an iterator that yields matching nested Run IDs.
 
         Args:
             name: Experiment name pattern for filtering.
@@ -389,7 +389,7 @@ class Client(Base):
         """Returns a parameter dictionary loaded from MLFlow Tracking.
 
         Args:
-            run_id: RunID for a run to be loaded.
+            run_id: Run ID for a run to be loaded.
         """
         return self.tracker.load_params(run_id)
 
@@ -398,7 +398,7 @@ class Client(Base):
         Tracking.
 
         Args:
-            run_id: RunID for a run to be loaded.
+            run_id: Run ID for a run to be loaded.
             mode: Mode name: `'current'`, `'best'`, or `'test'`.
                 Default is `'{default}'`.
         """
@@ -425,7 +425,7 @@ class Client(Base):
         Tracking.
 
         Args:
-            run_id: RunID for a run to be loaded.
+            run_id: Run ID for a run to be loaded.
             instance_name: Instance name.
             mode: Mode name: `'current'`, `'best'`, or `'test'`.
         """
@@ -490,7 +490,7 @@ class Client(Base):
 
 
 def create_client(
-    directory: str = "", name: str = "client", tracker: bool = True
+    directory: str = "", name: str = "client", tracker: bool = True, tuner: bool = True
 ) -> Client:
     """Creates an Ivory Client instance.
 
@@ -499,7 +499,8 @@ def create_client(
             parameter exists, the file is loaded to configure the client. In addition,
             this directory is automatically inserted to `sys.path`.
         name: A YAML config file name.
-        tracker: If true, the client instance has a tracker.
+        tracker: If True, the client instance has a tracker.
+        tuner: If True, the client instance has a tuner.
 
     Returns:
         An created client.
@@ -519,6 +520,8 @@ def create_client(
         params = default.get("client")
     if not tracker and "tracker" in params["client"]:
         params["client"].pop("tracker")
+    if not tuner and "tuner" in params["client"]:
+        params["client"].pop("tuner")
     with utils.path.chdir(source_name):
         client = instance.create_base_instance(params, "client", source_name)
     return client

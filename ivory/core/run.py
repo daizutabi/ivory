@@ -1,5 +1,5 @@
 """
-This module provides the `Run` class which is one of the main classes of
+This module provides the `Run` class that is one of the main classes of
 Ivory library. In addition, `Task` and `Study` classes are defined, which manages
 multiple runs for cross validation, hyperparameter tuning, and so on.
 
@@ -17,7 +17,7 @@ You can comfirm the client's working directory by:
 
     os.path.dirname(client.source_name)
 
-One you got a `Run` instance. call `Run.start()` method to start training. For test,
+One you got a `Run` instance. call `Run.start()` to start training. For test,
 call `Run.start('test')` instead. Also, you can perform traing and test by one step
 with `Run.start('both')`.
 """
@@ -38,7 +38,7 @@ from ivory.utils.tqdm import tqdm
 
 
 class Run(CallbackCaller):
-    """Run class, which is one of the main classes of Ivory library."""
+    """Run class is one of the main classes of Ivory library."""
 
     def set_tracker(self, tracker, name: str):
         """Sets tracker for tracking.
@@ -220,7 +220,7 @@ class Task(Run):
         Args:
             params (dict, optional): Parameter range. Key is a parameter name and
                 value is an iterable of parameter's value.
-                use_best_param: If True (default), the parameter which got the best
+                use_best_param: If True (default), the parameter that got the best
                 score is used during the following iterations.
             **kwargs: Additional parameter range.
 

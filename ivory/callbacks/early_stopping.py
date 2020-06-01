@@ -11,11 +11,16 @@ class EarlyStopping(State):
     """Early stops a training loop when a monitored metric has stopped improving.
 
     Args:
-        patience: number of epochs with no improvement after which training will be
+        patience: Number of epochs with no improvement after which training will be
             stopped.
 
+    Attributes:
+        patience: Number of epochs with no improvement after which training will be
+            stopped.
+        wait: Number of continuous epochs with no imporovement.
+
     Raises:
-        EarlyStopped: when ealry stopping occurs.
+        EarlyStopped: When ealry stopping occurs.
     """
 
     patience: int

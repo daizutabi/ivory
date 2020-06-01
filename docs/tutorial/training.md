@@ -46,7 +46,7 @@ params
 !!! note
     Key-order in the `params` dictionary is meaningful, because the callback functions are called by this order. For example, `Monitor` uses the results of `Metrics` so that `Monitor` should appear later than `Metrics`.
 
-The `ivory.core.instance.create_base_instance()` function is more useful to create a run from a dictionary than the `ivory.core.instance.create_instance()` function because it can create multiple objects by one step processing **`$`-notation** properly.
+`ivory.core.instance.create_base_instance()` is more useful to create a run from a dictionary than the `ivory.core.instance.create_instance()` because it can create multiple objects by one step processing **`$`-notation** properly.
 
 ```python
 import ivory.core.instance
@@ -109,7 +109,7 @@ run.trainer  # Training hasn't started yet, so epoch = -1.
 
 ## Using a Trainer
 
-A `Run` instance invokes its trainer by `Run.start()` method.
+A `Run` instance invokes its trainer by `Run.start()`.
 
 ```python
 run.start()  # create_callbacks() is called automatically.
@@ -123,7 +123,7 @@ run.start()
 ```
 
 !!! note
-    The `Run.start()` method doesn't reset the trainer's epoch.
+    The `Run.start()` doesn't reset the trainer's epoch.
 
 ## Callbacks after Training
 

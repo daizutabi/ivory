@@ -14,7 +14,7 @@ if os.path.exists('examples/mlruns'):
 
 ## Base Parameter File
 
-Before examples, we write two base or *template* parameter files which are extened by other parameter files.
+Before examples, we write two base or *template* parameter files, which are extended by other parameter files later.
 
 #File A base parameter YAML file for various libraries (data.yml) {%=/examples/data.yml%}
 
@@ -24,7 +24,7 @@ In `base.yml`, the first line "`extends: data`" means that the file extends (or 
 
 ## Neural Network Libraries
 
-In this section we compare three libraries ([TensorFlow](https://www.tensorflow.org/), [NNabla](https://nnabla.org/), and [PyTorch](https://pytorch.org/)), and show that using different libraries on the same problem is straightforward.
+In this section we compare three neural network libraries ([TensorFlow](https://www.tensorflow.org/), [NNabla](https://nnabla.org/), and [PyTorch](https://pytorch.org/)), and show that using different libraries on the same problem is straightforward.
 
 ```python
 import tensorflow
@@ -43,7 +43,7 @@ First define models:
 
 #File A Model definition in PyTorch (rectangle/torch.py) {%=/examples/rectangle/torch.py%}
 
-For simplicity, the TensorFlow model is defined by using the `keras.Sequential()`, so that we call the `create_model()` function to get the model.
+For simplicity, the TensorFlow model is defined by using the `keras.Sequential()`, so that we call the `create_model()` to get the model.
 
 Next, write parameter YAML files:
 
@@ -56,7 +56,7 @@ Next, write parameter YAML files:
 These YAML files are very similar. The only difference is that, in PyTorch, an optimizer needs model parameters at the time of instantiation.
 
 !!! note
-    The `model` for TensorFlow is a function. A new `call` key is used. (But you can use `class`, too, or `call` for a class, vice versa, because both a class and function are *callable*.)
+    The `model` for TensorFlow is a function. A new `call` key is used. (But you can stil use `class`, or `call` for a class, vice versa, because both a class and function are *callable*.)
 
 Next, create three runs.
 
@@ -136,12 +136,12 @@ x = run_torch.datasets.val[:5][1]
 run_torch.model(torch.tensor(x))
 ```
 
-You can *ensemble* these resutls, although this is meaningless in this example.
+You can *ensemble* these results, although this is meaningless in this example.
 
 ```python
 from ivory.callbacks.results import concatenate
 
-results = concatenate(list(run.results for run in [run_tf, run_nn, run_torch]))
+results = concatenate(run.results for run in [run_tf, run_nn, run_torch])
 index = results.val.index.argsort()
 results.val.output[index[:15]]
 ```
@@ -153,7 +153,7 @@ reduced_results.val.output[:5]
 
 ## Scikit-learn
 
-Ivory can optimize various scikit-learn's estimators. Here are som examples.
+Ivory can optimize various [scikit-learn](https://scikit-learn.org/stable/index.html)'s estimators. Before showing some examples, we need reshape the target array.
 
 #File A base parameter YAML file for various estimators (data2.yml) {%=/examples/data2.yml%}
 
@@ -167,14 +167,14 @@ The `dataset` has a `transform` argument. This function reshapes the target arra
 
 #File A parameter YAML file for RandomForestRegressor (rfr.yml) {%=/examples/rfr.yml%}
 
-There are nothing different to start a run.
+There are nothing difference to start a run.
 
 ```python
 run = client.create_run('rfr')
 run.start()
 ```
 
-Because the RandomForestRegressor estimator has a `criterion` attribute, the metrics are automatically calculated. Take a look at the outputs.
+Because `RandomForestRegressor` estimator has a `criterion` attribute, the metrics are automatically calculated. Take a look at the outputs.
 
 ```python
 plot(run)
@@ -184,13 +184,13 @@ plot(run)
 
 #File A parameter YAML file for Ridge (ridge.yml) {%=/examples/ridge.yml%}
 
-Because the Ridge estimator has no `criterion` attribute, you have to specify metrics if you need. A `mse` key has empty (`None`) value. In this case, the default function (`sklearn.metrics.mean_squared_error()`) is chosen. On the other hand, `mse_2`'s value is a custom funtion's name:
+Because `Ridge` estimator has no `criterion` attribute, you have to specify metrics if you need. A `mse` key has empty (`None`) value. In this case, the default function (`sklearn.metrics.mean_squared_error()`) is chosen. On the other hand, `mse_2`'s value is a custom function's name:
 
 {{ import rectangle.metrics }}
 
 #Code rectangle.metrics.mean_squared_error() {{ rectangle.metrics.mean_squared_error # inspect }}
 
-Although the `rectangle.metrics.mean_squared_error()` is the same as `mse`, this functionality allows us to add arbitrary metrics as long as they can be calculated with `true` and `pred` values .
+This functionality allows us to add arbitrary metrics as long as they can be calculated with `true` and `pred` arrays .
 
 ```python
 run = client.create_run('ridge')
@@ -203,7 +203,7 @@ plot(run)
 
 ## LightGBM
 
-For LightGBM, Ivory implements two estimators:
+For [LightGBM](https://lightgbm.readthedocs.io/en/latest/), Ivory implements two estimators:
 
 * `ivory.lightgbm.estimator.Regressor`
 * `ivory.lightgbm.estimator.Classifier`

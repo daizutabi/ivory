@@ -27,7 +27,7 @@ client
 list(client)
 ```
 
-The first object is a `Tracker` instance which connects Ivory to [MLFlow Tracking](https://mlflow.org/docs/latest/tracking.html). The second objects is named `tuner`. A `Tuner` instance connects Ivory to [Optuna](https://preferred.jp/en/projects/optuna/).
+The first instance is a `Tracker` instance that connects Ivory to [MLFlow Tracking](https://mlflow.org/docs/latest/tracking.html). The second instance is named `tuner`. A `Tuner` instance connects Ivory to [Optuna](https://preferred.jp/en/projects/optuna/).
 
 Show files in the working directory `examples`.
 
@@ -44,20 +44,20 @@ The `client.yml` is a configuration file for a `Client` instance. In our case, t
 #File client.yml {%=/examples/client.yml%}
 
 !!! note
-    A YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and without a tuner.
+    If you don't need any customization, the YAML file for client is not required. If there is no file for client, Ivory creates a default client with a tracker and tuner. (So, the above file is unnecessary.)
 
-    If you don't need a tracker, for example in debugging, use `ivory.create_client(tracker=False)`.
+    If you don't need a tracker and/or tuner, for example in debugging, use `ivory.create_client(tracker=False, tuner=False)`.
 
 ## Experiment
 
-The `Client.create_experiment()` function creates an `Experiment` instance. If the `Client` instance has a `tracker`, an experiment of MLFlow Tracking is also created at the same time if it hasn't existed yet. By cliking an icon (<i class="far fa-eye-slash" style="font-size:0.8rem; color: #ff8888;"></i>) in the below cell, you can see the log.
+`Client.create_experiment()` creates an `Experiment` instance. If the `Client` instance has a `tracker`, an experiment of MLFlow Tracking is also created at the same time if it hasn't existed yet. By clicking an icon (<i class="far fa-eye-slash" style="font-size:0.8rem; color: #ff8888;"></i>) in the below cell, you can see the log.
 
 ```python
 experiment = client.create_experiment('torch')  # Read torch.yml as params.
 experiment
 ```
 
-The ID for this experiment was given by MLFlow Tracking. The `Client.create_experiment()` function loads a corresponding YAML file to the first argument from the working directory.
+The ID for this experiment was given by MLFlow Tracking. The `Client.create_experiment()` loads a YAML file corresponding to the first argument from the working directory.
 
 #File torch.yml {%=/examples/torch.yml%}
 
@@ -67,11 +67,12 @@ After loading, the `Experiment` instance setups the parameters for creating runs
 experiment.params
 ```
 
-This is similar to the YAML file, but is slightly changed by the Ivory Client.
+This is similar to the YAML file we read before, but has been slightly changed.
 
-* Run and experiment sections are inserted.
-* ExperimentID and RunID are assigned by MLFlow Tracking.
-* Default classes are specified, for example `ivory.torch.trainer.Trainer` for a trainer instance.
+* Run and experiment keys are inserted.
+* Run name is assigned by Ivory Client.
+* Experiment ID and Run ID are assigned by MLFlow Tracking.
+* Default classes are specified, for example the `ivory.torch.trainer.Trainer` class for a `trainer` instance.
 
 ## Run
 
@@ -86,7 +87,7 @@ run = experiment.create_run()
 run
 ```
 
-Here, the ID for this run is given by MLFlow Tracking. On the other hand, the name is given by Ivory as a form of "`(run class name in lower case)#(run number)`".
+Here, the ID for this run is assigned by MLFlow Tracking. On the other hand, the name is assigned by Ivory as the form of "`(run class name in lower case)#(run number)`".
 
 ### Simple literal (int, float, str)
 
@@ -106,7 +107,7 @@ run.datasets.fold
 
 ### List
 
-A list parameter can be overwritten by passing a new list. Off course you can change the lengh of the list. The original `hidden_sizes` was `[10, 20]`.
+A list parameter can be overwritten by passing a new list. Off course you can change the length of the list. The original `hidden_sizes` was `[10, 20]`. Modify it.
 
 ```python
 run = experiment.create_run(hidden_sizes=[2, 3, 4])
@@ -125,10 +126,10 @@ run = experiment.create_run(params)
 run.model
 ```
 
-Do you feel this method is unnecessary? This method is prepared for [hyperparameter tuning](../tuning).
+Do you feel this function is unnecessary? This function is prepared for [hyperparameter tuning](../tuning).
 
 
-In some case, you may want to change a part of list. Use *0-indexed dot-notation*.
+In some case, you may want to change elements of list. Use *0-indexed dot-notation*.
 
 ```python
 params = {"hidden_sizes.1": 5}
@@ -171,11 +172,11 @@ run = experiment.create_run({'optimizer.class': 'torch.optim.Adam'})
 run.optimizer
 ```
 
-This means that you can compare optimizer algorithms easily through multiple runs with minimul effort.
+This means that you can compare optimizer algorithms easily through multiple runs with minimum effort.
 
 ### Creating a run from a client
 
-In the above examples, we created runs using the `experiment.create_run()` method. In addtion, you can do the same thing by `client.create_run()` with an experiment name as the first argument. The following code blocks are equivalent.
+In the above examples, we created runs using the `experiment.create_run()`. In addition, you can do the same thing by `client.create_run()` with an experiment name as the first argument. The following code blocks are equivalent.
 
 #Code
 ~~~python

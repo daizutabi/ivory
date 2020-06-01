@@ -43,6 +43,8 @@ nav:
       - api/ivory.core.base.md
       - api/ivory.core.client.md
       - api/ivory.core.run.md
+    - ivory.callbacks:
+      - api/ivory.callbacks.md
 
 markdown_extensions:
   - admonition

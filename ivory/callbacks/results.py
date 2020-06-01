@@ -10,6 +10,21 @@ from ivory.core.state import State
 
 
 class Results(ivory.core.collections.Dict, State):
+    """Results callback stores training, validation and test results.
+
+    Each result is `ivory.core.collections.Dict` type that has `index`,
+    `output`, and `target` array.
+
+    To get `target` array of validation, use
+
+        target = results.val.target
+
+    Attributes:
+        train (Dict): Train results.
+        val (Dict): Validation results.
+        test (Dict): Test results.
+    """
+
     def reset(self):
         self.index = None
         self.output = None
@@ -42,18 +57,8 @@ class Results(ivory.core.collections.Dict, State):
         dict = ivory.core.collections.Dict()
         return dict(index=self.index, output=self.output, target=self.target)
 
-    # def set(self, **kwargs):
-    #     results = {}
-    #     for key, value in kwargs.items():
-    #         dict = ivory.core.collections.Dict()
-    #         if len(value) == 3:
-    #             dict(index=value[0], output=value[1], target=value[2])
-    #         else:
-    #             dict(index=value[0], output=value[1], target=None)
-    #         results[key] = dict
-    #     super().set(**results)
-
-    def mean(self):
+    def mean(self) -> "Results":
+        """Returns a reduced `Results` instance aveaged by `index`."""
         results = Results()
         for mode, result in self.items():
             index = result.index
@@ -98,19 +103,22 @@ class BatchResults(Results):
         return super().result_dict()
 
 
-# def stack(x: List[np.ndarray]) -> np.ndarray:
-#     if x[0].ndim == 1:
-#         return np.hstack(x)
-#     else:
-#         return np.vstack(x)
-
-
 def concatenate(
     iterable: Iterable[Results],
     callback: Optional[Callable] = None,
     modes: Iterable[str] = ("val", "test"),
     reduction: str = "none",
 ) -> Results:
+    """Returns a concatenated Results.
+
+    Args:
+        iterable (iterable of Results): Iterable of `Results` instance.
+        callback (callable, optional): Called for each `Results`. Must take
+            (`mode`, `index`, `output`, `target`) arguments and return a tuple
+            of ('index', `output`, `target`).
+        modes (iterable of str): Specify modes to concatenate.
+        reduction (str, optional): Reduction. `none` or `mean`.
+    """
     modes = list(modes)
     indexes: Dict[str, list] = {mode: [] for mode in modes}
     outputs: Dict[str, list] = {mode: [] for mode in modes}

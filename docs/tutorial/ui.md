@@ -53,9 +53,9 @@ client.update_params('torch')
 
 In a terminal, move to the working directory (`examples`), then run
 
-```bash
+~~~bash
 $ ivory ui
-```
+~~~
 
 You can view the UI using URL http://localhost:5000 in your browser.
 

@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 DEFAULTS: Dict[str, Any] = {}
 
-DEFAULTS["client"] = {"client": {"tracker": {}}}
+DEFAULTS["client"] = {"client": {"tracker": {}, "tuner": {}}}
 DEFAULTS["experiment"] = {"experiment": {}}
 DEFAULTS["task"] = {"task": {}}
 DEFAULTS["study"] = {"study": {"objective": {}, "tuner": {}}}
@@ -24,6 +24,7 @@ DEFAULT_CLASS["core"] = {
     "run": "ivory.core.run.Run",
     "task": "ivory.core.run.Task",
     "study": "ivory.core.run.Study",
+    "data": "ivory.core.data.Data",
     "dataset": "ivory.core.data.Dataset",
     "datasets": "ivory.core.data.Datasets",
     "results": "ivory.callbacks.results.Results",

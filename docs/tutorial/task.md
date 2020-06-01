@@ -4,7 +4,7 @@
 
 ## Task
 
-Ivory implements a special run type called **Task** which controls multiple nested runs. A task is useful for parameter search or cross validation.
+Ivory implements a special run class `Task` that controls multiple nested runs. `Task` is useful for parameter search or cross validation.
 
 ```python hide
 import os
@@ -22,7 +22,7 @@ task = client.create_task('torch')  # Or, experiment.create_task()
 task
 ```
 
-The `Task` class has two methods to generate multiple runs: `Task.prodcut()` and `Task.chain()`. These two methods have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library.
+The `Task` class has two functions to generate multiple runs: `Task.prodcut()` and `Task.chain()`. These two function have the same functionality as [`itertools`](https://docs.python.org/3/library/itertools.html) of Python starndard library.
 
 ### Product
 
@@ -40,7 +40,7 @@ for run in runs:
     pass  # Do somthing, for example, run.start()
 ```
 
-You can specify other parameters which don't change during iteration.
+You can specify other parameters that don't change during iteration.
 
 ```python
 task = client.create_task('torch')
@@ -71,7 +71,7 @@ for run in runs:
     pass  # Do somthing, for example, run.start()
 ```
 
-The `use_best_param` keyword argument is useful for dynamic updating of parameters. If `True` (default), the parameter which got the best score is used during the following iterations.
+The `use_best_param` keyword argument is useful for dynamic updating of parameters. If `True` (default), the parameter that got the best score is used during the following iterations.
 
 ```python
 task = client.create_task('torch')

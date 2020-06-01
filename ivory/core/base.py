@@ -100,7 +100,7 @@ class Creator(Base):
         Returns:
             Run: Created `Run` instance. The parameter for this instance is the
                 returned dictionary from the
-                [`create_params()`](#ivory.core.base.Creator.create_params) method.
+                [`create_params()`](#ivory.core.base.Creator.create_params) function.
         """
         params, args = self.create_params(args, name, **kwargs)
         run = instance.create_base_instance(params, name, self.source_name)
@@ -126,7 +126,7 @@ class Creator(Base):
         Returns:
             Created instance. The parameter for this instance is the
                 returned directory from the
-                [`create_params()`](#ivory.core.base.Creator.create_params) method.
+                [`create_params()`](#ivory.core.base.Creator.create_params) function.
         """
         params, _ = self.create_params(args, name, **kwargs)
         return instance.create_instance(params[name], instance_name)
@@ -186,7 +186,7 @@ class CallbackCaller(Creator):
 
 
 class Experiment(Creator):
-    """Experimet class, which is one of the main classes of Ivory library.
+    """Experimet class is one of the main classes of Ivory library.
 
     Basically, one experiment is corresponding to one YAML parameter file that is held
     in an `Experiment` instance as a parameter dictionary. This parameter dictionary
@@ -194,7 +194,7 @@ class Experiment(Creator):
 
     See Also:
         The base class [`ivory.core.base.Creator`](#ivory.core.base.Creator)
-        defines some methods to create a `Run` instance or its member instance.
+        defines some functions to create a `Run` instance or its member instance.
     """
 
     def set_tracker(self, tracker):

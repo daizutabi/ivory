@@ -14,7 +14,7 @@ import ivory.core.base
 ivory.core.base.Callback.METHODS
 ```
 
-Any class that defines these functions can be a callback instance.
+Any class that defines these functions can be a callback.
 
 ```python
 class SimpleCallback:  # No base class is needed.
@@ -37,7 +37,7 @@ The number of registered instances is 1.
 list(caller)
 ```
 
-Then call the `CallbackCaller.create_callbacks()` method to build a callback network.
+Then call `CallbackCaller.create_callbacks()` to build a callback network.
 
 ```python
 caller.create_callbacks()
@@ -50,20 +50,20 @@ The number of instances increased up to 13.
 list(caller)
 ```
 
-Callback functions are added to the caller instance. Let's inspect some callback funtions.
+Callback functions are added to the caller instance. Let's inspect some callback functions.
 
 ```python
 caller.on_init_begin
 ```
 
-This is an empty callback because the caller has no instances that define the `on_init_begin()` function. On the other hand,
+This is an empty callback because the caller has no instances that define the `on_init_begin()`. On the other hand,
 
 
 ```python
 caller.on_fit_begin
 ```
 
-The `simple` instance is registered as a receiver of the `on_fit_begin()` function. We can call this.
+The `simple` instance is registered as a receiver of the `on_fit_begin()`. We can call this.
 
 ```python
 caller.on_fit_begin()
@@ -75,7 +75,7 @@ id(caller)
 
 This caller-receiver network among arbitrary instance collection builds a complex machine learning workflow.
 
-The `Run` class is a subclass of the `CallbackCaller` class and performs more library-specific process. We uses this `Run` class below.
+`Run` class is a subclass of the `CallbackCaller` and performs more library-specific process. We uses `Run` below.
 
 ## Example Callback: Results
 
@@ -138,7 +138,7 @@ def print_callbacks(obj):
 print_callbacks(results)  
 ```
 
-Let's play with the `Results` callback. The `Results.step()` method records the current index, output, and target.
+Let's play with the `Results` callback. `Results.step()` records the current index, output, and target.
 
 ```python
 import torch
@@ -166,7 +166,7 @@ run.on_epoch_end()
 results
 ```
 
-We performed a train and validation loop so that the `Results` instance has these data, but doesn't have test data. We can get data by nested dot-notation.
+We performed a train and validation loop so that the `Results` instance has these data, but doesn't have test data. 
 
 ```python
 results.train
@@ -190,4 +190,4 @@ results.val.target
 
 ## Other Callback
 
-There are several callback such as `Metrics`, `Monitor`, *etc*. We will learn about them in next [Training a Model](../training) tutorial.
+There are several callback such as `Metrics`, `Monitor`, *etc.* We will learn about them in next [Training a Model](../training) tutorial.

@@ -2,7 +2,7 @@
 
 {{ ## cache:clear }}
 
-Ivory uses three classes for data presentation: `Data`, `Dataset`, and `Datasets`. In this tutorial, we use the following Python module to explain them.
+Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`, and `DataLoaders`. In this tutorial, we use the following Python module to explain them.
 
 #File rectangle/data.py {%=/examples/rectangle/data.py%}
 
@@ -17,14 +17,14 @@ data = rectangle.data.Data()
 data
 ```
 
-In the `Data.init()` method, we need to define 4 attributes:
+In `Data.init()`, we need to define 4 attributes:
 
 * `index`: Index of samples.
 * `input`: Input data.
 * `target`: Target data.
 * `fold`: Fold number.
 
-A `Data.get()` method returns a tuple of (`index`, `input`, `target`). This method is called from the `Dataset` instance when the dataset is indexed.
+`Data.get()` returns a tuple of (`index`, `input`, `target`). This function is called from `Dataset` instances when the dataset is indexed.
 
 ```python
 data.get(0)  # Integer index.
@@ -34,9 +34,9 @@ data.get(0)  # Integer index.
 data.get([0, 10, 20])  # Array-like index. list or np.ndarray
 ```
 
-## Dataset
+## Dataset Class
 
-An instance of the `Dataset` class holds one of train, validation, and test dataset. We use the Ivory's default `Dataset` class here instead of defining a subclass. The `Dataset()` initializer requires three arguments: A `Data` instance, `mode`, and `fold`.
+An instance of the `Dataset` class holds one of train, validation, and test dataset. We use the Ivory's default `Dataset` here instead of defining a subclass. `Dataset()` initializer requires three arguments: A `Data` instance, `mode`, and `fold`.
 
 ```python
 import ivory.core.data
@@ -49,9 +49,9 @@ dataset
 ivory.core.data.Dataset(data, 'val', 1)  # Another mode is `test`.
 ```
 
-As the `Data` class, the `Dataset` class has a `init()` method without any arguments and no returned value.  You can define any code to modify data.
+As the `Data`, the `Dataset` has `init()` without any arguments and returned value.  You can define any code to modify data.
 
-To get data from an dataset. use normal indexing
+To get data from an `Dataset` instance, use normal indexing
 
 ```python
 dataset[0]  # Integer index.
@@ -66,9 +66,9 @@ print(len(index))
 index[:10]
 ```
 
-These data come from a subset of the `data` instance according to the mode and fold.
+These data come from a subset of the `Data` instance according to the mode and fold.
 
-The `Dataset` class takes an opptional and callable argument: `transform`.
+The `Dataset` takes an optional and callable argument: `transform`.
 
 ```python
 def transform(mode: str, input, target):
@@ -85,11 +85,11 @@ dataset_transformed[0]
 2 * dataset[0][1], 2 * dataset[0][2]
 ```
 
-Usually, we don't instantiate the `Dataset` class directly. Instead, the `Datasets` class create dataset instances.
+Usually, we don't instantiate the `Dataset` directly. Instead, the `Datasets` class create dataset instances.
 
-## Datasets
+## Datasets Class
 
-An instance of the `Datasets` class holds a set of train, validation, and test dataset. We use the Ivory's default `Datasets` class here instead of defining a subclass. The `Datasets()` initializer requires three arguments: A `Data` instance, `Dataset` factory, and `fold`.
+An instance of the `Datasets` class holds a set of train, validation, and test dataset. We use the Ivory's default `Datasets` here instead of defining a subclass. The `Datasets()` initializer requires three arguments: A `Data` instance, `Dataset` factory, and `fold`.
 
 ```python
 from ivory.core.data import Dataset
@@ -99,7 +99,7 @@ datasets
 ```
 
 !!! note
-    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` class itself or any function that returns a `Dataset` instance.
+    The second argument (`dataset`) is not a `Dataset` instance but its factory that returns a `Dataset` instance. It may be a `Dataset` itself or any other function that returns a `Dataset` instance.
 
 ```python
 for mode, dataset in datasets.items():
@@ -112,4 +112,33 @@ Each dataset can be accessed by indexing or attributes.
 datasets['train'], datasets.val
 ```
 
-Using the `Datasets` class, we can easily split a whole data stored in a `Data` instance into three train, validation, and test dataset.
+Using the `Datasets`, we can easily split a whole data stored in a `Data` instance into three train, validation, and test dataset.
+
+## DataLoaders Class
+
+The `DataLoaders` class is used internally by `ivory.torch.trainer.Trainer` or
+`ivory.nnabla.trainer.Trainer` classes to yield a minibatch in training loop.
+
+```python
+from ivory.torch.data import DataLoaders
+
+dataloaders = DataLoaders(datasets, batch_size=4, shuffle=True)
+dataloaders
+```
+
+```python
+for mode, dataloader in dataloaders.items():
+    print(mode, dataloader)
+```
+
+```python
+next(iter(dataloaders.train))  # Shuffled
+```
+
+```python
+next(iter(dataloaders.val))  # Not shuffled, regardless of `shuffle` argument
+```
+
+```python
+next(iter(dataloaders.test))  # Not shuffled, regardless of `shuffle` argument
+```

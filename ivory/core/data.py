@@ -1,5 +1,6 @@
 """
-Ivory uses three classes for data presentation: `Data`, `Dataset`, and `Datasets`.
+Ivory uses four classes for data presentation: `Data`, `Dataset`, `Datasets`,
+and `DataLoaders`.
 
 Basically, you only need to define a class that is a subclass of `Data`
 and use original `Dataset` and `Datasets`. An example parameter YAML file is:
@@ -13,12 +14,15 @@ and use original `Dataset` and `Datasets`. An example parameter YAML file is:
 But if you need, you can define your `Dataset` and/or `Datasets`.
 
     datasets:
-      class: your.Datasets
+      class: your.Datasets  # a subclass of ivory.core.data.Datasets
       data:
         class: your.Data  # a subclass of ivory.core.data.Data
       dataset:
-        def: your.Dataset
+        def: your.Dataset  # a subclass of ivory.core.data.Dataset
       fold: 0
+
+The `DataLoaders` is used internally by `ivory.torch.trainer.Trainer` or
+`ivory.nnabla.trainer.Trainer` classes to yield a minibatch in training loop.
 
 Note:
     Use a `'def'` key for `dataset` instead of `'class'`.
@@ -38,7 +42,7 @@ class Data:
     """Base class to provide data to a `Dataset` instance.
 
     To make a subclass, you need to assign the following attributes in
-    the `Data.init()` method:
+    the `Data.init()`:
 
     * `index`: Index of samples.
     * `input`: Input data.
@@ -105,7 +109,7 @@ class Data:
     def get_input(self, index):
         """Returns input data.
 
-        By default, this method returns `self.input[index]`. You can override this
+        By default, this function returns `self.input[index]`. You can override this
         behavior in a subclass.
 
         Args:
@@ -116,7 +120,7 @@ class Data:
     def get_target(self, index):
         """Returns target data.
 
-        By default, this method returns `self.target[index]`. You can override this
+        By default, this function returns `self.target[index]`. You can override this
         behavior in a subclass.
 
         Args:
@@ -243,7 +247,8 @@ class DataLoaders(ivory.core.collections.Dict):
     Args:
         datasets: `Datasets` instance.
         batch_size: Batch_size
-        shuffle: If True, train dataset is shuffled.
+        shuffle: If True, train dataset is shuffled. Validation and test dataset are
+            not shuffled regardless of this value.
 
     Attributes:
         train (Dataset): Train dataset.

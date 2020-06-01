@@ -11,3 +11,45 @@ Ivory is library-agnostic. You can use it with any machine learning library.
 Get started using the Quickstart.
 
 - [Quickstart](quickstart)
+
+{{ ## cache:clear }}
+
+Or take a look at the code below.
+
+```python
+import numpy as np
+
+from ivory.callbacks.results import Results
+from ivory.core.data import Data, Dataset, Datasets
+from ivory.core.run import Run
+from ivory.sklearn.estimator import Estimator
+from ivory.sklearn.metrics import Metrics
+
+data = Data()
+data.index = np.arange(30)
+data.input = np.arange(60).reshape(30, -1)
+data.target = np.sum(data.input, axis=1)
+data.fold = data.index % 4
+datasets = Datasets(data, Dataset, fold=0)
+
+estimator = Estimator(
+    model='sklearn.ensemble.RandomForestRegressor',
+    n_estimators=10,
+    max_depth=5,
+)
+
+run = Run(
+    name='first example',
+    datasets=datasets,
+    estimator=estimator,
+    results=Results(),
+    metrics=Metrics()
+)
+run.start()
+```
+
+```python
+import matplotlib.pyplot as plt
+
+plt.scatter(run.results.val.target, run.results.val.output)
+```

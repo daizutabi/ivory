@@ -75,7 +75,7 @@ optimizer = create(doc, 'optimizer', globals={'model': model})
 optimizer
 ```
 
-A "**`$`**" is a starting point to refer other instance stored in the `globals` dictionary. In this case, `$.model` is replaced by the `model` instance in `globals`, then `.parameters()` invokes a call of the `model.parameters()` method.
+A "**`$`**" is a starting point to refer other instance stored in the `globals` dictionary. In this case, `$.model` is replaced by the `model` instance in `globals`, then `.parameters()` invokes a call of `Model.parameters()`.
 
 
 ## Scheduler
@@ -105,4 +105,4 @@ optimizer: $
 optimizer: $.optimizer
 ~~~
 
-Now we have had both data and model.
+Now we have had both data and a model.
