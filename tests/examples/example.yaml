@@ -8,7 +8,7 @@ study:
       def: example.suggest_hidden_sizes
       max_num_layers: 3
 run:
-  base: base
+  extends: base
   dataloaders:
     data:
       class: example.TorchData

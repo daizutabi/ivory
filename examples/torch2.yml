@@ -1,0 +1,7 @@
+library: torch
+extends: base
+model:
+  class: rectangle.torch.Model
+optimizer:
+  class: torch.optim.SGD
+  _: $.model.parameters()

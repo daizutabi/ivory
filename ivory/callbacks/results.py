@@ -1,5 +1,5 @@
 """A container to store training, validation and test results. """
-from typing import Callable, Dict, Iterable, List, Optional
+from typing import Callable, Dict, Iterable, Optional
 
 import numpy as np
 import pandas as pd
@@ -42,16 +42,16 @@ class Results(ivory.core.collections.Dict, State):
         dict = ivory.core.collections.Dict()
         return dict(index=self.index, output=self.output, target=self.target)
 
-    def set(self, **kwargs):
-        results = {}
-        for key, value in kwargs.items():
-            dict = ivory.core.collections.Dict()
-            if len(value) == 3:
-                dict(index=value[0], output=value[1], target=value[2])
-            else:
-                dict(index=value[0], output=value[1], target=None)
-            results[key] = dict
-        super().set(**results)
+    # def set(self, **kwargs):
+    #     results = {}
+    #     for key, value in kwargs.items():
+    #         dict = ivory.core.collections.Dict()
+    #         if len(value) == 3:
+    #             dict(index=value[0], output=value[1], target=value[2])
+    #         else:
+    #             dict(index=value[0], output=value[1], target=None)
+    #         results[key] = dict
+    #     super().set(**results)
 
     def mean(self):
         results = Results()
@@ -98,11 +98,11 @@ class BatchResults(Results):
         return super().result_dict()
 
 
-def stack(x: List[np.ndarray]) -> np.ndarray:
-    if x[0].ndim == 1:
-        return np.hstack(x)
-    else:
-        return np.vstack(x)
+# def stack(x: List[np.ndarray]) -> np.ndarray:
+#     if x[0].ndim == 1:
+#         return np.hstack(x)
+#     else:
+#         return np.vstack(x)
 
 
 def concatenate(

@@ -12,3 +12,4 @@ estimator:
   num_boost_round: 10
 results:
 metrics:
+  mse:

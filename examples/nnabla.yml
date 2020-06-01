@@ -1,25 +1,6 @@
 library: nnabla
-datasets:
-  data:
-    class: rectangle.data.Data
-    n_splits: 4
-  dataset:
-  fold: 0
+extends: base
 model:
   class: rectangle.nnabla.Model
-  hidden_sizes: [20, 30]
 optimizer:
   class: nnabla.solvers.Sgd
-  lr: 1e-3
-results:
-metrics:
-monitor:
-  metric: val_loss
-early_stopping:
-  patience: 10
-trainer:
-  loss: mse
-  batch_size: 10
-  epochs: 10
-  shuffle: true
-  verbose: 2

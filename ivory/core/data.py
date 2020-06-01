@@ -24,9 +24,7 @@ Note:
     Use a `'def'` key for `dataset` instead of `'class'`.
     See [Tutorial](/tutorial/data)
 """
-
-
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from typing import Callable, Optional, Tuple
 
 import numpy as np

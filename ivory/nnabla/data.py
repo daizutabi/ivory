@@ -25,6 +25,8 @@ class DataLoader:
         )
 
     def __len__(self):
+        if len(self.dataset) % self.batch_size:  # FIXME
+            raise NotImplementedError
         return len(self.dataset) // self.batch_size
 
     def load_func(self, index):

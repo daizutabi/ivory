@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from optuna.exceptions import TrialPruned
 from termcolor import colored
 
+from ivory.core import instance
 from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
 from ivory.core.state import State
@@ -14,6 +15,9 @@ class Trainer(State):
     epoch: int = -1
     epochs: int = 1
     global_step: int = -1
+    batch_size: int = 32
+    shuffle: bool = True
+    dataloaders: str = ""
     verbose: int = 1
 
     def start(self, run: Run):
@@ -26,6 +30,14 @@ class Trainer(State):
             self.train(run)
         else:
             self.test(run)
+
+    def on_init_begin(self, run):
+        if not run.dataloaders:
+            dataloaders_factory = instance.get_attr(self.dataloaders)
+            dataloaders = dataloaders_factory(
+                run.datasets, self.batch_size, self.shuffle
+            )
+            run.set(dataloaders=dataloaders)
 
     def train(self, run: Run):
         run.on_fit_begin()

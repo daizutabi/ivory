@@ -3,6 +3,7 @@ import shutil
 import sys
 
 import pytest
+import tensorflow as tf
 
 from ivory.core.client import create_client
 
@@ -10,7 +11,15 @@ sys.path.insert(0, os.path.abspath("tests/examples"))
 
 
 @pytest.fixture(scope="session")
-def client():
+def setup():
+    gpus = tf.config.experimental.list_physical_devices("GPU")
+    if gpus:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+
+
+@pytest.fixture(scope="session")
+def client(setup):
     client = create_client(directory="tests/examples")
     yield client
     if os.path.exists("tests/examples/mlruns"):

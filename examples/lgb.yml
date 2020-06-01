@@ -1,10 +1,4 @@
-datasets:
-  data:
-    class: rectangle.data.Data
-    n_splits: 4
-  dataset:
-    transform: rectangle.data.transform
-  fold: 0
+extends: data2
 estimator:
   class: ivory.lightgbm.estimator.Regressor
   boosting_type: gbdt

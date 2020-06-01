@@ -9,14 +9,12 @@ import ivory.core.trainer
 import ivory.nnabla.data
 import ivory.nnabla.functions
 from ivory.core import instance
-from ivory.core.run import Run
 
 
 @dataclass
 class Trainer(ivory.core.trainer.Trainer):
     loss: Optional[Callable] = None
-    batch_size: int = 32
-    shuffle: bool = True
+    dataloaders: str = "ivory.nnabla.data.DataLoaders"
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
@@ -28,6 +26,7 @@ class Trainer(ivory.core.trainer.Trainer):
             self.loss = instance.get_attr(self.loss)
 
     def on_init_begin(self, run):
+        super().on_init_begin(run)
         if self.gpu:
             context = "cudnn"
         else:
@@ -45,12 +44,6 @@ class Trainer(ivory.core.trainer.Trainer):
         if not run.model.parameters():
             run.model.build(self.loss, run.datasets.train, self.batch_size)
             run.optimizer.set_parameters(run.model.parameters())
-
-        if not run.dataloaders:
-            dataloaders = ivory.nnabla.data.DataLoaders(
-                run.datasets, self.batch_size, self.shuffle
-            )
-            run.set(dataloaders=dataloaders)
 
     def on_train_begin(self, run):
         run.model.train()
@@ -78,6 +71,6 @@ class Trainer(ivory.core.trainer.Trainer):
     def on_test_begin(self, run):
         run.model.eval()
 
-    def test_step(self, run, index, input, *target):
+    def test_step(self, run, index, input, target):
         output = run.model(input)
         run.results.step(index, output, target)

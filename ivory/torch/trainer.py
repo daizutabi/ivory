@@ -20,8 +20,7 @@ except ImportError:
 @dataclass
 class Trainer(ivory.core.trainer.Trainer):
     loss: Optional[Callable] = None
-    batch_size: int = 32
-    shuffle: bool = True
+    dataloaders: str = "ivory.torch.data.DataLoaders"
     gpu: bool = False
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
@@ -34,17 +33,13 @@ class Trainer(ivory.core.trainer.Trainer):
             self.loss = instance.get_attr(self.loss)
 
     def on_init_begin(self, run):
+        super().on_init_begin(run)
         if self.gpu:
             run.model.cuda()
             if self.precision == 16:
                 run.model, run.optimizer = amp.initialize(
                     run.model, run.optimizer, opt_level=self.amp_level
                 )
-        if not run.dataloaders:
-            dataloaders = ivory.torch.data.DataLoaders(
-                run.datasets, self.batch_size, self.shuffle
-            )
-            run.set(dataloaders=dataloaders)
 
     def on_train_begin(self, run):
         run.model.train()
