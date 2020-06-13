@@ -1,5 +1,5 @@
 """Early stopping when a monitored metric has stopped improving."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ivory.core.exceptions import EarlyStopped
 from ivory.core.run import Run
@@ -24,7 +24,7 @@ class EarlyStopping(State):
     """
 
     patience: int
-    wait: int = 0
+    wait: int = field(default=0, init=False)
 
     def on_epoch_end(self, run: Run):
         if run.monitor.is_best:

@@ -16,7 +16,8 @@ class Base(ivory.core.collections.Dict):
         **instances: Member instances. Key is its name and value is the member instance.
 
     Attributes:
-        params (dict, optional): Parameter dictionary to create this instance.
+        params (dict, optional): Parameter dictionary that is used to to create
+            this instance.
         id (str): Instance ID given by
             [MLFlow Tracking](https://www.mlflow.org/docs/latest/tracking.html).
         name (str): Instance name.
@@ -79,7 +80,7 @@ class Creator(Base):
                     {'hidden_sizes.0': 100}, fold=3
                 )
 
-            The `params` is the full parameter dictionary. while the `update` is a
+            The `params` is the full parameter dictionary, while the `update` is a
             part of `params`, i.e., `update = {'hidden_sizes.0': 100, 'fold': 3}`.
         """
         params = copy.deepcopy(self.params)

@@ -39,7 +39,7 @@ os.listdir('examples')
 
 `rectangle` is a Python package that contains our examples. YAML files with extension of `.yml` or possibly `.yaml` are parameter files to define a machine learning workflow. Basically, one YAML file is corresponding to one `Experiment` as discussed later, except the `client.yml` file. A YAML file name without the extension becomes an experiment name. `mlruns` is a directory automatically created by MLFlow Tracking in which our trained model and callbacks instances are saved.
 
-The `client.yml` is a configuration file for a `Client` instance. In our case, the file just contains the minimum settings.
+The `client.yml` is a configuration file for a `Client` instance. In our case, the file just contains the minimal settings.
 
 #File client.yml {%=/examples/client.yml%}
 
@@ -172,7 +172,7 @@ run = experiment.create_run({'optimizer.class': 'torch.optim.Adam'})
 run.optimizer
 ```
 
-This means that you can compare optimizer algorithms easily through multiple runs with minimum effort.
+This means that you can compare optimizer algorithms easily through multiple runs with minimal effort.
 
 ### Creating a run from a client
 

@@ -37,14 +37,7 @@ nav:
     - tutorial/tracking.md
     - tutorial/library.md
     - tutorial/cli.md
-  - Python API:
-    - ivory.core:
-      - api/ivory.core.data.md
-      - api/ivory.core.base.md
-      - api/ivory.core.client.md
-      - api/ivory.core.run.md
-    - ivory.callbacks:
-      - api/ivory.callbacks.md
+  - API: mkapi/api/ivory|upper|strict
 
 markdown_extensions:
   - admonition

@@ -51,7 +51,7 @@ client.tuner
 
 A `Tuner` instance connects Ivory to [Optuna: A hyperparameter optimization framework](https://preferred.jp/en/projects/optuna/).
 
-We can customize these objects with a YAML file named `client.yml` under the working directory.  In our case, the file just contains the minimum settings.
+We can customize these instances with a YAML file named `client.yml` under the working directory.  In our case, the file just contains the minimal settings.
 
 #File client.yml {%=/examples/client.yml%}
 
@@ -62,9 +62,9 @@ We can customize these objects with a YAML file named `client.yml` under the wor
 
 ## Create NumPy data
 
-In this quickstart, we try to predict rectangles area from their width and height using [PyTorch](https://pytorch.org/). First, prepare the data as [NumPy](https://numpy.org/) arrays. In `rectangle/data.py` under the working directory, a `create_data()` is defined. The `ivory.create_client()` automatically inserts the working directory to `sys.path`, so that we can import the module regardless of the current directory.
+In this quickstart, we try to predict rectangles area from their width and height using [PyTorch](https://pytorch.org/). First, prepare the data as [NumPy](https://numpy.org/) arrays. In `rectangle/data.py` under the working directory, `create_data()` is defined. The `ivory.create_client()` automatically inserts the working directory to `sys.path`, so that we can import the module regardless of the current directory.
 
-Let's check the `create_data()` defined in `rectangle/data.py` and an example output:
+Let's check the `create_data()` code and an example output:
 
 ```python hide
 import rectangle.data
