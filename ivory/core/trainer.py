@@ -19,6 +19,8 @@ class Trainer(State):
     shuffle: bool = True
     dataloaders: str = ""
     verbose: int = 1
+    metrics_freq: int = 0
+    tracking_freq: int = 0
 
     def start(self, run: Run):
         """Starts a train or test loop.
@@ -86,7 +88,15 @@ class Trainer(State):
         dataloader = self.tqdm(run.dataloaders.train, "train")
         for index, input, target in dataloader:
             self.global_step += 1
+            step = self.global_step + 1
             self.train_step(run, index, input, target)
+            if self.metrics_freq and step % self.metrics_freq == 0:
+                _, output, target = run.results()
+                metrics = run.metrics(output, target)
+                if self.verbose == 1:
+                    dataloader.set_postfix(metrics)
+                if self.tracking_freq and step % self.tracking_freq == 0:
+                    run.tracking.log_metrics(run.id, metrics, self.epoch)
         run.on_train_end()
 
     def val_loop(self, run: Run):

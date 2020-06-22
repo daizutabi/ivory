@@ -35,4 +35,4 @@ def test_callback_caller():
 
 def test_repr(run):
     run.create_callbacks()
-    assert repr(run.on_init_begin) == "Callback(['trainer'])"
+    assert repr(run.on_init_begin) == "Callback(['trainer', 'metrics'])"

@@ -1,5 +1,5 @@
 """Metrics to record scores while training."""
-from typing import Any, Dict, List
+from typing import List
 
 import numpy as np
 
@@ -18,6 +18,7 @@ class Metrics(ivory.core.collections.Dict, State):
         for key, value in kwargs.items():
             self.metrics_fn[key] = get_metric_function(key, value)
         self.history = ivory.core.collections.Dict()
+        self.run = None
 
     def __str__(self):
         metrics = []
@@ -30,6 +31,18 @@ class Metrics(ivory.core.collections.Dict, State):
         args = str(self).replace(" ", ", ")
         return f"{class_name}({args})"
 
+    def __call__(self, output, target):
+        metrics = {}
+        for base in reversed(self.__class__.mro()[0:-3]):
+            if hasattr(base, "call") and callable(base.call):
+                metrics.update(base.call(self, output, target))
+        for key, func in self.metrics_fn.items():
+            metrics[key] = func(target, output)
+        return metrics
+
+    def on_init_begin(self, run: Run):
+        self.run = run
+
     def on_epoch_begin(self, run: Run):
         if run.trainer:
             self.epoch = run.trainer.epoch
@@ -37,7 +50,9 @@ class Metrics(ivory.core.collections.Dict, State):
             self.epoch = 0
 
     def on_epoch_end(self, run: Run):
-        self.update(self.metrics_dict(run))
+        val = run.results.val
+        metrics = self(val.output, val.target)
+        self.update(metrics)
         self.update_history()
 
     def update_history(self):
@@ -46,15 +61,6 @@ class Metrics(ivory.core.collections.Dict, State):
                 self.history[metric] = {self.epoch: value}
             else:
                 self.history[metric][self.epoch] = value
-
-    def metrics_dict(self, run: Run) -> Dict[str, Any]:
-        """Returns an extra custom metrics dictionary."""
-        pred = run.results.val.output.reshape(-1)
-        true = run.results.val.target.reshape(-1)
-        metrics_dict = {}
-        for key, func in self.metrics_fn.items():
-            metrics_dict[key] = func(true, pred)
-        return metrics_dict
 
 
 class BatchMetrics(Metrics):
@@ -75,6 +81,16 @@ class BatchMetrics(Metrics):
 
     def on_val_end(self, run: Run):
         self["val_loss"] = np.mean(self.losses)
+
+    def on_epoch_end(self, run: Run):
+        val = run.results.val
+        metrics = self(val.output, val.target)
+        del metrics["loss"]
+        self.update(metrics)
+        self.update_history()
+
+    def call(self, output, target):
+        return {"loss": np.mean(self.losses)}
 
 
 METRICS = {"mse": "sklearn.metrics.mean_squared_error"}

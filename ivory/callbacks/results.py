@@ -25,6 +25,9 @@ class Results(ivory.core.collections.Dict, State):
         test (Dict): Test results.
     """
 
+    def __call__(self):
+        return self.index, self.output, self.target
+
     def reset(self):
         self.index = None
         self.output = None
@@ -55,7 +58,8 @@ class Results(ivory.core.collections.Dict, State):
 
     def result_dict(self):
         dict = ivory.core.collections.Dict()
-        return dict(index=self.index, output=self.output, target=self.target)
+        index, output, target = self()
+        return dict(index=index, output=output, target=target)
 
     def mean(self) -> "Results":
         """Returns a reduced `Results` instance aveaged by `index`."""
@@ -80,8 +84,16 @@ class Results(ivory.core.collections.Dict, State):
 
 
 class BatchResults(Results):
+    def __call__(self):
+        index = np.concatenate(self.indexes)
+        output = np.concatenate(self.outputs)
+        if self.targets:
+            target = np.concatenate(self.targets)
+        else:
+            target = None
+        return index, output, target
+
     def reset(self):
-        super().reset()
         self.indexes = []
         self.outputs = []
         self.targets = []
@@ -91,16 +103,6 @@ class BatchResults(Results):
         self.outputs.append(output)
         if target is not None:
             self.targets.append(target)
-
-    def result_dict(self):
-        index = np.concatenate(self.indexes)
-        output = np.concatenate(self.outputs)
-        if self.targets:
-            target = np.concatenate(self.targets)
-        else:
-            target = None
-        super().step(index, output, target)
-        return super().result_dict()
 
 
 def concatenate(

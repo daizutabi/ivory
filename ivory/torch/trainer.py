@@ -25,6 +25,7 @@ class Trainer(ivory.core.trainer.Trainer):
     precision: int = 32  # Full precision (32), half precision (16).
     amp_level: str = "O1"
     scheduler_step_mode: str = "epoch"
+    accumulate_grad_batches: int = 1
 
     def __post_init__(self):
         if isinstance(self.loss, str) and "." not in self.loss:
@@ -43,6 +44,7 @@ class Trainer(ivory.core.trainer.Trainer):
 
     def on_train_begin(self, run):
         run.model.train()
+        run.optimizer.zero_grad()
 
     def train_step(self, run, index, input, target):
         if self.gpu:
@@ -53,7 +55,8 @@ class Trainer(ivory.core.trainer.Trainer):
         loss = self.loss(output, target)
         run.metrics.step(loss.item())
         optimizer = run.optimizer
-        optimizer.zero_grad()
+        if self.global_step % self.accumulate_grad_batches == 0:
+            optimizer.zero_grad()
         if self.gpu and self.precision == 16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()

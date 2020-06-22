@@ -38,13 +38,11 @@ def create_model():
 
 
 class Metrics(ivory.callbacks.metrics.Metrics):
-    def metrics_dict(self, run):
-        pred = run.results.val["output"].argmax(axis=1)
-        true = run.results.val["target"]
+    def call(self, output, target):
+        pred = output.argmax(axis=1)
+        true = target
         score = np.mean(pred == true)
-        metrics_dict = {"score": score}
-        metrics_dict.update(super().metrics_dict(run))
-        return metrics_dict
+        return {"score": score}
 
 
 class CallbackMetric(Callback):

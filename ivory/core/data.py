@@ -39,7 +39,7 @@ from ivory.core import instance
 
 @dataclass
 class Data:
-    """Base class to provide data to a `Dataset` instance.
+    """Base class to provide data to a Dataset_ instance.
 
     To make a subclass, you need to assign the following attributes in
     the `Data.init()`:
