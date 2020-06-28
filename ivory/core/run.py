@@ -73,7 +73,7 @@ class Run(CallbackCaller):
         """
         if mode == "both":
             self.start("train")
-            if self.tracker:
+            if self.tracker and len(self.datasets.test):
                 self.tracker.load_state_dict(self, "best")
                 self.start("test")
         else:

@@ -83,20 +83,23 @@ class Trainer(State):
             dataloader = tqdm(dataloader, desc=mode, leave=False)
         return dataloader
 
+    def update(self, run, dataloader):
+        step = self.global_step + 1
+        if self.metrics_freq and step % self.metrics_freq == 0:
+            _, output, target = run.results()
+            metrics = run.metrics(output, target)
+            if self.verbose == 1:
+                dataloader.set_postfix(metrics)
+            if self.tracking_freq and step % self.tracking_freq == 0:
+                run.tracking.log_metrics(run.id, metrics, self.epoch)
+
     def train_loop(self, run: Run):
         run.on_train_begin()
         dataloader = self.tqdm(run.dataloaders.train, "train")
         for index, input, target in dataloader:
             self.global_step += 1
-            step = self.global_step + 1
             self.train_step(run, index, input, target)
-            if self.metrics_freq and step % self.metrics_freq == 0:
-                _, output, target = run.results()
-                metrics = run.metrics(output, target)
-                if self.verbose == 1:
-                    dataloader.set_postfix(metrics)
-                if self.tracking_freq and step % self.tracking_freq == 0:
-                    run.tracking.log_metrics(run.id, metrics, self.epoch)
+            self.update(run, dataloader)
         run.on_train_end()
 
     def val_loop(self, run: Run):
