@@ -241,6 +241,7 @@ class Datasets(ivory.core.collections.Dict):
             self[mode] = self.dataset(self.data, mode, self.fold)
 
 
+@dataclass
 class DataLoaders(ivory.core.collections.Dict):
     """DataLoaders class represents a collection of `DataLoader`.
 
@@ -256,10 +257,16 @@ class DataLoaders(ivory.core.collections.Dict):
         test (Dataset): Test dataset.
     """
 
-    def __init__(self, datasets: Datasets, batch_size: int, shuffle: bool):
+    datasets: Datasets
+    batch_size: int
+    shuffle: bool = True
+
+    def __post_init__(self):
         super().__init__()
+        shuffle = self.shuffle
         for mode in ["train", "val", "test"]:
-            self[mode] = self.get_dataloader(datasets[mode], batch_size, shuffle)
+            dataset = self.datasets[mode]
+            self[mode] = self.get_dataloader(dataset, self.batch_size, shuffle)
             shuffle = False
 
     def get_dataloader(self, dataset, batch_size, shuffle):
