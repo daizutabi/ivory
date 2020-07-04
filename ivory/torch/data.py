@@ -17,10 +17,12 @@ class DataLoaders(ivory.core.data.DataLoaders):
     pin_memory: bool = False
 
     def get_dataloader(self, dataset, batch_size, shuffle):
+        drop_last = dataset.mode == "train"
         return DataLoader(
             dataset,
             batch_size=batch_size,
             shuffle=shuffle,
+            drop_last=drop_last,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
         )

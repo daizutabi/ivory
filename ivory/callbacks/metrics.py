@@ -93,7 +93,10 @@ class BatchMetrics(Metrics):
         return {"loss": np.mean(self.losses)}
 
 
-METRICS = {"mse": "sklearn.metrics.mean_squared_error"}
+METRICS = {
+    "mse": "sklearn.metrics.mean_squared_error",
+    "acc": "sklearn.metrics.accuracy_score",
+}
 
 
 def get_metric_function(key, value):

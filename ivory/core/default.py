@@ -36,6 +36,7 @@ DEFAULT_CLASS["core"] = {
 DEFAULT_CLASS["torch"] = {
     "run": "ivory.torch.run.Run",
     "dataset": "ivory.torch.data.Dataset",
+    "dataloaders": "ivory.torch.data.DataLoaders",
     "results": "ivory.torch.results.Results",
     "metrics": "ivory.torch.metrics.Metrics",
     "trainer": "ivory.torch.trainer.Trainer",

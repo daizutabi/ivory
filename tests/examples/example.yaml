@@ -9,10 +9,9 @@ study:
       max_num_layers: 3
 run:
   extends: base
-  dataloaders:
-    data:
-      class: example.TorchData
-      num_samples: __default__
+  data:
+    class: example.TorchData
+    num_samples: __default__
   model:
     class: example.Model
     hidden_sizes: [100, 100]
