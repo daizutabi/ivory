@@ -91,10 +91,14 @@ def update_class(params: Dict[str, Any], library: str = "core"):
 
         from ivory.core import instance
 
-        attr = instance.get_attr(attr)
-        if "__requires__" in dir(attr):
-            requires = getattr(attr, "__requires__")
-            for r in requires:
-                if r not in value:
-                    value[r] = {}
+        try:
+            attr = instance.get_attr(attr)
+        except AttributeError:
+            pass
+        else:
+            if "__requires__" in dir(attr):
+                requires = getattr(attr, "__requires__")
+                for r in requires:
+                    if r not in value:
+                        value[r] = {}
         update_class(value, library)

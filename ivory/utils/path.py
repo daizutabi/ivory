@@ -98,7 +98,7 @@ def inherit(params, source_name):
 def _inherit(params, source_name):
     base = {}
     for key, value in params.items():
-        if key == 'extends':
+        if key == "extends":
             break
         base[key] = value
     name = params.pop("extends")
@@ -133,3 +133,13 @@ def literal_eval(x):
         return v
     else:
         return x
+
+
+def iter_files():
+    for root, dirs, files in os.walk("."):
+        for file in files:
+            path = os.path.normpath(os.path.join(root, file))
+            yield path
+        for ignore in ["mlruns", "__pycache__"]:
+            if ignore in dirs:
+                dirs.remove(ignore)

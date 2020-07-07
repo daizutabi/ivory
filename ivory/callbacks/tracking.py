@@ -1,4 +1,5 @@
 import os
+from zipfile import ZipFile,ZIP_DEFLATED
 import tempfile
 import time
 from dataclasses import dataclass
@@ -43,12 +44,21 @@ class Tracking:
             with open(path, "w") as file:
                 yaml.dump(run.params, file, sort_keys=False)
             with utils.path.chdir(run.source_name):
-                self.client.log_artifacts(run.id, tmpdir)
+                self.client.log_artifact(run.id, path)
+
+    def log_files_artifact(self, run: Run):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "files.zip")
+            with utils.path.chdir(run.source_name):
+                with ZipFile(path, "w", compression=ZIP_DEFLATED) as zip:
+                    for file in utils.path.iter_files():
+                        zip.write(file)
+                self.client.log_artifact(run.id, path)
 
     def log_params(self, run_id: str, params: Dict[str, Any]):
         params_list = []
         for key, value in params.items():
-            if key != 'verbose':
+            if key != "verbose":
                 params_list.append(Param(key, to_str(value)))
         self.client.log_batch(run_id, metrics=[], params=params_list, tags=[])
 
@@ -72,7 +82,7 @@ class Tracking:
 
     def set_tags(self, run_id: str, tags: Dict[str, Any]):
         for key, value in tags.items():
-            if key != 'verbose':
+            if key != "verbose":
                 self.client.set_tag(run_id, key, to_str(value))
 
     def set_parent_run_id(self, run_id: str, parent_run_id: str):

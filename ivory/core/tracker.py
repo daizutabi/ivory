@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import mlflow
+import yaml
 from logzero import logger
 from mlflow.tracking.client import MlflowClient
 from mlflow.tracking.context import registry as context_registry
@@ -217,6 +218,25 @@ class Tracker:
                 elif arg in default:
                     update[arg] = default[arg]
             tracking.log_params(run_id, update)
+
+    def modify_params(
+        self, run_id: str, source_name: str, name="run", args=None, **kwargs
+    ):
+        if args is None:
+            args = {}
+        else:
+            args = args.copy()
+        args.update(kwargs)
+        params = self.load_params(run_id)
+        update, _ = utils.params.create_update(params[name], args)
+        utils.params.update_dict(params[name], update)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "params.yaml")
+            with open(path, "w") as file:
+                yaml.dump(params, file, sort_keys=False)
+            with utils.path.chdir(source_name):
+                self.client.log_artifacts(run_id, tmpdir)
 
     def set_parent_run_id(self, run_id: str, parent_run_id: str):
         self.client.set_tag(run_id, MLFLOW_PARENT_RUN_ID, parent_run_id)

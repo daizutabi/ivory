@@ -110,6 +110,7 @@ class Creator(Base):
 
             run.set_tracker(self.tracker, name)
             run.tracking.log_params_artifact(run)
+            run.tracking.log_files_artifact(run)
             args = {arg: utils.params.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
             run.set(pruning=Pruning())

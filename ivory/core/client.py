@@ -437,6 +437,7 @@ class Client(Base):
         callback=None,
         reduction: str = "none",
         verbose: bool = True,
+        mode: str = "test",
     ) -> Results:
         """Loads results from multiple runs and concatenates them.
 
@@ -450,9 +451,9 @@ class Client(Base):
             A concatenated results instance.
         """
         if isinstance(run_ids, str):
-            return self.load_instance(run_ids, "results")
+            return self.load_instance(run_ids, "results", mode)
         run_ids = list(run_ids)
-        it = (self.load_instance(run_id, "results") for run_id in run_ids)
+        it = (self.load_instance(run_id, "results", mode) for run_id in run_ids)
         if verbose:
             it = tqdm(it, total=len(run_ids), leave=False)
         return ivory.callbacks.results.concatenate(
@@ -471,6 +472,9 @@ class Client(Base):
             if name and not re.match(name, experiment.name):
                 continue
             self.tracker.update_params(experiment.experiment_id, **default)
+
+    def modify_params(self, run_id: str, name="run", args=None, **kwargs):
+        self.tracker.modify_params(run_id, self.source_name, name, args, **kwargs)
 
     def remove_deleted_runs(self, name: str = "") -> int:
         """Removes deleted runs from a local file system.
