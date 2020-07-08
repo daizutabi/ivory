@@ -82,7 +82,6 @@ setup(
         "click",
         "logzero",
         "tqdm",
-        "zlib",
     ],
     classifiers=[
         "Environment :: Console",
