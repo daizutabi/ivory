@@ -90,12 +90,13 @@ class Creator(Base):
         utils.params.update_dict(params[name], update)
         return params, args
 
-    def create_run(self, args=None, name: str = "run", **kwargs):
+    def create_run(self, args=None, name: str = "run", tags=None, **kwargs):
         """Creates a `Run` instance according to arguments.
 
         Args:
             args (dict, optional): Update dictionary.
             name: Run class name in lower case.
+            tags (dict, optional): Tags dictionary.
             **kwargs: Additional update dictionary.
 
         Returns:
@@ -113,6 +114,8 @@ class Creator(Base):
             run.tracking.log_files_artifact(run)
             args = {arg: utils.params.get_value(run.params[name], arg) for arg in args}
             run.tracking.log_params(run.id, args)
+            if tags:
+                run.tracking.set_tags(run.id, tags)
             run.set(pruning=Pruning())
         return run
 

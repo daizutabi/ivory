@@ -145,3 +145,12 @@ def test_remove_delted_runs(client):
     run.start()
     client.tracker.client.delete_run(run.id)
     assert client.remove_deleted_runs() == 1
+
+
+def test_run_tags(client):
+    run0 = client.create_run("example", tags=dict(name="abc"))
+    run1 = client.create_run("example", tags=dict(name="def"))
+    run2 = client.create_run("example", tags=dict(name="abc"))
+    assert client.get_run_id_by_tag("example", name="abc") == run2.id
+    assert client.get_run_id_by_tag("example", name="def") == run1.id
+    assert list(client.get_run_ids_by_tag("example", name="abc")) == [run2.id, run0.id]

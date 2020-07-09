@@ -103,13 +103,14 @@ class Client(Base):
         self.experiments[name] = experiment
         return experiment
 
-    def create_run(self, name: str, args=None, **kwargs) -> Run:
+    def create_run(self, name: str, args=None, tags=None, **kwargs) -> Run:
         """Creates a `Run`.
 
         Args:
             name: Experiment name.
             args (dict, optional): Parameter dictionary to update the default values
                 of `Experiment`.
+            tags (dict, Optional): Tags dictionary.
             **kwargs: Additional parameters.
 
         Examples:
@@ -121,7 +122,7 @@ class Client(Base):
 
                 run = client.create_run('example', {'model.class': 'your.new.Model'})
         """
-        return self.create_experiment(name).create_run(args, **kwargs)
+        return self.create_experiment(name).create_run(args, tags=tags, **kwargs)
 
     def create_task(self, name: str, run_number: Optional[int] = None) -> Task:
         """Creates a `Task` instance for multiple runs.
@@ -218,6 +219,31 @@ class Client(Base):
                 run_numbers = [run_numbers]
             for run_number in run_numbers:
                 yield self.get_run_id(name, **{run_name: run_number})
+
+    def get_run_id_by_tag(self, experiment_name: str, **tags) -> str:
+        """Returns a Run ID by tag.
+
+        Args:
+            experiment_name: Experiment name.
+            **tags: Tags dictionary.
+
+        Examples:
+            To get a Run ID which has a tag of name='abc'.
+
+                client.get_run_id_by_tag('example', name='abc')
+        """
+        experiment_id = self.tracker.get_experiment_id(experiment_name)
+        return next(self.tracker.get_run_ids_by_tag(experiment_id, tags))
+
+    def get_run_ids_by_tag(self, experiment_name: str, **tags) -> str:
+        """Returns an iterator that yields Run IDs.
+
+        Args:
+            experiment_name: Experiment name.
+            **tags: Tags dictionary.
+        """
+        experiment_id = self.tracker.get_experiment_id(experiment_name)
+        return self.tracker.get_run_ids_by_tag(experiment_id, tags)
 
     def get_parent_run_id(self, name: str, **kwargs) -> str:
         """Returns a parent Run ID of a nested run.

@@ -43,6 +43,14 @@ class Tracker:
             if get_run_name(run) == run_name:
                 return run.info.run_id
 
+    def get_run_ids_by_tag(self, experiment_id: str, tags: Dict[str, Any]):
+        for run in self.client.search_runs(experiment_id):
+            for key, value in tags.items():
+                if run.data.tags.get(key) != str(value):
+                    break
+            else:
+                yield run.info.run_id
+
     def create_experiment(self, name: str) -> str:
         experiment_id = self.get_experiment_id(name)
         if not experiment_id:
