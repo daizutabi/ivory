@@ -1,4 +1,6 @@
 import copy
+import inspect
+import os
 
 from typing import Any, Dict
 
@@ -61,9 +63,10 @@ DEFAULT_CLASS["sklearn"] = {
 }
 
 
-def update_class(params: Dict[str, Any], library: str = "core"):
+def update_class(params: Dict[str, Any], library: str = "core", source_name: str = ""):
     if "library" in params:
         library = params.pop("library")
+    directory = os.path.dirname(source_name)
     for key, value in params.items():
         if value is None:
             value = {}
@@ -85,7 +88,9 @@ def update_class(params: Dict[str, Any], library: str = "core"):
             else:
                 attr = None
             if attr:
-                value[kind] = attr
+                params[key] = {kind: attr}
+                params[key].update(value)
+                value = params[key]
             else:
                 params[key] = None
                 break
@@ -102,7 +107,9 @@ def update_class(params: Dict[str, Any], library: str = "core"):
                 for r in requires:
                     if r not in value:
                         value[r] = {}
-            for k, default in instance.get_default(attr).items():
-                if k not in value:
-                    value[k] = default
-        update_class(value, library)
+            sourcefile = inspect.getsourcefile(attr) or ""
+            if directory and directory in sourcefile:
+                for k, default in instance.get_default(attr).items():
+                    if k not in value:
+                        value[k] = default
+        update_class(value, library, source_name)
