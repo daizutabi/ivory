@@ -1,11 +1,12 @@
-import ast
 import contextlib
 import os
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Tuple
 
 import yaml
+
+import ast
+from typing import Any, Dict, Tuple
 
 Params = Dict[str, Any]
 
@@ -61,7 +62,7 @@ def load_params(name: str, source_name: str = "") -> Tuple[Params, str]:
         source_name = name
     with open(source_name, "r") as file:
         params_yaml = file.read()
-    params = yaml.safe_load(params_yaml)
+    params = yaml.load(params_yaml, Loader=yaml.Loader)
     params = literal_eval(params)
     update_include(params, source_name)
     params = inherit(params, source_name)

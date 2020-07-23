@@ -1,11 +1,12 @@
-import importlib
 import inspect
 import re
-import types
 from functools import partial
-from typing import Any, Callable, Dict, Iterable, Iterator, Tuple
 
+import dataclasses
+import importlib
+import types
 from ivory.core.default import update_class
+from typing import Any, Callable, Dict, Iterable, Iterator, Tuple
 
 
 def get_attr(path):
@@ -16,6 +17,23 @@ def get_attr(path):
     module_path, _, name = path.rpartition(".")
     module = importlib.import_module(module_path)
     return getattr(module, name)
+
+
+def get_default(attr):
+    try:
+        parameters = inspect.signature(attr).parameters
+    except ValueError:
+        return {}
+    defaults = {}
+    for name, param in parameters.items():
+        default = param.default
+        if default is param.empty:
+            continue
+        if isinstance(default, dataclasses._HAS_DEFAULT_FACTORY_CLASS):
+            default = attr.__dataclass_fields__[name].default_factory()
+        if isinstance(default, (int, float, str, list, tuple, dict)):
+            defaults[name] = default
+    return defaults
 
 
 def instantiate(params: Dict[str, Any], globals=None, kwargs=None):
@@ -45,16 +63,11 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
         attr = types.new_class(name, bases)
     else:
         attr = get_attr(params[key])
-    try:
-        signature = inspect.signature(attr)
-    except ValueError:
-        pass
-    else:
-        parameters = signature.parameters
-        for k, value in parameters.items():
-            default = value.default
-            if k in params and params[k] == "__default__":
-                params[k] = default
+
+    defaults = get_default(attr)
+    for k, default in defaults.items():
+        if k in params and params[k] == "__default__":
+            params[k] = default
     args = {k: v for k, v in params.items() if k != key}
     args = parse_value(args, globals, "")
     for k, value in args.items():

@@ -1,4 +1,5 @@
 import copy
+
 from typing import Any, Dict
 
 DEFAULTS: Dict[str, Any] = {}
@@ -101,4 +102,7 @@ def update_class(params: Dict[str, Any], library: str = "core"):
                 for r in requires:
                     if r not in value:
                         value[r] = {}
+            for k, default in instance.get_default(attr).items():
+                if k not in value:
+                    value[k] = default
         update_class(value, library)

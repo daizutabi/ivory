@@ -1,8 +1,7 @@
-from dataclasses import dataclass
-
 from optuna.exceptions import TrialPruned
 from termcolor import colored
 
+from dataclasses import dataclass, field
 from ivory.core import instance
 from ivory.core.exceptions import EarlyStopped, Pruned
 from ivory.core.run import Run
@@ -12,9 +11,7 @@ from ivory.utils.tqdm import tqdm
 
 @dataclass
 class Trainer(State):
-    epoch: int = -1
     epochs: int = 1
-    global_step: int = -1
     batch_size: int = 32
     shuffle: bool = True
     dataloaders: str = ""
@@ -22,6 +19,8 @@ class Trainer(State):
     metrics_freq: int = 0
     tracking_freq: int = 0
     checkpoint_freq: int = 0
+    epoch: int = field(default=-1, init=False)
+    global_step: int = field(default=-1, init=False)
 
     def start(self, run: Run):
         """Starts a train or test loop.
