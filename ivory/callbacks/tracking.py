@@ -1,8 +1,6 @@
 import os
 import tempfile
 import time
-from dataclasses import dataclass
-from typing import Any, Dict
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import mlflow
@@ -10,8 +8,10 @@ import yaml
 from mlflow.entities import Metric, Param
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
+from dataclasses import dataclass
 from ivory import utils
 from ivory.core.run import Run
+from typing import Any, Dict
 
 
 @dataclass
@@ -23,6 +23,10 @@ class Tracking:
 
     def on_epoch_end(self, run: Run):
         self.save_run(run, "current")
+        if run.trainer:
+            freq = run.trainer.checkpoint_freq
+            if freq and run.trainer.epoch % freq == 0:
+                self.save_run(run, f"epoch{run.trainer.epoch}")
         if not run.metrics:
             return
         metrics = run.metrics.copy()

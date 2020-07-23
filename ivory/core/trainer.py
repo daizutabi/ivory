@@ -21,6 +21,7 @@ class Trainer(State):
     verbose: int = 1
     metrics_freq: int = 0
     tracking_freq: int = 0
+    checkpoint_freq: int = 0
 
     def start(self, run: Run):
         """Starts a train or test loop.

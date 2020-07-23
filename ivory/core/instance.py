@@ -69,7 +69,7 @@ def _instantiate(params: Dict[str, Any], globals, kwargs):
     if key != "def":
         return attr(*positional, **args, **kwargs)
     else:
-        if args or kwargs:
+        if positional or args or kwargs:
             return partial(attr, *positional, **args, **kwargs)
         else:
             return attr

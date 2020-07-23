@@ -8,11 +8,14 @@ from ivory.utils.tqdm import tqdm
 
 
 class Trainer(ivory.core.estimator.Estimator):
-    def __init__(self, epoch=-1, epochs=1, batch_size=32, verbose=1, **kwargs):
+    def __init__(
+        self, epoch=-1, epochs=1, batch_size=32, verbose=1, checkpoint_freq=0, **kwargs
+    ):
         self.epoch = epoch
         self.epochs = epochs
         self.batch_size = batch_size
         self.verbose = verbose
+        self.checkpoint_freq = checkpoint_freq
         self.kwargs = kwargs
 
     def __repr__(self):
