@@ -1,8 +1,0 @@
-library: sklearn
-extends: data2
-estimator:
-  model: sklearn.linear_model.Ridge
-results:
-metrics:
-  mse:
-  mse_2: rectangle.metrics.mean_squared_error

@@ -1,6 +1,0 @@
-datasets:
-  data:
-    class: rectangle.data.Data
-    n_splits: 4
-  dataset:
-  fold: 0

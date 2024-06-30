@@ -1,44 +1,49 @@
-site_name: Ivory
-site_url: https://ivory.daizutabi.net/
-site_description: A Lightweight machine learning framework
+site_name: ivory
+site_url: https://daizutabi.github.io/ivory/
+site_description: PDF documentation generator
 site_author: daizutabi
-site_dir: ../ivory-site/site
-
 repo_url: https://github.com/daizutabi/ivory/
-edit_uri: ""
-
+repo_name: daizutabi/ivory
+edit_uri: edit/main/docs/
 theme:
-  name: ivory
-  highlightjs: true
-  hljs_languages:
-    - yaml
-
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: black
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - content.tooltips
+    - content.code.annotate
+    - navigation.expand
+    - navigation.indexes
+    - navigation.instant
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
 plugins:
-  - search
-  - pheasant:
-      version: ivory
-      cur_dir: config
-      sys_paths: [examples]
-  - mkapi
-
+  - search:
+markdown_extensions:
+  - pymdownx.magiclink
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - mkdocs-typer
 nav:
   - index.md
-  - quickstart.md
-  - Tutorial:
-    - tutorial/data.md
-    - tutorial/instance.md
-    - tutorial/model.md
-    - tutorial/callback.md
-    - tutorial/training.md
-    - tutorial/core.md
-    - tutorial/task.md
-    - tutorial/tuning.md
-    - tutorial/ui.md
-    - tutorial/tracking.md
-    - tutorial/library.md
-    - tutorial/cli.md
-  - API: mkapi/api/ivory|upper|strict
-
-markdown_extensions:
-  - admonition
-  - pymdownx.superfences

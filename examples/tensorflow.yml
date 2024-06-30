@@ -1,6 +1,0 @@
-library: tensorflow
-extends: base
-model:
-  call: rectangle.tensorflow.create_model
-optimizer:
-  class: tensorflow.keras.optimizers.SGD

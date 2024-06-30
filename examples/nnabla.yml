@@ -1,6 +1,0 @@
-library: nnabla
-extends: base
-model:
-  class: rectangle.nnabla.Model
-optimizer:
-  class: nnabla.solvers.Sgd

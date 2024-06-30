@@ -1,41 +1,16 @@
-[![PyPI version][pypi-image]][pypi-link]
-[![Python versions][pyversions-image]][pyversions-link]
-[![Travis][travis-image]][travis-link]
-[![AppVeyor][appveyor-image]][appveyor-link]
-[![Coverage Status][coveralls-image]][coveralls-link]
-[![Code style: black][black-image]][black-link]
+# ivory
 
-# Ivory
+[![PyPI Version][pypi-v-image]][pypi-v-link]
+[![Python Version][python-v-image]][python-v-link]
+[![Build Status][GHAction-image]][GHAction-link]
+[![Coverage Status][codecov-image]][codecov-link]
 
-Ivory is a lightweight framework for machine learning. It integrates model design, tracking, and hyperparmeter tuning. Ivory uses [MLflow Tracking](https://mlflow.org/docs/latest/tracking.html) for tracking and [Optuna](https://preferred.jp/en/projects/optuna/) for hyperparmeter tuning.
-
-Using Ivory, you can tackle both tracking and tuning workflow at one place.
-
-Another key feature of Ivory is its model design. You can write down all of your model structure and tracking/tuning process in one YAML file. It allows us to understand the whole process at a glance.
-
-
-## Setup
-
-Install Ivory using pip:
-
-```bash
-pip install ivory
-```
-
-## Documentation
-
-See [Ivory documentation](https://ivory.daizutabi.net).
-
-
-[pypi-image]: https://badge.fury.io/py/ivory.svg
-[pypi-link]: https://pypi.org/project/ivory
-[travis-image]: https://travis-ci.org/daizutabi/ivory.svg?branch=master
-[travis-link]: https://travis-ci.org/daizutabi/ivory
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/8axnc3q53ula9x01?svg=true
-[appveyor-link]: https://ci.appveyor.com/project/daizutabi/ivory
-[coveralls-image]: https://coveralls.io/repos/github/daizutabi/ivory/badge.svg?branch=master
-[coveralls-link]: https://coveralls.io/github/daizutabi/ivory?branch=master
-[black-image]: https://img.shields.io/badge/code%20style-black-000000.svg
-[black-link]: https://github.com/ambv/black
-[pyversions-image]: https://img.shields.io/pypi/pyversions/ivory.svg
-[pyversions-link]: https://pypi.org/project/ivory
+<!-- Badges -->
+[pypi-v-image]: https://img.shields.io/pypi/v/ivory.svg
+[pypi-v-link]: https://pypi.org/project/ivory/
+[python-v-image]: https://img.shields.io/pypi/pyversions/ivory.svg
+[python-v-link]: https://pypi.org/project/ivory
+[GHAction-image]: https://github.com/daizutabi/ivory/actions/workflows/ci.yml/badge.svg?branch=main&event=push
+[GHAction-link]: https://github.com/daizutabi/ivory/actions?query=event%3Apush+branch%3Amain
+[codecov-image]: https://codecov.io/github/daizutabi/ivory/coverage.svg?branch=main
+[codecov-link]: https://codecov.io/github/daizutabi/ivory?branch=main

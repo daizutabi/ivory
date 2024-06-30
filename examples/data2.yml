@@ -1,4 +1,0 @@
-extends: data
-datasets:
-  dataset:
-    transform: rectangle.data.transform

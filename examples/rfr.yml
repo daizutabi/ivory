@@ -1,8 +1,0 @@
-library: sklearn
-extends: data2
-estimator:
-  model: sklearn.ensemble.RandomForestRegressor
-  n_estimators: 5
-  max_depth: 3
-results:
-metrics:
