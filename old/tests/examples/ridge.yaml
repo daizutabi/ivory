@@ -1,0 +1,11 @@
+run:
+  library: sklearn
+  include: data.yaml
+  datasets:
+    fold: 0
+    data:
+    dataset:
+  estimator:
+    model: sklearn.linear_model.Ridge
+  results:
+  metrics:

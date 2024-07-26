@@ -1,0 +1,17 @@
+study:
+  tuner:
+    pruner:
+      class: optuna.pruners.MedianPruner
+  objective:
+    lr: example.suggest_lr
+    hidden_sizes:
+      def: example.suggest_hidden_sizes
+      max_num_layers: 3
+run:
+  extends: base
+  data:
+    class: example.TorchData
+    num_samples: __default__
+  model:
+    class: example.Model
+    hidden_sizes: [100, 100]
