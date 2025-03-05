@@ -1,0 +1,24 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0", "polars>=1.24.0"]
+build-backend = "maturin"
+
+[project]
+name = "ivory"
+version = "0.5.0"
+requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "polars>=1.24.0",
+]
+
+[tool.maturin]
+python-source = "python"
+module-name = "ivory._internal"
+
+# [[tool.mypy.overrides]]
+# module = "polars.utils.udfs"
+# ignore_missing_imports = true
