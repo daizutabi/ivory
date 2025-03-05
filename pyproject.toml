@@ -41,7 +41,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["ALL"]
 unfixable = ["F401"]
-ignore = ["D"]
+ignore = ["A005", "D", "PD", "T"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ANN", "ARG", "D", "FBT", "PLR", "RUF", "S"]
