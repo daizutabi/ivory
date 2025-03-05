@@ -22,6 +22,24 @@ def abs_i64(expr: IntoExprColumn) -> pl.Expr:
     )
 
 
+def abs_numeric(expr: IntoExprColumn) -> pl.Expr:
+    return register_plugin_function(
+        args=[expr],
+        plugin_path=LIB,
+        function_name="abs_numeric",
+        is_elementwise=True,
+    )
+
+
+def sum_i64(expr: IntoExprColumn, other: IntoExprColumn) -> pl.Expr:
+    return register_plugin_function(
+        args=[expr, other],
+        plugin_path=LIB,
+        function_name="sum_i64",
+        is_elementwise=True,
+    )
+
+
 def pig_latinnify(expr: IntoExprColumn) -> pl.Expr:
     return register_plugin_function(
         args=[expr],

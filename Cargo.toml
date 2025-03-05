@@ -13,3 +13,4 @@ pyo3-polars = { version = "0.20.0", features = ["derive"] }
 serde = { version = "1.0.218", features = ["derive"] }
 polars = { version = "0.46.0", default-features = false }
 polars-arrow = "0.46.0"
+num-traits = "0.2"
