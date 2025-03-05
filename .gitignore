@@ -1,9 +1,10 @@
-*.so
+*.coverage*
+*.dll
 *.pyc
+*.pyd
+*.so
+*.so
+.venv
+lcov.info
 target
 venv
-.venv
-*.so
-*.dll
-*.pyd
-

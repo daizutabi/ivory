@@ -11,13 +11,43 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = [
-    "polars>=1.24.0",
+dependencies = ["polars>=1.24.0"]
+
+[dependency-groups]
+dev = [
+  "pytest-xdist>=3.6",
+  "pytest-randomly>=3.16",
+  "pytest-cov>=6",
+  "pytest-clarity>=1",
+  "patchelf>=0.17.2.1",
+  "maturin>=1.8.2",
 ]
 
 [tool.maturin]
 python-source = "python"
 module-name = "ivory._internal"
+
+[tool.pytest.ini_options]
+addopts = ["--doctest-modules", "--cov=ivory", "--cov-report=lcov:lcov.info"]
+
+[tool.coverage.report]
+exclude_lines = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+skip_covered = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+unfixable = ["F401"]
+ignore = ["D"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "ARG", "D", "FBT", "PLR", "RUF", "S"]
+
+[tool.pyright]
+include = ["src", "tests"]
 
 # [[tool.mypy.overrides]]
 # module = "polars.utils.udfs"
