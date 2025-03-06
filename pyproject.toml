@@ -15,18 +15,17 @@ dependencies = ["polars>=1.24.0"]
 
 [dependency-groups]
 dev = [
-  "pytest-xdist>=3.6",
-  "pytest-randomly>=3.16",
-  "pytest-cov>=6",
-  "pytest-clarity>=1",
-  "patchelf>=0.17.2.1",
-  "maturin>=1.8.2",
+  "maturin[patchelf]>=1.8.2",
+  "pytest-clarity>=1.0.1",
+  "pytest-cov>=6.0.0",
+  "pytest-randomly>=3.16.0",
+  "pytest-xdist>=3.6.1",
 ]
 
 [tool.maturin]
-python-source = "src"
-manifest-path = "crates/bindings/Cargo.toml"
+manifest-path = "crates/python/Cargo.toml"
 module-name = "ivory"
+python-source = "src"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

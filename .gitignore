@@ -3,9 +3,7 @@
 *.pyc
 *.pyd
 *.so
-*.so
-.venv
+Cargo.lock
 lcov.info
 target
-venv
-Cargo.lock
+uv.lock
