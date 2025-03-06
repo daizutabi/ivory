@@ -2,6 +2,7 @@ use num_traits::Signed;
 use polars::prelude::arity::broadcast_binary_elementwise;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
+use pyo3_polars::export::polars_core::utils::CustomIterTools;
 use std::fmt::Write;
 
 fn same_output_type(input_fields: &[Field]) -> PolarsResult<Field> {
@@ -55,6 +56,23 @@ fn sum_i64(inputs: &[Series]) -> PolarsResult<Series> {
             (Some(left), Some(right)) => Some(left + right),
             _ => None,
         });
+    Ok(out.into_series())
+}
+
+#[polars_expr(output_type_func=same_output_type)]
+fn cum_sum(inputs: &[Series]) -> PolarsResult<Series> {
+    let s = &inputs[0];
+    let ca = s.i64()?;
+    let out: Int64Chunked = ca
+        .iter()
+        .scan(0_i64, |state, x| match x {
+            Some(x) => {
+                *state += x;
+                Some(Some(*state))
+            }
+            None => Some(None),
+        })
+        .collect_trusted();
     Ok(out.into_series())
 }
 

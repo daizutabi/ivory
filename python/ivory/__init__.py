@@ -40,6 +40,15 @@ def sum_i64(expr: IntoExprColumn, other: IntoExprColumn) -> pl.Expr:
     )
 
 
+def cum_sum(expr: IntoExprColumn) -> pl.Expr:
+    return register_plugin_function(
+        args=[expr],
+        plugin_path=LIB,
+        function_name="cum_sum",
+        is_elementwise=False,
+    )
+
+
 def pig_latinnify(expr: IntoExprColumn) -> pl.Expr:
     return register_plugin_function(
         args=[expr],
