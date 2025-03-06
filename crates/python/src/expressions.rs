@@ -1,4 +1,4 @@
-use num_traits::Signed;
+use ivory_core::expressions::impl_abs_numeric;
 use polars::prelude::arity::broadcast_binary_elementwise;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
@@ -18,16 +18,6 @@ fn abs_i64(inputs: &[Series]) -> PolarsResult<Series> {
     // cover in section 7.
     let out = ca.apply(|v| v.map(|v| v.abs()));
     Ok(out.into_series())
-}
-
-fn impl_abs_numeric<T>(ca: &ChunkedArray<T>) -> ChunkedArray<T>
-where
-    T: PolarsNumericType,
-    T::Native: Signed,
-{
-    // NOTE: there's a faster way of implementing `abs`, which we'll
-    // cover in section 7.
-    ca.apply(|opt_v| opt_v.map(|v| v.abs()))
 }
 
 #[polars_expr(output_type_func=same_output_type)]

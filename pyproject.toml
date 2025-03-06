@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.0,<2.0", "polars>=1.24.0"]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -24,10 +24,12 @@ dev = [
 ]
 
 [tool.maturin]
-python-source = "python"
+python-source = "src"
+manifest-path = "crates/bindings/Cargo.toml"
 module-name = "ivory"
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 addopts = ["--doctest-modules", "--cov=ivory", "--cov-report=lcov:lcov.info"]
 
 [tool.coverage.report]
@@ -48,7 +50,3 @@ ignore = ["A005", "D", "PD", "T"]
 
 [tool.pyright]
 include = ["src", "tests"]
-
-# [[tool.mypy.overrides]]
-# module = "polars.utils.udfs"
-# ignore_missing_imports = true

@@ -8,3 +8,4 @@
 lcov.info
 target
 venv
+Cargo.lock
