@@ -25,7 +25,7 @@ dev = [
 
 [tool.maturin]
 python-source = "python"
-module-name = "ivory._internal"
+module-name = "ivory"
 
 [tool.pytest.ini_options]
 addopts = ["--doctest-modules", "--cov=ivory", "--cov-report=lcov:lcov.info"]
