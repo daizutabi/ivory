@@ -49,3 +49,6 @@ ignore = ["A005", "D", "PD", "T"]
 
 [tool.pyright]
 include = ["src", "tests"]
+strictDictionaryInference = true
+strictListInference = true
+strictSetInference = true
