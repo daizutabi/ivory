@@ -5,7 +5,8 @@ build-backend = "maturin"
 [project]
 name = "ivory"
 version = "0.5.0"
-requires-python = ">=3.12"
+description = "A polars extension"
+requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Rust",
   "Programming Language :: Python :: Implementation :: CPython",
@@ -16,10 +17,12 @@ dependencies = ["polars>=1.24.0"]
 [dependency-groups]
 dev = [
   "maturin[patchelf]>=1.8.2",
+  "numpy>=2.2.3",
   "pytest-clarity>=1.0.1",
   "pytest-cov>=6.0.0",
   "pytest-randomly>=3.16.0",
   "pytest-xdist>=3.6.1",
+  "scipy>=1.15.2",
 ]
 
 [tool.maturin]
@@ -33,11 +36,12 @@ addopts = ["--doctest-modules", "--cov=ivory", "--cov-report=lcov:lcov.info"]
 
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+omit = ["src/ivory/typing.py"]
 skip_covered = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -45,7 +49,7 @@ unfixable = ["F401"]
 ignore = ["A005", "D", "PD", "T"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["ANN", "ARG", "D", "FBT", "PLR", "RUF", "S"]
+"tests/*" = ["ANN", "ARG", "D", "FBT", "NPY002", "PLR", "RUF", "S"]
 
 [tool.pyright]
 include = ["src", "tests"]
