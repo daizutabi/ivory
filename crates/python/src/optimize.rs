@@ -13,7 +13,7 @@ fn linear_fit_output(_: &[Field]) -> PolarsResult<Field> {
 #[polars_expr(output_type_func = linear_fit_output)]
 fn linear_fit(inputs: &[Series]) -> PolarsResult<Series> {
     if inputs.len() != 2 {
-        polars_bail!(ComputeError: "linear_fit expects 2 input series, got {}", inputs.len())
+        polars_bail!(ComputeError: "linear_fit expects 2 input series, got {}", inputs.len());
     }
 
     let x = inputs[0].f64()?;
@@ -33,7 +33,7 @@ fn linear_fit(inputs: &[Series]) -> PolarsResult<Series> {
 fn linear_transform_fit_output(_: &[Field]) -> PolarsResult<Field> {
     let fields = vec![
         Field::new("scale".into(), DataType::Float64),
-        Field::new("center".into(), DataType::Float64),
+        Field::new("offset".into(), DataType::Float64),
     ];
     Ok(Field::new(
         "linear_transform_fit".into(),
@@ -44,28 +44,28 @@ fn linear_transform_fit_output(_: &[Field]) -> PolarsResult<Field> {
 #[polars_expr(output_type_func = linear_transform_fit_output)]
 fn linear_transform_fit(inputs: &[Series]) -> PolarsResult<Series> {
     if inputs.len() != 2 {
-        polars_bail!(ComputeError: "linear_transform_fit expects 2 input series, got {}", inputs.len())
+        polars_bail!(ComputeError: "linear_transform_fit expects 2 input series, got {}", inputs.len());
     }
 
     let x = inputs[0].f64()?;
     let y = inputs[1].f64()?;
 
     let scale;
-    let center;
+    let offset;
 
     if let (Some(slope), Some(intercept)) = optimize::linear_fit(x, y)? {
         scale = Some(1.0 / slope);
-        center = Some(-intercept / slope);
+        offset = Some(-intercept / slope);
     } else {
         scale = None;
-        center = None;
+        offset = None;
     };
 
     let scale = Series::new("scale".into(), &[scale]);
-    let center = Series::new("center".into(), &[center]);
+    let offset = Series::new("offset".into(), &[offset]);
 
     Ok(
-        StructChunked::from_series("linear_transform_fit".into(), 1, [scale, center].iter())?
+        StructChunked::from_series("linear_transform_fit".into(), 1, [scale, offset].iter())?
             .into_series(),
     )
 }

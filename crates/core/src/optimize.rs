@@ -5,11 +5,11 @@ pub fn linear_fit(
     y: &Float64Chunked,
 ) -> PolarsResult<(Option<f64>, Option<f64>)> {
     if x.len() != y.len() {
-        polars_bail!(ShapeMismatch: "x and y must have the same length, got x: {}, y: {}", x.len(), y.len())
+        polars_bail!(ShapeMismatch: "x and y must have the same length, got x: {}, y: {}", x.len(), y.len());
     }
 
     if x.is_empty() {
-        polars_bail!(ComputeError: "Cannot perform linear regression on empty arrays")
+        polars_bail!(ComputeError: "Cannot perform linear regression on empty arrays");
     }
 
     let valid_mask = x.is_not_null() & y.is_not_null();
@@ -34,7 +34,7 @@ pub fn linear_fit(
     });
 
     if denominator.abs() < f64::EPSILON {
-        polars_bail!(ComputeError: "Denominator is zero, cannot compute slope")
+        polars_bail!(ComputeError: "Denominator is zero, cannot compute slope");
     }
 
     let slope = numerator / denominator;
