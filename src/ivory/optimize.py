@@ -38,7 +38,7 @@ def linear_transform_fit(x: IntoExprColumn, y: IntoExprColumn) -> Expr:
     """Perform linear regression on the input series.
 
     This function fits a linear model to the input series and
-    returns the center and scale.
+    returns the scale and offset.
 
     Args:
         x (IntoExprColumn): The independent variable.
@@ -46,7 +46,7 @@ def linear_transform_fit(x: IntoExprColumn, y: IntoExprColumn) -> Expr:
 
     Returns:
         Expr: A polars expression that evaluates to a struct
-        with the center and scale.
+        with the scale and offset.
     """
     return register_plugin_function(
         args=[x, y],

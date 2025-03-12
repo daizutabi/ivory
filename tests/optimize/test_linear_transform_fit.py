@@ -35,7 +35,7 @@ def test_linear_transform_fit(df: DataFrame, params):
 
     x = df["scale"].to_list()[0]
     np.testing.assert_allclose(x, params[0], rtol=1e-2)
-    x = df["center"].to_list()[0]
+    x = df["offset"].to_list()[0]
     np.testing.assert_allclose(x, params[1], rtol=1e-2)
 
 
@@ -45,7 +45,7 @@ def test_linear_transform_fit_one():
     df = DataFrame({"x": [1.0], "y": [2.0]})
     df = df.select(linear_transform_fit("x", "y").struct.unnest())
     assert df["scale"].is_null().all()
-    assert df["center"].is_null().all()
+    assert df["offset"].is_null().all()
 
 
 def test_linear_transform_fit_agg(inputs):
@@ -65,10 +65,10 @@ def test_linear_transform_fit_agg(inputs):
 
     x = df["scale"].to_list()[0]
     np.testing.assert_allclose(x, p1[0], rtol=1e-2)
-    x = df["center"].to_list()[0]
+    x = df["offset"].to_list()[0]
     np.testing.assert_allclose(x, p1[1], rtol=1e-2)
 
     x = df["scale"].to_list()[1]
     np.testing.assert_allclose(x, p2[0], rtol=1e-2)
-    x = df["center"].to_list()[1]
+    x = df["offset"].to_list()[1]
     np.testing.assert_allclose(x, p2[1], rtol=1e-2)
