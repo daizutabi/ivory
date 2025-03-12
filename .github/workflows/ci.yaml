@@ -38,17 +38,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin
-      - name: Run tests with coverage
-        run: |
-          mkdir -p coverage
-          cargo tarpaulin -p ivory-core --out Lcov --output-dir ./coverage
-      - name: Upload Rust coverage
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: lcov.info
-          flags: rust
-          fail_ci_if_error: false
+      - name: Run tests
+        run: cargo test -p ivory-core
 
   python-test:
     name: Python ${{ matrix.python-version }}
