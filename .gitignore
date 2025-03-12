@@ -3,7 +3,8 @@
 *.pyc
 *.pyd
 *.so
+.venv/
 Cargo.lock
 lcov.info
-target
+target/
 uv.lock
