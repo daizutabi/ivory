@@ -32,3 +32,26 @@ def linear_fit(x: IntoExprColumn, y: IntoExprColumn) -> Expr:
         is_elementwise=False,
         returns_scalar=True,
     )
+
+
+def linear_transform_fit(x: IntoExprColumn, y: IntoExprColumn) -> Expr:
+    """Perform linear regression on the input series.
+
+    This function fits a linear model to the input series and
+    returns the center and scale.
+
+    Args:
+        x (IntoExprColumn): The independent variable.
+        y (IntoExprColumn): The dependent variable.
+
+    Returns:
+        Expr: A polars expression that evaluates to a struct
+        with the center and scale.
+    """
+    return register_plugin_function(
+        args=[x, y],
+        plugin_path=Path(__file__).parent,
+        function_name="linear_transform_fit",
+        is_elementwise=False,
+        returns_scalar=True,
+    )
