@@ -24,7 +24,7 @@ jobs:
         run: ruff check
 
   rust-test:
-    name: Rust Tests
+    name: Rust
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +36,6 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
       - name: Run tests
         run: cargo test -p ivory-core
 
@@ -59,7 +57,7 @@ jobs:
           uv sync
       - name: Build the project
         run: uv run maturin develop
-      - name: Run test with coverage
+      - name: Run tests
         run: uv run pytest -v --cov=ivory --cov-report=lcov:lcov.info --junitxml=junit.xml
       - name: Upload Python coverage to Codecov
         uses: codecov/codecov-action@v4
