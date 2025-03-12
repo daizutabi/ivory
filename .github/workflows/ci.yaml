@@ -39,7 +39,9 @@ jobs:
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Run tests with coverage
-        run: cargo tarpaulin -p ivory-core --out Lcov --output-file lcov.info
+        run: |
+          mkdir -p coverage
+          cargo tarpaulin -p ivory-core --out Lcov --output-dir ./coverage
       - name: Upload Rust coverage
         uses: codecov/codecov-action@v4
         with:
