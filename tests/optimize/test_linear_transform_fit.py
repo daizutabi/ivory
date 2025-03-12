@@ -1,17 +1,18 @@
 import numpy as np
 import pytest
-from polars import DataFrame, Series
+from polars import DataFrame, Float64, Series
 from scipy.optimize import curve_fit
 
 
-@pytest.fixture(scope="module", params=range(20, 30))
+@pytest.fixture(
+    scope="module",
+    params=[
+        ([1, 2, 3, 4, 5, 6], [5, 6, 8, 5, 9, 7]),
+        ([1, 2, 3, 6, 8, 9], [4, 3, 7, 3, 6, 5]),
+    ],
+)
 def inputs(request: pytest.FixtureRequest):
-    center = np.random.rand() + 3
-    scale = np.random.rand() + 2
-    n = request.param
-    x = (np.random.rand(n) - center) / scale
-    y = x + np.random.randn(n) * 0.1
-    return x, y
+    return request.param
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def params(inputs):
 @pytest.fixture
 def df(inputs):
     x, y = inputs
-    return DataFrame({"x": x, "y": y})
+    return DataFrame({"x": x, "y": y}, schema={"x": Float64, "y": Float64})
 
 
 def test_linear_transform_fit(df: DataFrame, params):
@@ -51,7 +52,7 @@ def test_linear_transform_fit_agg(inputs):
     from ivory.optimize import linear_transform_fit
 
     x, y = inputs
-    df = DataFrame({"x": x, "y": y})
+    df = DataFrame({"x": x, "y": y}, schema={"x": Float64, "y": Float64})
     n = len(x)
     a = [1] * (n // 2) + [2] * (n - n // 2)
     df = df.with_columns(a=Series(a))
