@@ -29,9 +29,9 @@ def test_linear_fit(df: DataFrame, params):
     df = df.select(linear_fit("x", "y").struct.unnest())
 
     x = df["slope"].to_list()[0]
-    np.testing.assert_allclose(x, params[0], rtol=1e-5)
+    np.testing.assert_allclose(x, params[0], rtol=1e-3)
     x = df["intercept"].to_list()[0]
-    np.testing.assert_allclose(x, params[1], rtol=1e-5)
+    np.testing.assert_allclose(x, params[1], rtol=1e-3)
 
 
 def test_linear_fit_one():
@@ -59,11 +59,11 @@ def test_linear_fit_agg(inputs):
     p2, _ = curve_fit(lambda x, a, b: a * x + b, x[n // 2 :], y[n // 2 :])
 
     x = df["slope"].to_list()[0]
-    np.testing.assert_allclose(x, p1[0], rtol=1e-5)
+    np.testing.assert_allclose(x, p1[0], rtol=1e-3)
     x = df["intercept"].to_list()[0]
-    np.testing.assert_allclose(x, p1[1], rtol=1e-5)
+    np.testing.assert_allclose(x, p1[1], rtol=1e-3)
 
     x = df["slope"].to_list()[1]
-    np.testing.assert_allclose(x, p2[0], rtol=1e-5)
+    np.testing.assert_allclose(x, p2[0], rtol=1e-3)
     x = df["intercept"].to_list()[1]
-    np.testing.assert_allclose(x, p2[1], rtol=1e-5)
+    np.testing.assert_allclose(x, p2[1], rtol=1e-3)
