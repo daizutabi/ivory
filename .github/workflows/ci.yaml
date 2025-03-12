@@ -10,7 +10,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Ruff check
+        run: ruff check
+
+  rust-test:
+    name: Rust Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Run tests
+        run: cargo test -p ivory-core
+
+  python-test:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -22,25 +53,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Rust
-        run: rustup show
-      - name: Install uv and ruff
-        run: pip install uv ruff
-      - name: Install the project
-        run: uv sync
-      - name: Ruff check
-        run: ruff check
+      - name: Install uv and dependencies
+        run: |
+          pip install uv
+          uv sync
       - name: Build the project
         run: uv run maturin develop
-      - name: Run test
-        run: uv run pytest -v --junitxml=junit.xml
-      - name: Upload Codecov Results
-        if: success()
+      - name: Run test with coverage
+        run: uv run pytest -v --cov=ivory --cov-report=lcov:lcov.info --junitxml=junit.xml
+      - name: Upload Python coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: lcov.info
-      - name: Upload test results to Codecov
+          flags: python
+          fail_ci_if_error: false
+      - name: Upload test results
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
