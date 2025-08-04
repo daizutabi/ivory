@@ -9,4 +9,4 @@ polars-arrow = { workspace = true }
 
 [dev-dependencies]
 approx = "0.5.1"
-rstest = "0.25.0"
+rstest = "0.26.1"

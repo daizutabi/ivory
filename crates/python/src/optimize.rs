@@ -2,6 +2,20 @@ use ivory_core::optimize;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 
+// Workaround for pyo3-polars bug: polars_expr macro generates unresolved arrow module reference
+// The macro should reference polars_arrow::ffi but instead generates arrow::ffi
+// TODO: Remove when https://github.com/pola-rs/pyo3-polars/issues/[ISSUE_NUMBER] is fixed
+// This affects ALL polars_expr usage, not just output_type_func
+mod arrow {
+    pub use polars_arrow::ffi;
+}
+
+// Test function with output_type (no function) - also affected by the bug
+#[polars_expr(output_type=Float64)]
+fn simple_test(inputs: &[Series]) -> PolarsResult<Series> {
+    Ok(inputs[0].clone())
+}
+
 fn linear_fit_output(_: &[Field]) -> PolarsResult<Field> {
     let fields = vec![
         Field::new("slope".into(), DataType::Float64),
