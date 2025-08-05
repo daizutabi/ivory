@@ -4,7 +4,7 @@ use pyo3_polars::derive::polars_expr;
 
 // Workaround for pyo3-polars bug: polars_expr macro generates unresolved arrow module reference
 // The macro should reference polars_arrow::ffi but instead generates arrow::ffi
-// TODO: Remove when https://github.com/pola-rs/pyo3-polars/issues/[ISSUE_NUMBER] is fixed
+// TODO: Remove when https://github.com/pola-rs/polars/issues/23902 is fixed
 // This affects ALL polars_expr usage, not just output_type_func
 mod arrow {
     pub use polars_arrow::ffi;
