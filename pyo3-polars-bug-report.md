@@ -14,24 +14,31 @@ The `polars_expr` procedural macro generates an unresolved reference to `arrow` 
 - **Rust**: 1.82+ (latest stable)
 - **OS**: Ubuntu 24.04.2 LTS (but affects all platforms)
 
-## Current Workaround
-Add this module alias before using `polars_expr`:
+## Current Resolution
+**The issue has been officially fixed!** PR #23918 has been merged and the fix is now available directly from the git repository.
+
+~~Add this module alias before using `polars_expr`:~~
 
 ```rust
-// Workaround for pyo3-polars bug: polars_expr macro generates unresolved arrow module reference
-// The macro should reference polars_arrow::ffi but instead generates arrow::ffi
-// TODO: Remove when https://github.com/pola-rs/polars/issues/23902 is fixed
-// This affects ALL polars_expr usage, not just output_type_func
-mod arrow {
-    pub use polars_arrow::ffi;
-}
+// ❌ WORKAROUND NO LONGER NEEDED - ISSUE FIXED!
+// The official fix in PR #23918 has resolved the arrow module reference issue
+// All polars_expr macros now work correctly without any workaround
+
+// OLD WORKAROUND (now removed):
+// mod arrow {
+//     pub use polars_arrow::ffi;
+// }
 ```
+
+**✅ Simply use polars_expr macros directly - they work perfectly now!**
 
 ## Status
 - **Reported**: Issue #23902 in the Polars repository
-- **Status**: Under investigation by maintainers
-- **Workaround**: Available and functional
-- **Impact**: Affects all pyo3-polars derive functionality
+- **Status**: ✅ **FIXED** - PR #23918 merged and applied via git repository
+- **Workaround**: ❌ **REMOVED** - No longer needed, official fix is working
+- **Impact**: Resolved for all pyo3-polars derive functionality
+- **Timeline**: Reported → Diagnosed → Fixed → Merged → Applied within ~12 hours
+- **Applied**: August 5, 2025 - Official fix confirmed working in our codebase
 
 ## Related Issues
 - [polars#23902](https://github.com/pola-rs/polars/issues/23902) - Main issue tracker

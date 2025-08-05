@@ -6,7 +6,7 @@ resolver = "2"
 edition = "2021"
 
 [workspace.dependencies]
-polars = { version = "0.50.0", features = [
+polars = { git = "https://github.com/pola-rs/polars", version = "0.50.0", features = [
   "dtype-struct",
 ], default-features = false }
-polars-arrow = "0.50.0"
+polars-arrow = { git = "https://github.com/pola-rs/polars", version = "0.50.0" }
