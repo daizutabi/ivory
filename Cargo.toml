@@ -1,12 +1,12 @@
 [workspace]
 members = ["crates/core", "crates/python"]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 
 [workspace.dependencies]
-polars = { git = "https://github.com/pola-rs/polars", version = "0.50.0", features = [
+polars = { git = "https://github.com/pola-rs/polars", features = [
   "dtype-struct",
 ], default-features = false }
-polars-arrow = { git = "https://github.com/pola-rs/polars", version = "0.50.0" }
+polars-arrow = { git = "https://github.com/pola-rs/polars" }
